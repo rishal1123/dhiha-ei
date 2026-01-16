@@ -1271,31 +1271,14 @@ body {
         display: none; /* Chrome/Safari */
     }
 
-    /* Scroll indicator - fade edges hint */
-    #player-bottom {
+    /* Scroll indicator - fade edges hint (using pseudo-elements on hand-bottom instead) */
+    #hand-bottom {
         position: relative;
     }
 
     #player-bottom::before,
     #player-bottom::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 25px;
-        pointer-events: none;
-        z-index: 10;
-        opacity: 0.8;
-    }
-
-    #player-bottom::before {
-        left: 0;
-        background: linear-gradient(to right, var(--ocean-deep), transparent);
-    }
-
-    #player-bottom::after {
-        right: 0;
-        background: linear-gradient(to left, var(--ocean-deep), transparent);
+        display: none;
     }
 
     /* Override negative margins for scrollable hand */
@@ -1504,9 +1487,11 @@ body {
         height: 180px;
     }
 
-    #player-top,
-    #player-bottom {
+    #player-top {
         top: 5px;
+    }
+
+    #player-bottom {
         bottom: 5px;
     }
 
