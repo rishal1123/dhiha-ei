@@ -1202,11 +1202,11 @@ body {
         transform: translateX(-10px) scale(1.05);
     }
 
-    /* Score panels - repositioned and compact */
+    /* Score panels - moved to top left to not interfere with cards */
     #score-panel {
         position: fixed;
-        top: auto;
-        bottom: 90px;
+        top: 50px;
+        bottom: auto;
         left: 5px;
         flex-direction: row;
         gap: 5px;
@@ -1245,6 +1245,82 @@ body {
         height: 28px;
         font-size: 0.55rem;
         border-radius: 3px;
+    }
+
+    /* Player's hand - horizontally scrollable */
+    #player-bottom {
+        width: 100%;
+        max-width: 100vw;
+        padding: 0 10px;
+    }
+
+    #hand-bottom {
+        display: flex;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 20px;
+        margin: 0 -10px;
+        gap: 8px;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+    }
+
+    #hand-bottom::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+
+    /* Scroll indicator - fade edges hint */
+    #player-bottom {
+        position: relative;
+    }
+
+    #player-bottom::before,
+    #player-bottom::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 25px;
+        pointer-events: none;
+        z-index: 10;
+        opacity: 0.8;
+    }
+
+    #player-bottom::before {
+        left: 0;
+        background: linear-gradient(to right, var(--ocean-deep), transparent);
+    }
+
+    #player-bottom::after {
+        right: 0;
+        background: linear-gradient(to left, var(--ocean-deep), transparent);
+    }
+
+    /* Override negative margins for scrollable hand */
+    #hand-bottom .card {
+        margin: 0;
+        flex-shrink: 0;
+        scroll-snap-align: center;
+    }
+
+    /* Player's cards remain large and touch-friendly */
+    #player-bottom .card,
+    #hand-bottom .card {
+        width: 65px;
+        height: 93px;
+        font-size: 1.2em;
+        border-radius: 10px;
+        padding: 5px;
+    }
+
+    #player-bottom .card .card-corner {
+        font-size: 0.8rem;
+    }
+
+    #player-bottom .card .card-center {
+        font-size: 2rem;
     }
 
     /* Match points panel - top right compact */
@@ -1372,8 +1448,20 @@ body {
         height: 130px;
     }
 
-    .player-hand .card {
-        margin: 0 -14px;
+    /* Scrollable hand - smaller cards */
+    #hand-bottom .card {
+        width: 55px;
+        height: 79px;
+        margin: 0;
+        flex-shrink: 0;
+    }
+
+    #hand-bottom .card .card-corner {
+        font-size: 0.7rem;
+    }
+
+    #hand-bottom .card .card-center {
+        font-size: 1.6rem;
     }
 
     #player-left .player-hand .card,
@@ -1565,13 +1653,41 @@ body {
         letter-spacing: 3px;
     }
 
-    /* Player's cards - large and touch-friendly */
+    /* Player's hand container - full width scrollable */
+    #player-bottom {
+        width: 100%;
+        max-width: 100vw;
+        padding: 0 10px;
+        bottom: max(20px, calc(env(safe-area-inset-bottom) + 10px));
+    }
+
+    #hand-bottom {
+        display: flex;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 25px;
+        margin: 0 -10px;
+        gap: 10px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    #hand-bottom::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Player's cards - large and touch-friendly, no overlap for scrolling */
     #player-bottom .card,
     #hand-bottom .card {
         width: 72px;
         height: 103px;
         border-radius: 10px;
         padding: 6px;
+        margin: 0;
+        flex-shrink: 0;
+        scroll-snap-align: center;
         /* 44pt minimum touch target satisfied */
     }
 
@@ -1589,11 +1705,6 @@ body {
     #player-right .card {
         width: 40px;
         height: 57px;
-    }
-
-    /* Card overlap for hand display */
-    #hand-bottom .card {
-        margin: 0 -18px;
     }
 
     #player-left .player-hand .card,
@@ -1614,11 +1725,7 @@ body {
 
     /* Player positioning with safe areas */
     #player-top {
-        top: max(70px, calc(env(safe-area-inset-top) + 50px));
-    }
-
-    #player-bottom {
-        bottom: max(100px, calc(env(safe-area-inset-bottom) + 90px));
+        top: max(120px, calc(env(safe-area-inset-top) + 100px));
     }
 
     #player-left {
@@ -1638,7 +1745,7 @@ body {
     }
 
     #controls {
-        bottom: max(20px, calc(env(safe-area-inset-bottom) + 10px));
+        bottom: max(130px, calc(env(safe-area-inset-bottom) + 120px));
         gap: 12px;
     }
 
@@ -1649,15 +1756,18 @@ body {
         font-size: 0.9rem;
     }
 
-    /* Score panels optimized */
+    /* Score panels - at top, away from card area */
     #score-panel {
-        top: max(130px, calc(env(safe-area-inset-top) + 80px));
+        top: max(70px, calc(env(safe-area-inset-top) + 50px));
+        bottom: auto;
         left: 8px;
+        flex-direction: row;
     }
 
     .team-score {
-        padding: 10px 12px;
-        min-width: 85px;
+        padding: 8px 10px;
+        min-width: 80px;
+        font-size: 0.75rem;
     }
 
     #match-points-panel {
