@@ -2779,9 +2779,13 @@ body {
         font-size: 2rem;
     }
 
-    /* Scrollable hand for player */
+    /* Scrollable hand for player - MUST be at bottom */
     #player-bottom {
-        bottom: max(5px, env(safe-area-inset-bottom));
+        position: absolute !important;
+        top: auto !important;
+        bottom: max(5px, env(safe-area-inset-bottom)) !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
         width: 100%;
         max-width: calc(100vw - 150px);
         padding: 0;
@@ -2808,17 +2812,27 @@ body {
         scroll-snap-align: center;
     }
 
-    /* Player positions for landscape */
+    /* Player positions for landscape - explicit positioning */
     #player-top {
-        top: 35px;
+        position: absolute !important;
+        top: 35px !important;
+        bottom: auto !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
     }
 
     #player-left {
-        left: max(10px, env(safe-area-inset-left));
+        position: absolute !important;
+        left: max(10px, env(safe-area-inset-left)) !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
     }
 
     #player-right {
-        right: max(10px, env(safe-area-inset-right));
+        position: absolute !important;
+        right: max(10px, env(safe-area-inset-right)) !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
     }
 
     .player-hand .card {
@@ -3087,8 +3101,23 @@ body {
 
 @media screen and (max-height: 430px) and (orientation: landscape) {
     /* iPhone in landscape - notch on left or right */
+
+    /* Ensure player-bottom stays at bottom */
+    #player-bottom {
+        position: absolute !important;
+        top: auto !important;
+        bottom: max(5px, env(safe-area-inset-bottom)) !important;
+    }
+
+    /* Ensure player-top stays at top */
+    #player-top {
+        position: absolute !important;
+        top: 30px !important;
+        bottom: auto !important;
+    }
+
     #player-left {
-        left: max(50px, env(safe-area-inset-left));
+        left: max(50px, env(safe-area-inset-left)) !important;
     }
 
     #score-panel {
@@ -3096,7 +3125,7 @@ body {
     }
 
     #player-right {
-        right: max(50px, env(safe-area-inset-right));
+        right: max(50px, env(safe-area-inset-right)) !important;
     }
 
     #match-points-panel {
