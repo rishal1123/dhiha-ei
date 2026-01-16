@@ -2825,24 +2825,20 @@ body {
         width: 100dvw;
     }
 
-    /* Minimal header - just superior suit on mobile landscape */
+    /* Hide header in mobile landscape */
     #game-header {
-        padding: 3px 10px;
-        background: transparent;
-        justify-content: flex-start;
-        padding-left: max(10px, env(safe-area-inset-left));
-    }
-
-    #game-header h1 {
         display: none;
     }
 
+    /* Superior suit positioned below score panels */
     #superior-suit-display {
-        padding: 3px 10px;
-        font-size: 0.65rem;
         position: fixed;
-        top: 5px;
-        left: max(10px, env(safe-area-inset-left));
+        top: 50px;
+        left: calc(50% + 80px);
+        transform: translateX(-50%);
+        padding: 3px 12px;
+        font-size: 0.7rem;
+        z-index: 15;
     }
 
     /* Game board fills available space */
