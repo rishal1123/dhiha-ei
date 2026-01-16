@@ -1539,6 +1539,265 @@ body {
 }
 
 /* ===========================================
+   iPHONE 15 PRO MAX OPTIMIZATIONS
+   Screen: 430 x 932 points (2796 x 1290 @3x)
+   Dynamic Island: 126 x 37.33 points
+   Home indicator: 34pt from bottom
+   Min touch target: 44 x 44 points
+   =========================================== */
+
+/* iPhone 15 Pro Max Portrait */
+@media only screen
+    and (device-width: 430px)
+    and (device-height: 932px)
+    and (-webkit-device-pixel-ratio: 3),
+    screen and (width: 430px) and (height: 932px) {
+
+    /* Account for Dynamic Island - 59pt safe area top */
+    #game-header {
+        padding-top: max(59px, env(safe-area-inset-top));
+        height: auto;
+        min-height: 50px;
+    }
+
+    #game-header h1 {
+        font-size: 1.3rem;
+        letter-spacing: 3px;
+    }
+
+    /* Player's cards - large and touch-friendly */
+    #player-bottom .card,
+    #hand-bottom .card {
+        width: 72px;
+        height: 103px;
+        border-radius: 10px;
+        padding: 6px;
+        /* 44pt minimum touch target satisfied */
+    }
+
+    #player-bottom .card .card-corner {
+        font-size: 0.85rem;
+    }
+
+    #player-bottom .card .card-center {
+        font-size: 2rem;
+    }
+
+    /* Other players' cards - smaller */
+    #player-top .card,
+    #player-left .card,
+    #player-right .card {
+        width: 40px;
+        height: 57px;
+    }
+
+    /* Card overlap for hand display */
+    #hand-bottom .card {
+        margin: 0 -18px;
+    }
+
+    #player-left .player-hand .card,
+    #player-right .player-hand .card {
+        margin: -20px 0;
+    }
+
+    /* Play area - centered with proper sizing */
+    #play-area {
+        width: 180px;
+        height: 180px;
+    }
+
+    .played-card {
+        width: 50px;
+        height: 72px;
+    }
+
+    /* Player positioning with safe areas */
+    #player-top {
+        top: max(70px, calc(env(safe-area-inset-top) + 50px));
+    }
+
+    #player-bottom {
+        bottom: max(100px, calc(env(safe-area-inset-bottom) + 90px));
+    }
+
+    #player-left {
+        left: 8px;
+    }
+
+    #player-right {
+        right: 8px;
+    }
+
+    /* Touch-friendly buttons - 44pt minimum */
+    .lobby-btn {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 12px 24px;
+        font-size: 1rem;
+    }
+
+    #controls {
+        bottom: max(20px, calc(env(safe-area-inset-bottom) + 10px));
+        gap: 12px;
+    }
+
+    #menu-btn,
+    #new-game-btn {
+        min-height: 44px;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+
+    /* Score panels optimized */
+    #score-panel {
+        top: max(130px, calc(env(safe-area-inset-top) + 80px));
+        left: 8px;
+    }
+
+    .team-score {
+        padding: 10px 12px;
+        min-width: 85px;
+    }
+
+    #match-points-panel {
+        top: max(70px, calc(env(safe-area-inset-top) + 50px));
+        right: 8px;
+        padding: 10px 14px;
+        max-width: 130px;
+    }
+
+    /* Message overlay */
+    #message-content {
+        width: 90%;
+        max-width: 350px;
+        padding: 24px;
+    }
+
+    #message-button {
+        min-height: 44px;
+        min-width: 120px;
+        font-size: 1rem;
+    }
+
+    /* Turn indicator */
+    #turn-indicator {
+        width: 50px;
+        height: 50px;
+        font-size: 0.75rem;
+    }
+
+    /* Superior suit display */
+    #superior-suit-display {
+        font-size: 0.85rem;
+    }
+}
+
+/* iPhone 15 Pro Max Landscape */
+@media only screen
+    and (device-width: 430px)
+    and (device-height: 932px)
+    and (-webkit-device-pixel-ratio: 3)
+    and (orientation: landscape),
+    screen and (width: 932px) and (height: 430px) {
+
+    /* Landscape safe areas - Dynamic Island on left */
+    #game-header {
+        padding-left: max(59px, env(safe-area-inset-left));
+        padding-top: 8px;
+    }
+
+    /* Larger cards in landscape - more space */
+    #player-bottom .card,
+    #hand-bottom .card {
+        width: 90px;
+        height: 129px;
+        border-radius: 12px;
+    }
+
+    #player-bottom .card .card-center {
+        font-size: 2.5rem;
+    }
+
+    /* Other players */
+    #player-top .card,
+    #player-left .card,
+    #player-right .card {
+        width: 50px;
+        height: 72px;
+    }
+
+    /* Play area larger in landscape */
+    #play-area {
+        width: 220px;
+        height: 200px;
+    }
+
+    .played-card {
+        width: 60px;
+        height: 86px;
+    }
+
+    /* Player positioning landscape */
+    #player-bottom {
+        bottom: max(20px, env(safe-area-inset-bottom));
+    }
+
+    #player-left {
+        left: max(70px, calc(env(safe-area-inset-left) + 20px));
+    }
+
+    #player-right {
+        right: max(20px, env(safe-area-inset-right));
+    }
+
+    #score-panel {
+        left: max(70px, calc(env(safe-area-inset-left) + 10px));
+        top: 60px;
+        flex-direction: column;
+    }
+
+    #match-points-panel {
+        right: max(20px, env(safe-area-inset-right));
+        top: 10px;
+    }
+
+    #controls {
+        right: max(20px, env(safe-area-inset-right));
+        bottom: max(20px, env(safe-area-inset-bottom));
+    }
+}
+
+/* High contrast for OLED - deeper blacks */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --card-shadow: rgba(0, 0, 0, 0.6);
+    }
+
+    #game-container {
+        background: radial-gradient(ellipse at center bottom,
+            #003040 0%,
+            #001825 40%,
+            #000a10 100%);
+    }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .card,
+    .lobby-btn,
+    #turn-indicator {
+        transition: none;
+        animation: none;
+    }
+
+    .card.playable:hover,
+    .card.playable:active {
+        transform: scale(1.02);
+    }
+}
+
+/* ===========================================
    MULTIPLAYER LOBBY STYLES
    =========================================== */
 
