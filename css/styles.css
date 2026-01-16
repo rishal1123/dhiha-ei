@@ -82,7 +82,7 @@ body {
     right: auto;
     margin-right: 20px;
     padding: 10px 15px;
-    background: rgba(64, 224, 208, 0.2);
+    background: #1a5c5a;
     border: 2px solid var(--ocean-turquoise);
     border-radius: 12px;
     font-weight: 500;
@@ -94,14 +94,14 @@ body {
 #superior-suit-display.diamonds {
     color: var(--coral-red);
     border-color: var(--coral-red);
-    background: rgba(227, 93, 93, 0.2);
+    background: #4a2020;
 }
 
 #superior-suit-display.clubs,
 #superior-suit-display.spades {
     color: var(--text-light);
     border-color: var(--text-light);
-    background: rgba(255, 255, 255, 0.1);
+    background: #2a2a3a;
 }
 
 /* Match Points Panel - Maldivian Style */

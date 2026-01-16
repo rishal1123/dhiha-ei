@@ -13,13 +13,7 @@
 
   <!-- Top-left rank and suit -->
   <g transform="translate(25, 50)">
-    <text x="0" y="0" font-family="Georgia, serif" font-size="48" font-weight="bold" fill="#8B1E1E">A</text>
-    <polygon points="15,15 25,32 15,49 5,32" fill="#8B1E1E" transform="translate(2, 10)"/>
-  </g>
-
-  <!-- Bottom-right rank and suit (rotated 180°) -->
-  <g transform="translate(350, 475) rotate(180)">
-    <text x="0" y="0" font-family="Georgia, serif" font-size="48" font-weight="bold" fill="#8B1E1E">A</text>
+    <text x="0" y="0" font-family="Georgia, serif" font-size="96" font-weight="bold" fill="#8B1E1E">A</text>
     <polygon points="15,15 25,32 15,49 5,32" fill="#8B1E1E" transform="translate(2, 10)"/>
   </g>
 

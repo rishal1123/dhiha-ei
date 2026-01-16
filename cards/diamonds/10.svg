@@ -1,11 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 375 525" width="375" height="525">
   <rect x="0" y="0" width="375" height="525" rx="20" ry="20" fill="#F7F4EF"/>
   <g transform="translate(20, 50)">
-    <text x="0" y="0" font-family="Georgia, serif" font-size="44" font-weight="bold" fill="#8B1E1E">10</text>
-    <polygon points="18,15 28,32 18,49 8,32" fill="#8B1E1E"/>
-  </g>
-  <g transform="translate(355, 475) rotate(180)">
-    <text x="0" y="0" font-family="Georgia, serif" font-size="44" font-weight="bold" fill="#8B1E1E">10</text>
+    <text x="0" y="0" font-family="Georgia, serif" font-size="88" font-weight="bold" fill="#8B1E1E">10</text>
     <polygon points="18,15 28,32 18,49 8,32" fill="#8B1E1E"/>
   </g>
   <polygon points="187.5,170 247.5,262.5 187.5,355 127.5,262.5" fill="#8B1E1E"/>

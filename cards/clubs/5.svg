@@ -1,16 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 375 525" width="375" height="525">
   <rect x="0" y="0" width="375" height="525" rx="20" ry="20" fill="#F7F4EF"/>
   <g transform="translate(25, 50)">
-    <text x="0" y="0" font-family="Georgia, serif" font-size="48" font-weight="bold" fill="#1A1A1A">5</text>
-    <g transform="translate(15, 40)">
-      <circle cx="0" cy="-10" r="8" fill="#1A1A1A"/>
-      <circle cx="-8" cy="0" r="8" fill="#1A1A1A"/>
-      <circle cx="8" cy="0" r="8" fill="#1A1A1A"/>
-      <rect x="-2" y="0" width="4" height="15" fill="#1A1A1A"/>
-    </g>
-  </g>
-  <g transform="translate(350, 475) rotate(180)">
-    <text x="0" y="0" font-family="Georgia, serif" font-size="48" font-weight="bold" fill="#1A1A1A">5</text>
+    <text x="0" y="0" font-family="Georgia, serif" font-size="96" font-weight="bold" fill="#1A1A1A">5</text>
     <g transform="translate(15, 40)">
       <circle cx="0" cy="-10" r="8" fill="#1A1A1A"/>
       <circle cx="-8" cy="0" r="8" fill="#1A1A1A"/>

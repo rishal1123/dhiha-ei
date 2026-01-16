@@ -1,11 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 375 525" width="375" height="525">
   <rect x="0" y="0" width="375" height="525" rx="20" ry="20" fill="#F7F4EF"/>
   <g transform="translate(20, 50)">
-    <text x="0" y="0" font-family="Georgia, serif" font-size="44" font-weight="bold" fill="#8B1E1E">10</text>
-    <path d="M15,12 C15,12 15,8 11,8 C7,8 5,12 5,15 C5,21 15,28 15,28 C15,28 25,21 25,15 C25,12 23,8 19,8 C15,8 15,12 15,12 Z" fill="#8B1E1E" transform="translate(3, 12)"/>
-  </g>
-  <g transform="translate(355, 475) rotate(180)">
-    <text x="0" y="0" font-family="Georgia, serif" font-size="44" font-weight="bold" fill="#8B1E1E">10</text>
+    <text x="0" y="0" font-family="Georgia, serif" font-size="88" font-weight="bold" fill="#8B1E1E">10</text>
     <path d="M15,12 C15,12 15,8 11,8 C7,8 5,12 5,15 C5,21 15,28 15,28 C15,28 25,21 25,15 C25,12 23,8 19,8 C15,8 15,12 15,12 Z" fill="#8B1E1E" transform="translate(3, 12)"/>
   </g>
   <path d="M187.5,175 C187.5,175 187.5,155 157.5,155 C127.5,155 107.5,185 107.5,215 C107.5,275 187.5,345 187.5,345 C187.5,345 267.5,275 267.5,215 C267.5,185 247.5,155 217.5,155 C187.5,155 187.5,175 187.5,175 Z" fill="#8B1E1E"/>

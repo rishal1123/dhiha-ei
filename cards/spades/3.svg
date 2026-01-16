@@ -1,14 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 375 525" width="375" height="525">
   <rect x="0" y="0" width="375" height="525" rx="20" ry="20" fill="#F7F4EF"/>
   <g transform="translate(25, 50)">
-    <text x="0" y="0" font-family="Georgia, serif" font-size="48" font-weight="bold" fill="#1A1A1A">3</text>
-    <g transform="translate(0, 12)">
-      <path d="M12,0 C12,0 2,12 2,17 C2,21 5,24 9,24 C11,24 12,22 12,22 C12,22 13,24 15,24 C19,24 22,21 22,17 C22,12 12,0 12,0 Z" fill="#1A1A1A"/>
-      <rect x="9" y="21" width="6" height="9" fill="#1A1A1A"/>
-    </g>
-  </g>
-  <g transform="translate(350, 475) rotate(180)">
-    <text x="0" y="0" font-family="Georgia, serif" font-size="48" font-weight="bold" fill="#1A1A1A">3</text>
+    <text x="0" y="0" font-family="Georgia, serif" font-size="96" font-weight="bold" fill="#1A1A1A">3</text>
     <g transform="translate(0, 12)">
       <path d="M12,0 C12,0 2,12 2,17 C2,21 5,24 9,24 C11,24 12,22 12,22 C12,22 13,24 15,24 C19,24 22,21 22,17 C22,12 12,0 12,0 Z" fill="#1A1A1A"/>
       <rect x="9" y="21" width="6" height="9" fill="#1A1A1A"/>
