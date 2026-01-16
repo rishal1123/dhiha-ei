@@ -74,16 +74,15 @@ body {
     display: none;
 }
 
-/* Superior Suit Display - Positioned below scores */
+/* Superior Suit Display - Positioned next to score panel */
 #superior-suit-display {
     position: fixed;
-    top: 75px;
-    left: calc(50% + 50px);
-    transform: translateX(-50%);
-    padding: 6px 18px;
+    top: 15px;
+    right: 20px;
+    padding: 10px 15px;
     background: rgba(64, 224, 208, 0.2);
     border: 2px solid var(--ocean-turquoise);
-    border-radius: 25px;
+    border-radius: 12px;
     font-weight: 500;
     font-size: 1.2rem;
     z-index: 15;
@@ -212,8 +211,7 @@ body {
 #score-panel {
     position: fixed;
     top: 15px;
-    left: calc(50% + 50px);
-    transform: translateX(-50%);
+    right: 180px;
     display: flex;
     flex-direction: row;
     gap: 15px;
@@ -1260,12 +1258,13 @@ body {
         transform: translateX(-10px) scale(1.05);
     }
 
-    /* Score panels - moved to top left to not interfere with cards */
+    /* Score panels - moved to top right for consistency */
     #score-panel {
         position: fixed;
         top: 50px;
         bottom: auto;
-        left: 5px;
+        right: 150px;
+        left: auto;
         flex-direction: row;
         gap: 5px;
         z-index: 15;
@@ -1565,7 +1564,8 @@ body {
     #score-panel {
         top: 45px;
         bottom: auto;
-        left: 5px;
+        right: 150px;
+        left: auto;
     }
 
     #match-points-panel {
@@ -1661,7 +1661,8 @@ body {
     }
 
     #score-panel {
-        left: max(5px, env(safe-area-inset-left));
+        right: max(150px, calc(env(safe-area-inset-right) + 100px));
+        left: auto;
     }
 
     #match-points-panel {
@@ -1799,11 +1800,12 @@ body {
         font-size: 0.9rem;
     }
 
-    /* Score panels - at top, away from card area */
+    /* Score panels - at top right for consistency */
     #score-panel {
         top: max(70px, calc(env(safe-area-inset-top) + 50px));
         bottom: auto;
-        left: 8px;
+        right: 150px;
+        left: auto;
         flex-direction: row;
     }
 
@@ -1905,9 +1907,10 @@ body {
     }
 
     #score-panel {
-        left: max(70px, calc(env(safe-area-inset-left) + 10px));
+        right: max(150px, calc(env(safe-area-inset-right) + 100px));
+        left: auto;
         top: 60px;
-        flex-direction: column;
+        flex-direction: row;
     }
 
     #match-points-panel {
@@ -2805,13 +2808,14 @@ body {
         display: none;
     }
 
-    /* Superior suit positioned below score panels */
+    /* Superior suit positioned next to score panels */
     #superior-suit-display {
         position: fixed;
-        top: 50px;
-        left: calc(50% + 130px);
-        transform: translateX(-50%);
-        padding: 3px 12px;
+        top: 5px;
+        right: 10px;
+        left: auto;
+        transform: none;
+        padding: 4px 10px;
         font-size: 0.7rem;
         z-index: 15;
     }
@@ -2986,12 +2990,13 @@ body {
         height: 40px;
     }
 
-    /* Score panels - compact, shifted right of center */
+    /* Score panels - positioned at right side on mobile */
     #score-panel {
         position: fixed;
         top: 5px;
-        left: calc(50% + 130px);
-        transform: translateX(-50%);
+        right: 100px;
+        left: auto;
+        transform: none;
         flex-direction: row;
         gap: 8px;
     }
@@ -3270,7 +3275,8 @@ body {
     }
 
     #score-panel {
-        left: max(50px, env(safe-area-inset-left));
+        right: max(100px, calc(env(safe-area-inset-right) + 50px));
+        left: auto;
     }
 
     #player-right {
