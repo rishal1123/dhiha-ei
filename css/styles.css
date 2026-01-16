@@ -80,6 +80,7 @@ body {
     top: 15px;
     left: 20px;
     right: auto;
+    margin-right: 20px;
     padding: 10px 15px;
     background: rgba(64, 224, 208, 0.2);
     border: 2px solid var(--ocean-turquoise);
