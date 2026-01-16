@@ -4,7 +4,7 @@
  */
 
 // IMPORTANT: Increment this version to trigger update
-const CACHE_VERSION = 15;
+const CACHE_VERSION = 16;
 const CACHE_NAME = `dhiha-ei-v${CACHE_VERSION}`;
 const OFFLINE_URL = '/';
 
