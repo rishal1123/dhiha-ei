@@ -9,7 +9,7 @@ WORKDIR /app
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV PORT=8080
+ENV PORT=5002
 
 # Install dependencies
 COPY requirements.txt .
@@ -19,11 +19,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Expose port
-EXPOSE 8080
+EXPOSE 5002
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/')" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5002/')" || exit 1
 
 # Run the server
 CMD ["python", "server.py"]
