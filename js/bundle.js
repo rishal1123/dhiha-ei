@@ -120,7 +120,11 @@
         }
 
         setupSocketListeners() {
-            if (!socket) return;
+            if (!socket) {
+                console.error('setupSocketListeners called but socket is null!');
+                return;
+            }
+            console.log('setupSocketListeners called, setting up listeners');
 
             // Players changed
             socket.on('players_changed', (data) => {
@@ -153,9 +157,13 @@
 
             // Game started
             socket.on('game_started', (data) => {
+                console.log('game_started event received:', data);
                 this.gameStartData = data;
                 if (this.onGameStart) {
+                    console.log('Calling onGameStart callback');
                     this.onGameStart(data);
+                } else {
+                    console.error('onGameStart callback not set!');
                 }
             });
 
@@ -1016,6 +1024,7 @@
         }
 
         setMultiplayerMode(syncManager, localPosition, playerNames) {
+            console.log('setMultiplayerMode called:', { localPosition, playerNames });
             this.isMultiplayer = true;
             this.localPlayerPosition = localPosition;
             this.syncManager = syncManager;
@@ -1025,12 +1034,19 @@
             // Reinitialize players for multiplayer
             this.initializePlayers(true, localPosition);
 
+            // Apply player names after initialization
+            if (playerNames) {
+                this.setPlayerNames(playerNames);
+            }
+
             // Set up remote card play handler
             if (syncManager) {
                 syncManager.onRemoteCardPlayed = (cardData, position) => {
                     this.playRemoteCard(cardData, position);
                 };
             }
+
+            console.log('Multiplayer mode set. isMultiplayer:', this.isMultiplayer, 'localPosition:', this.localPlayerPosition);
         }
 
         setPlayerNames(names) {
@@ -1986,6 +2002,7 @@
         }
 
         async onMatchFound(data) {
+            console.log('onMatchFound called:', data);
             // Clean up matchmaking listeners
             this.cleanupMatchmakingListeners();
 
@@ -2000,6 +2017,7 @@
             this.lobbyManager = new LobbyManager();
             this.lobbyManager.currentRoomId = data.roomId;
             this.lobbyManager.currentPosition = data.position;
+            console.log('LobbyManager created with position:', data.position);
 
             // Set up callbacks
             this.lobbyManager.onPlayersChanged = (players) => {
@@ -2576,10 +2594,12 @@
 
         // Called when multiplayer game starts
         async onMultiplayerGameStart(data) {
+            console.log('onMultiplayerGameStart called with data:', data);
             this.isMultiplayerMode = true;
             document.getElementById('game-container').classList.add('multiplayer-mode');
             const roomId = this.lobbyManager.getRoomId();
             const localPosition = this.lobbyManager.getPosition();
+            console.log('Room:', roomId, 'Local position:', localPosition);
 
             // Get player names from start data
             const players = data.players;
@@ -2589,6 +2609,7 @@
                     playerNames[i] = players[i].name;
                 }
             }
+            console.log('Player names:', playerNames);
 
             // Create sync manager
             this.syncManager = new GameSyncManager(roomId, currentUserId, localPosition);
@@ -2597,9 +2618,31 @@
             // Set up game for multiplayer
             this.game.setMultiplayerMode(this.syncManager, localPosition, playerNames);
 
+            // Reset game state to initial state from server
+            if (data.gameState) {
+                this.game.currentPlayerIndex = data.gameState.currentPlayerIndex || 0;
+                this.game.trickNumber = data.gameState.trickNumber || 0;
+                this.game.superiorSuit = data.gameState.superiorSuit || null;
+                this.game.tricksWon = data.gameState.tricksWon || [0, 0];
+                this.game.tensCollected = data.gameState.tensCollected || [0, 0];
+                this.game.matchPoints = data.gameState.matchPoints || [0, 0];
+                this.game.roundOver = false;
+                this.game.matchOver = false;
+            }
+
             // Reconstruct hands from server data for ALL players (including host)
             // This is needed because setMultiplayerMode reinitializes players
             this.reconstructHandsFromData(data.hands);
+
+            // Reset the current trick
+            this.game.currentTrick = new Trick();
+
+            console.log('Game state after setup:', {
+                isMultiplayer: this.game.isMultiplayer,
+                localPosition: this.game.localPlayerPosition,
+                currentPlayer: this.game.currentPlayerIndex,
+                isLocalTurn: this.game.isLocalPlayerTurn()
+            });
 
             // Set up round started listener for subsequent rounds
             this.syncManager.onRoundStarted = (gameState, hands) => {
@@ -2919,6 +2962,15 @@
                 const isLocalTurn = this.game.isLocalPlayerTurn();
                 const validCards = isLocalTurn ? this.game.getValidCards() : [];
 
+                console.log('updateDisplay multiplayer:', {
+                    isMultiplayerMode: this.isMultiplayerMode,
+                    isMultiplayer: this.game.isMultiplayer,
+                    localPosition: this.game.localPlayerPosition,
+                    currentPlayer: this.game.currentPlayerIndex,
+                    isLocalTurn,
+                    validCardsCount: validCards.length
+                });
+
                 this.renderMultiplayerHands(validCards, (card) => this.handleCardClick(card));
                 this.updateMultiplayerTurnIndicator();
             } else {
@@ -3222,7 +3274,41 @@
                 `\n\nMatch Score: You ${state.matchPoints[0]} - ${state.matchPoints[1]} Opp`;
 
             await this.renderer.showMessage(title, text, 'Next Round');
-            this.startNextRound();
+
+            // In multiplayer, only host starts new rounds
+            if (this.isMultiplayerMode) {
+                if (this.lobbyManager && this.lobbyManager.isHost()) {
+                    // Host starts round and broadcasts
+                    this.game.startRound();
+                    this.renderer.clearPlayedCards();
+                    this.renderer.clearCollectedTens();
+                    this.renderer.updateSuperiorSuit(null);
+                    this.updateDisplay();
+
+                    // Sync new round to other players
+                    if (this.syncManager) {
+                        const handsData = {};
+                        this.game.players.forEach((player, index) => {
+                            handsData[index] = player.hand.map(card => ({
+                                suit: card.suit,
+                                rank: card.rank
+                            }));
+                        });
+                        this.syncManager.broadcastNewRound({
+                            currentPlayerIndex: this.game.currentPlayerIndex,
+                            trickNumber: this.game.trickNumber,
+                            superiorSuit: null,
+                            tricksWon: [0, 0],
+                            tensCollected: [0, 0],
+                            matchPoints: this.game.matchPoints
+                        }, handsData);
+                    }
+                }
+                // Non-hosts wait for round_started event
+            } else {
+                // Single player - just start next round
+                this.startNextRound();
+            }
         }
 
         async handleMatchOver(winner, points) {
@@ -3238,8 +3324,16 @@
                 text = `The opponents won the match.\n\nFinal Score: ${points[0]} - ${points[1]}`;
             }
 
-            await this.renderer.showMessage(title, text, 'New Match');
-            this.startNewMatch();
+            if (this.isMultiplayerMode) {
+                // In multiplayer, return to lobby after match
+                text += '\n\nReturning to lobby...';
+                await this.renderer.showMessage(title, text, 'OK');
+                await this.cleanupMultiplayer();
+                this.showLobby();
+            } else {
+                await this.renderer.showMessage(title, text, 'New Match');
+                this.startNewMatch();
+            }
         }
 
         init() {
