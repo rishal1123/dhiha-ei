@@ -1230,18 +1230,9 @@
                     }
                 }
 
-                // Check for match win
-                if (this.matchPoints[0] >= POINTS_TO_WIN_MATCH) {
-                    this.matchOver = true;
-                    this.matchWinner = 0;
-                } else if (this.matchPoints[1] >= POINTS_TO_WIN_MATCH) {
-                    this.matchOver = true;
-                    this.matchWinner = 1;
-                }
-
-                if (this.matchOver && this.onMatchOver) {
-                    this.onMatchOver(this.matchWinner, this.matchPoints);
-                } else if (this.onRoundOver) {
+                // No automatic match win - games continue until someone leaves
+                // Just call onRoundOver to continue to next round
+                if (this.onRoundOver) {
                     this.onRoundOver(roundResult);
                 }
                 return;
@@ -3384,11 +3375,34 @@
             // Hide any flash messages
             this.renderer.hideFlashMessage();
 
-            // Show message about player leaving
+            // Build score summary with player names
             const reasonText = reason === 'disconnected' ? 'disconnected' : 'left the game';
-            const message = `${playerName} has ${reasonText}.\n\nThe game cannot continue without all players.`;
 
-            await this.renderer.showMessage('Player Left', message, 'Leave Game');
+            // Get team scores and player names
+            const team0Score = this.game.matchPoints[0];
+            const team1Score = this.game.matchPoints[1];
+
+            // Get player names for each team
+            const team0Players = [];
+            const team1Players = [];
+
+            for (let i = 0; i < 4; i++) {
+                const player = this.game.players[i];
+                const name = this.game.remotePlayers[i] || player.name;
+                if (player.team === 0) {
+                    team0Players.push(name);
+                } else {
+                    team1Players.push(name);
+                }
+            }
+
+            // Build final score message
+            let scoreMessage = `${playerName} has ${reasonText}.\n\n`;
+            scoreMessage += `Final Score:\n\n`;
+            scoreMessage += `Team 1 (${team0Players.join(' & ')}): ${team0Score}\n`;
+            scoreMessage += `Team 2 (${team1Players.join(' & ')}): ${team1Score}`;
+
+            await this.renderer.showMessage('Game Ended', scoreMessage, 'Leave Game');
 
             // Clean up and return to lobby
             await this.cleanupMultiplayer();
