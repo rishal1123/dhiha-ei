@@ -1960,56 +1960,43 @@ body {
     }
 }
 
-/* Mobile Portrait Mode - Show Rotate Overlay */
+/* Mobile Portrait Mode - Force Landscape Layout */
 @media screen and (max-width: 900px) and (orientation: portrait) {
+    /* Hide rotate overlay - we force landscape instead */
     #rotate-overlay {
-        display: flex;
-        position: fixed;
+        display: none !important;
+    }
+
+    /* Force landscape layout by rotating the entire page */
+    html {
+        /* Rotate the page 90 degrees clockwise */
+        transform: rotate(90deg);
+        transform-origin: left top;
+        /* Swap width/height: width becomes viewport height, height becomes viewport width */
+        width: 100vh;
+        height: 100vw;
+        /* Position to fill the screen after rotation */
+        position: absolute;
         top: 0;
-        left: 0;
+        left: 100%;
+        overflow: hidden;
+    }
+
+    body {
         width: 100%;
         height: 100%;
-        background: linear-gradient(180deg, var(--night-blue) 0%, var(--ocean-deep) 100%);
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-        flex-direction: column;
-        color: var(--text-light);
+        overflow: hidden;
     }
 
-    .rotate-content {
-        text-align: center;
-        padding: 2rem;
-    }
-
-    .rotate-content h2 {
-        font-size: 1.5rem;
-        color: var(--sunset-gold);
-        margin-top: 1rem;
-    }
-
-    .rotate-content p {
-        font-size: 1rem;
-        color: var(--ocean-turquoise);
-        margin-top: 0.5rem;
-    }
-
-    .rotate-icon {
-        animation: rotateHint 2s ease-in-out infinite;
-    }
-
-    @keyframes rotateHint {
-        0%, 100% { transform: rotate(0deg); }
-        25% { transform: rotate(-15deg); }
-        75% { transform: rotate(15deg); }
-    }
-
-    /* Hide game content in portrait */
     #game-container {
-        display: none;
+        display: flex;
+        width: 100%;
+        height: 100%;
     }
 
     #lobby-overlay {
-        display: none;
+        display: flex;
+        width: 100%;
+        height: 100%;
     }
 }
