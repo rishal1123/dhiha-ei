@@ -7,6 +7,7 @@ import os
 import random
 import string
 import time
+import threading
 from flask import Flask, send_from_directory
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
@@ -80,12 +81,23 @@ def handle_disconnect():
         session = player_sessions[sid]
         room_id = session['roomId']
         position = session['position']
+        is_spectator = session.get('isSpectator', False)
 
         if room_id in rooms:
             room = rooms[room_id]
 
-            # Mark player as disconnected or remove
-            if position in room['players']:
+            if is_spectator:
+                # Remove spectator
+                if 'spectators' in room and sid in room['spectators']:
+                    spectator_name = room['spectators'][sid].get('name', 'Spectator')
+                    del room['spectators'][sid]
+                    emit('spectator_left', {
+                        'name': spectator_name,
+                        'spectators': room.get('spectators', {})
+                    }, room=room_id)
+                    print(f'Spectator {spectator_name} left room {room_id}')
+            elif position in room['players']:
+                # Mark player as disconnected or remove
                 if room['metadata']['status'] == 'playing':
                     # During game, mark as disconnected
                     room['players'][position]['connected'] = False
@@ -159,49 +171,117 @@ def handle_join_room(data):
         return
 
     room = rooms[room_id]
+    is_game_in_progress = room['metadata']['status'] == 'playing'
 
-    if room['metadata']['status'] != 'waiting':
-        emit('error', {'message': 'Game already in progress'})
-        return
-
-    # Find empty slot
     position = None
-    for i in range(4):
-        if i not in room['players']:
-            position = i
-            break
+    is_replacement = False
+    is_spectator = False
 
-    if position is None:
-        emit('error', {'message': 'Room is full'})
-        return
+    if is_game_in_progress:
+        # Game in progress - check for disconnected player slots first
+        for i in range(4):
+            if i in room['players'] and not room['players'][i].get('connected', True):
+                position = i
+                is_replacement = True
+                break
 
-    # Add player
-    room['players'][position] = {
-        'oderId': sid,
-        'name': player_name,
-        'ready': False,
-        'connected': True
-    }
-    room['metadata']['playerCount'] = len(room['players'])
+        # If no disconnected slot, join as spectator
+        if position is None:
+            is_spectator = True
+            # Add to spectators list
+            if 'spectators' not in room:
+                room['spectators'] = {}
+            room['spectators'][sid] = {
+                'oderId': sid,
+                'name': player_name,
+                'connected': True
+            }
+    else:
+        # Game not started - find empty slot
+        for i in range(4):
+            if i not in room['players']:
+                position = i
+                break
 
-    player_sessions[sid] = {
-        'roomId': room_id,
-        'position': position
-    }
+        if position is None:
+            emit('error', {'message': 'Room is full'})
+            return
 
-    join_room(room_id)
+    if is_spectator:
+        # Spectator join
+        player_sessions[sid] = {
+            'roomId': room_id,
+            'position': -1,  # -1 indicates spectator
+            'isSpectator': True
+        }
 
-    print(f'{player_name} joined room {room_id} at position {position}')
+        join_room(room_id)
 
-    # Notify the joining player
-    emit('room_joined', {
-        'roomId': room_id,
-        'position': position,
-        'players': room['players']
-    })
+        print(f'{player_name} joined room {room_id} as spectator')
 
-    # Notify others in room
-    emit('players_changed', {'players': room['players']}, room=room_id, include_self=False)
+        emit('room_joined', {
+            'roomId': room_id,
+            'position': -1,
+            'isSpectator': True,
+            'players': room['players'],
+            'spectators': room.get('spectators', {}),
+            'gameState': room.get('gameState'),
+            'gameInProgress': True
+        })
+
+        # Notify others
+        emit('spectator_joined', {
+            'name': player_name,
+            'spectators': room.get('spectators', {})
+        }, room=room_id, include_self=False)
+    else:
+        # Regular player or replacement
+        if is_replacement:
+            # Take over disconnected player's slot
+            old_player_name = room['players'][position]['name']
+            room['players'][position] = {
+                'oderId': sid,
+                'name': player_name,
+                'ready': True,  # Auto-ready for replacement
+                'connected': True
+            }
+            print(f'{player_name} replaced disconnected {old_player_name} in room {room_id} at position {position}')
+        else:
+            # New player in lobby
+            room['players'][position] = {
+                'oderId': sid,
+                'name': player_name,
+                'ready': False,
+                'connected': True
+            }
+            print(f'{player_name} joined room {room_id} at position {position}')
+
+        room['metadata']['playerCount'] = len([p for p in room['players'].values() if p.get('connected', True)])
+
+        player_sessions[sid] = {
+            'roomId': room_id,
+            'position': position
+        }
+
+        join_room(room_id)
+
+        # Notify the joining player
+        emit('room_joined', {
+            'roomId': room_id,
+            'position': position,
+            'players': room['players'],
+            'isReplacement': is_replacement,
+            'gameState': room.get('gameState') if is_replacement else None,
+            'hands': {position: room['hands'].get(str(position), [])} if is_replacement and room.get('hands') else None,
+            'gameInProgress': is_game_in_progress
+        })
+
+        # Notify others in room
+        emit('players_changed', {
+            'players': room['players'],
+            'reconnected': is_replacement,
+            'position': position
+        }, room=room_id, include_self=False)
 
 @socketio.on('leave_room')
 def handle_leave_room():
@@ -440,6 +520,9 @@ def remove_from_queue(sid):
     global matchmaking_queue
     matchmaking_queue = [p for p in matchmaking_queue if p['sid'] != sid]
 
+# Track active match timeouts
+match_timeouts = {}
+
 def check_and_start_match():
     """Check if we have 4 players and start a match"""
     global matchmaking_queue
@@ -456,9 +539,10 @@ def check_and_start_match():
             'metadata': {
                 'host': match_players[0]['sid'],
                 'created': time.time(),
-                'status': 'waiting',
+                'status': 'confirming',  # New status for confirmation phase
                 'playerCount': 4,
-                'isQuickMatch': True
+                'isQuickMatch': True,
+                'confirmDeadline': time.time() + 30  # 30 second deadline
             },
             'players': {},
             'gameState': None,
@@ -474,8 +558,9 @@ def check_and_start_match():
             rooms[room_id]['players'][position] = {
                 'oderId': player['sid'],
                 'name': player['name'],
-                'ready': True,  # Auto-ready for quick match
-                'connected': True
+                'ready': False,  # Require confirmation
+                'connected': True,
+                'confirmed': False
             }
 
             player_sessions[player['sid']] = {
@@ -486,19 +571,137 @@ def check_and_start_match():
             # Add player to socket room
             join_room(room_id, sid=player['sid'])
 
-        print(f'Quick match created: Room {room_id} with players {[p["name"] for p in match_players]}')
+        print(f'Quick match created: Room {room_id} with players {[p["name"] for p in match_players]} - awaiting confirmation')
 
-        # Notify all matched players
+        # Notify all matched players - they have 30 seconds to confirm
         for i, player in enumerate(match_players):
             position = player_sessions[player['sid']]['position']
             socketio.emit('match_found', {
                 'roomId': room_id,
                 'position': position,
-                'players': rooms[room_id]['players']
+                'players': rooms[room_id]['players'],
+                'confirmTimeout': 30,
+                'requiresConfirmation': True
             }, to=player['sid'])
+
+        # Set up 30-second timeout
+        def handle_confirmation_timeout():
+            if room_id in rooms:
+                room = rooms[room_id]
+                if room['metadata']['status'] == 'confirming':
+                    # Check who didn't confirm
+                    unconfirmed = []
+                    confirmed = []
+                    for pos, player in room['players'].items():
+                        if not player.get('confirmed', False):
+                            unconfirmed.append((pos, player))
+                        else:
+                            confirmed.append((pos, player))
+
+                    print(f'Match {room_id} timeout: {len(unconfirmed)} players did not confirm')
+
+                    # Notify unconfirmed players they were removed
+                    for pos, player in unconfirmed:
+                        socketio.emit('match_timeout', {
+                            'message': 'You did not confirm in time'
+                        }, to=player['oderId'])
+                        # Clean up session
+                        if player['oderId'] in player_sessions:
+                            del player_sessions[player['oderId']]
+                        leave_room(room_id, sid=player['oderId'])
+
+                    # Put confirmed players back in queue
+                    for pos, player in confirmed:
+                        socketio.emit('match_cancelled', {
+                            'message': 'Match cancelled - some players did not confirm',
+                            'requeued': True
+                        }, to=player['oderId'])
+                        # Clean up session and requeue
+                        if player['oderId'] in player_sessions:
+                            del player_sessions[player['oderId']]
+                        leave_room(room_id, sid=player['oderId'])
+                        matchmaking_queue.append({
+                            'sid': player['oderId'],
+                            'name': player['name'],
+                            'joinedAt': time.time()
+                        })
+
+                    # Delete the room
+                    del rooms[room_id]
+                    print(f'Match {room_id} cancelled due to timeout')
+
+                    # Check if we can start a new match with requeued players
+                    broadcast_queue_status()
+                    check_and_start_match()
+
+            # Clean up timeout reference
+            if room_id in match_timeouts:
+                del match_timeouts[room_id]
+
+        # Start timeout timer
+        timer = threading.Timer(30, handle_confirmation_timeout)
+        timer.start()
+        match_timeouts[room_id] = timer
 
         return True
     return False
+
+@socketio.on('confirm_match')
+def handle_confirm_match():
+    """Handle player confirming their quickplay match"""
+    sid = request.sid
+
+    if sid not in player_sessions:
+        emit('error', {'message': 'Not in a match'})
+        return
+
+    session = player_sessions[sid]
+    room_id = session['roomId']
+    position = session['position']
+
+    if room_id not in rooms:
+        emit('error', {'message': 'Match not found'})
+        return
+
+    room = rooms[room_id]
+
+    # Only for quickmatch in confirming status
+    if not room['metadata'].get('isQuickMatch') or room['metadata']['status'] != 'confirming':
+        emit('error', {'message': 'Not in confirmation phase'})
+        return
+
+    # Mark player as confirmed
+    if position in room['players']:
+        room['players'][position]['confirmed'] = True
+        room['players'][position]['ready'] = True
+
+        print(f'Player {room["players"][position]["name"]} confirmed match {room_id}')
+
+        # Notify all players of the confirmation
+        socketio.emit('player_confirmed', {
+            'position': position,
+            'players': room['players']
+        }, room=room_id)
+
+        # Check if all players confirmed
+        all_confirmed = all(p.get('confirmed', False) for p in room['players'].values())
+
+        if all_confirmed:
+            # Cancel the timeout timer
+            if room_id in match_timeouts:
+                match_timeouts[room_id].cancel()
+                del match_timeouts[room_id]
+
+            # Transition to waiting/ready to start
+            room['metadata']['status'] = 'waiting'
+
+            print(f'All players confirmed in match {room_id} - ready to start')
+
+            # Notify all players that match is confirmed
+            socketio.emit('all_confirmed', {
+                'roomId': room_id,
+                'players': room['players']
+            }, room=room_id)
 
 def broadcast_queue_status():
     """Broadcast current queue count to all waiting players"""

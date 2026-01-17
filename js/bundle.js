@@ -115,7 +115,12 @@
             this.onGameStart = null;
             this.onError = null;
             this.onPositionChanged = null;
+            this.onSpectatorJoined = null;
+            this.onSpectatorLeft = null;
             this.gameStartData = null;
+            this.isSpectator = false;
+            this.isReplacement = false;
+            this.gameInProgress = false;
         }
 
         setupSocketListeners() {
@@ -164,6 +169,20 @@
                     this.onError(data.message);
                 }
             });
+
+            // Spectator joined
+            socket.on('spectator_joined', (data) => {
+                if (this.onSpectatorJoined) {
+                    this.onSpectatorJoined(data.name, data.spectators);
+                }
+            });
+
+            // Spectator left
+            socket.on('spectator_left', (data) => {
+                if (this.onSpectatorLeft) {
+                    this.onSpectatorLeft(data.name, data.spectators);
+                }
+            });
         }
 
         async createRoom(hostName) {
@@ -206,13 +225,25 @@
                 socket.once('room_joined', (data) => {
                     this.currentRoomId = data.roomId;
                     this.currentPosition = data.position;
+                    this.isSpectator = data.isSpectator || false;
+                    this.isReplacement = data.isReplacement || false;
+                    this.gameInProgress = data.gameInProgress || false;
                     this.setupSocketListeners();
 
                     if (this.onPlayersChanged) {
                         this.onPlayersChanged(data.players);
                     }
 
-                    resolve({ roomId: data.roomId, position: data.position });
+                    resolve({
+                        roomId: data.roomId,
+                        position: data.position,
+                        isSpectator: data.isSpectator || false,
+                        isReplacement: data.isReplacement || false,
+                        gameInProgress: data.gameInProgress || false,
+                        gameState: data.gameState,
+                        hands: data.hands,
+                        players: data.players
+                    });
                 });
 
                 socket.once('error', (data) => {
@@ -1996,6 +2027,135 @@
             this.presenceManager = new PresenceManager(data.roomId, currentUserId, data.position);
             await this.presenceManager.setupPresence();
 
+            // Check if confirmation is required (quickplay)
+            if (data.requiresConfirmation) {
+                this.showConfirmationUI(data);
+                this.setupConfirmationListeners();
+            } else {
+                // Original flow for non-confirmation matches
+                await this.proceedWithMatch(data);
+            }
+        }
+
+        showConfirmationUI(data) {
+            // Update matchmaking screen to show confirmation
+            const matchmakingScreen = document.getElementById('matchmaking-screen');
+            const statusText = matchmakingScreen.querySelector('.matchmaking-status');
+
+            if (statusText) {
+                statusText.innerHTML = `
+                    <div class="match-found-text">Match Found!</div>
+                    <div class="confirm-countdown" id="confirm-countdown">30</div>
+                    <button class="confirm-match-btn" id="confirm-match-btn">ACCEPT MATCH</button>
+                    <div class="confirm-hint">Click to confirm your spot</div>
+                `;
+            }
+
+            // Start countdown
+            let timeLeft = data.confirmTimeout || 30;
+            this.confirmCountdown = setInterval(() => {
+                timeLeft--;
+                const countdownEl = document.getElementById('confirm-countdown');
+                if (countdownEl) {
+                    countdownEl.textContent = timeLeft;
+                    if (timeLeft <= 5) {
+                        countdownEl.classList.add('urgent');
+                    }
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(this.confirmCountdown);
+                }
+            }, 1000);
+
+            // Set up confirm button
+            const confirmBtn = document.getElementById('confirm-match-btn');
+            if (confirmBtn) {
+                confirmBtn.onclick = () => {
+                    this.confirmMatch();
+                };
+            }
+
+            this.matchData = data;
+        }
+
+        confirmMatch() {
+            if (socket) {
+                socket.emit('confirm_match');
+            }
+
+            // Update UI to show confirmed
+            const confirmBtn = document.getElementById('confirm-match-btn');
+            if (confirmBtn) {
+                confirmBtn.textContent = 'CONFIRMED';
+                confirmBtn.classList.add('confirmed');
+                confirmBtn.disabled = true;
+            }
+        }
+
+        setupConfirmationListeners() {
+            if (!socket) return;
+
+            // Player confirmed
+            socket.on('player_confirmed', (data) => {
+                console.log('Player confirmed:', data);
+                // Could update UI to show who confirmed
+            });
+
+            // All players confirmed - proceed to game
+            socket.on('all_confirmed', async (data) => {
+                console.log('All confirmed!', data);
+                this.cleanupConfirmationListeners();
+                if (this.confirmCountdown) {
+                    clearInterval(this.confirmCountdown);
+                }
+                await this.proceedWithMatch(this.matchData);
+            });
+
+            // Match timed out
+            socket.on('match_timeout', (data) => {
+                console.log('Match timeout:', data);
+                this.cleanupConfirmationListeners();
+                if (this.confirmCountdown) {
+                    clearInterval(this.confirmCountdown);
+                }
+                this.showError(data.message || 'Match timed out');
+                this.hideMatchmakingScreen();
+            });
+
+            // Match cancelled (others didn't confirm)
+            socket.on('match_cancelled', (data) => {
+                console.log('Match cancelled:', data);
+                this.cleanupConfirmationListeners();
+                if (this.confirmCountdown) {
+                    clearInterval(this.confirmCountdown);
+                }
+                if (data.requeued) {
+                    // Show re-queued message
+                    this.showNotification('Requeued - waiting for new match');
+                    // Reset matchmaking UI
+                    this.setupMatchmakingListeners();
+                    const statusText = document.querySelector('.matchmaking-status');
+                    if (statusText) {
+                        statusText.innerHTML = `
+                            <div>Searching for players...</div>
+                            <span id="queue-count">1</span><span>/4 players</span>
+                        `;
+                    }
+                } else {
+                    this.hideMatchmakingScreen();
+                }
+            });
+        }
+
+        cleanupConfirmationListeners() {
+            if (!socket) return;
+            socket.off('player_confirmed');
+            socket.off('all_confirmed');
+            socket.off('match_timeout');
+            socket.off('match_cancelled');
+        }
+
+        async proceedWithMatch(data) {
             // Brief delay to show "4/4 players" then transition
             await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -2130,20 +2290,152 @@
                     this.onMultiplayerGameStart(data);
                 };
 
+                // Set up spectator callbacks
+                this.lobbyManager.onSpectatorJoined = (name, spectators) => {
+                    this.updateSpectatorCount(spectators);
+                    this.showNotification(`${name} is watching`);
+                };
+
+                this.lobbyManager.onSpectatorLeft = (name, spectators) => {
+                    this.updateSpectatorCount(spectators);
+                };
+
                 // Join room
-                const { roomId, position } = await this.lobbyManager.joinRoom(roomCode, playerName);
+                const result = await this.lobbyManager.joinRoom(roomCode, playerName);
 
-                // Show waiting room
-                this.showWaitingRoom(roomId);
+                // Handle different join scenarios
+                if (result.isSpectator) {
+                    // Joined as spectator - game in progress
+                    this.showSpectatorMode(result.roomId, result.players, result.gameState);
+                } else if (result.isReplacement) {
+                    // Replaced disconnected player - resume game
+                    this.resumeAsReplacement(result);
+                } else if (result.gameInProgress) {
+                    // Shouldn't happen, but handle gracefully
+                    this.showError('Game is in progress');
+                } else {
+                    // Normal lobby join
+                    this.showWaitingRoom(result.roomId);
 
-                // Set up presence
-                this.presenceManager = new PresenceManager(roomId, currentUserId, position);
-                await this.presenceManager.setupPresence();
+                    // Set up presence
+                    this.presenceManager = new PresenceManager(result.roomId, currentUserId, result.position);
+                    await this.presenceManager.setupPresence();
+                }
 
             } catch (error) {
                 console.error('Error joining room:', error);
                 this.showError(error.message || 'Failed to join room');
             }
+        }
+
+        // Show spectator mode UI
+        showSpectatorMode(roomId, players, gameState) {
+            // Hide lobby
+            this.lobbyOverlay.classList.add('hidden');
+
+            // Show game board in spectator mode
+            this.isSpectator = true;
+
+            // Show spectator notification
+            this.showNotification('Watching as spectator');
+
+            // If game state exists, sync the game view
+            if (gameState) {
+                // Start a spectator game view
+                this.startSpectatorGame(players, gameState);
+            }
+        }
+
+        // Resume game as replacement for disconnected player
+        async resumeAsReplacement(result) {
+            // Hide lobby
+            this.lobbyOverlay.classList.add('hidden');
+
+            // Set up presence
+            this.presenceManager = new PresenceManager(result.roomId, currentUserId, result.position);
+            await this.presenceManager.setupPresence();
+
+            // Show notification
+            this.showNotification('Rejoined game');
+
+            // Start multiplayer game with existing state
+            const gameData = {
+                gameState: result.gameState,
+                hands: result.hands,
+                players: result.players
+            };
+
+            this.onMultiplayerGameStart(gameData, result.position);
+        }
+
+        // Start spectator game view
+        startSpectatorGame(players, gameState) {
+            // Initialize game in spectator mode
+            this.game = new Game();
+            this.game.isMultiplayer = true;
+            this.game.isSpectator = true;
+
+            // Set up sync manager for receiving updates
+            this.syncManager = new GameSyncManager(
+                this.lobbyManager.getRoomId(),
+                currentUserId,
+                -1  // Spectator position
+            );
+            this.game.syncManager = this.syncManager;
+
+            // Listen for remote card plays
+            this.syncManager.onRemoteCardPlayed = (card, position) => {
+                // Update game view
+                this.handleRemoteCardPlay(card, position);
+            };
+
+            this.syncManager.startListening();
+
+            // Render initial state
+            this.renderGame();
+        }
+
+        // Update spectator count display
+        updateSpectatorCount(spectators) {
+            const count = Object.keys(spectators || {}).length;
+            let spectatorDisplay = document.getElementById('spectator-count');
+
+            if (!spectatorDisplay) {
+                spectatorDisplay = document.createElement('div');
+                spectatorDisplay.id = 'spectator-count';
+                spectatorDisplay.className = 'spectator-count';
+                document.body.appendChild(spectatorDisplay);
+            }
+
+            if (count > 0) {
+                spectatorDisplay.textContent = `👁 ${count} watching`;
+                spectatorDisplay.classList.remove('hidden');
+            } else {
+                spectatorDisplay.classList.add('hidden');
+            }
+        }
+
+        // Show notification
+        showNotification(message) {
+            let notification = document.getElementById('game-notification');
+
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.id = 'game-notification';
+                notification.className = 'game-notification';
+                document.body.appendChild(notification);
+            }
+
+            notification.textContent = message;
+            notification.classList.remove('hidden');
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notification.classList.add('hidden');
+                }, 300);
+            }, 3000);
         }
 
         // Show waiting room UI
