@@ -116,12 +116,7 @@
             this.onGameStart = null;
             this.onError = null;
             this.onPositionChanged = null;
-            this.onSpectatorJoined = null;
-            this.onSpectatorLeft = null;
             this.gameStartData = null;
-            this.isSpectator = false;
-            this.isReplacement = false;
-            this.gameInProgress = false;
         }
 
         setupSocketListeners() {
@@ -170,20 +165,6 @@
                     this.onError(data.message);
                 }
             });
-
-            // Spectator joined
-            socket.on('spectator_joined', (data) => {
-                if (this.onSpectatorJoined) {
-                    this.onSpectatorJoined(data.name, data.spectators);
-                }
-            });
-
-            // Spectator left
-            socket.on('spectator_left', (data) => {
-                if (this.onSpectatorLeft) {
-                    this.onSpectatorLeft(data.name, data.spectators);
-                }
-            });
         }
 
         async createRoom(hostName) {
@@ -226,9 +207,6 @@
                 socket.once('room_joined', (data) => {
                     this.currentRoomId = data.roomId;
                     this.currentPosition = data.position;
-                    this.isSpectator = data.isSpectator || false;
-                    this.isReplacement = data.isReplacement || false;
-                    this.gameInProgress = data.gameInProgress || false;
                     this.setupSocketListeners();
 
                     if (this.onPlayersChanged) {
@@ -238,11 +216,6 @@
                     resolve({
                         roomId: data.roomId,
                         position: data.position,
-                        isSpectator: data.isSpectator || false,
-                        isReplacement: data.isReplacement || false,
-                        gameInProgress: data.gameInProgress || false,
-                        gameState: data.gameState,
-                        hands: data.hands,
                         players: data.players
                     });
                 });
@@ -2307,37 +2280,15 @@
                     this.onMultiplayerGameStart(data);
                 };
 
-                // Set up spectator callbacks
-                this.lobbyManager.onSpectatorJoined = (name, spectators) => {
-                    this.updateSpectatorCount(spectators);
-                    this.showNotification(`${name} is watching`);
-                };
-
-                this.lobbyManager.onSpectatorLeft = (name, spectators) => {
-                    this.updateSpectatorCount(spectators);
-                };
-
                 // Join room
                 const result = await this.lobbyManager.joinRoom(roomCode, playerName);
 
-                // Handle different join scenarios
-                if (result.isSpectator) {
-                    // Joined as spectator - game in progress
-                    this.showSpectatorMode(result.roomId, result.players, result.gameState);
-                } else if (result.isReplacement) {
-                    // Replaced disconnected player - resume game
-                    this.resumeAsReplacement(result);
-                } else if (result.gameInProgress) {
-                    // Shouldn't happen, but handle gracefully
-                    this.showError('Game is in progress');
-                } else {
-                    // Normal lobby join
-                    this.showWaitingRoom(result.roomId);
+                // Show waiting room
+                this.showWaitingRoom(result.roomId);
 
-                    // Set up presence
-                    this.presenceManager = new PresenceManager(result.roomId, currentUserId, result.position);
-                    await this.presenceManager.setupPresence();
-                }
+                // Set up presence
+                this.presenceManager = new PresenceManager(result.roomId, currentUserId, result.position);
+                await this.presenceManager.setupPresence();
 
             } catch (error) {
                 console.error('Error joining room:', error);
@@ -2457,6 +2408,11 @@
 
         // Show waiting room UI
         showWaitingRoom(roomId) {
+            // Hide game selection and lobby menu
+            const gameSelection = document.getElementById('game-selection');
+            const gameLobby = document.getElementById('game-lobby');
+            if (gameSelection) gameSelection.classList.add('hidden');
+            if (gameLobby) gameLobby.classList.add('hidden');
             this.lobbyMenu.classList.add('hidden');
             this.waitingRoom.classList.remove('hidden');
             document.getElementById('room-code-display').textContent = roomId;

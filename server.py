@@ -82,22 +82,11 @@ def handle_disconnect():
         session = player_sessions[sid]
         room_id = session['roomId']
         position = session['position']
-        is_spectator = session.get('isSpectator', False)
 
         if room_id in rooms:
             room = rooms[room_id]
 
-            if is_spectator:
-                # Remove spectator
-                if 'spectators' in room and sid in room['spectators']:
-                    spectator_name = room['spectators'][sid].get('name', 'Spectator')
-                    del room['spectators'][sid]
-                    emit('spectator_left', {
-                        'name': spectator_name,
-                        'spectators': room.get('spectators', {})
-                    }, room=room_id)
-                    print(f'Spectator {spectator_name} left room {room_id}')
-            elif position in room['players']:
+            if position in room['players']:
                 # Mark player as disconnected or remove
                 if room['metadata']['status'] == 'playing':
                     # During game, mark as disconnected
@@ -172,117 +161,49 @@ def handle_join_room(data):
         return
 
     room = rooms[room_id]
-    is_game_in_progress = room['metadata']['status'] == 'playing'
 
+    if room['metadata']['status'] != 'waiting':
+        emit('error', {'message': 'Game already in progress'})
+        return
+
+    # Find empty slot
     position = None
-    is_replacement = False
-    is_spectator = False
+    for i in range(4):
+        if i not in room['players']:
+            position = i
+            break
 
-    if is_game_in_progress:
-        # Game in progress - check for disconnected player slots first
-        for i in range(4):
-            if i in room['players'] and not room['players'][i].get('connected', True):
-                position = i
-                is_replacement = True
-                break
+    if position is None:
+        emit('error', {'message': 'Room is full'})
+        return
 
-        # If no disconnected slot, join as spectator
-        if position is None:
-            is_spectator = True
-            # Add to spectators list
-            if 'spectators' not in room:
-                room['spectators'] = {}
-            room['spectators'][sid] = {
-                'oderId': sid,
-                'name': player_name,
-                'connected': True
-            }
-    else:
-        # Game not started - find empty slot
-        for i in range(4):
-            if i not in room['players']:
-                position = i
-                break
+    # Add player
+    room['players'][position] = {
+        'oderId': sid,
+        'name': player_name,
+        'ready': False,
+        'connected': True
+    }
+    room['metadata']['playerCount'] = len(room['players'])
 
-        if position is None:
-            emit('error', {'message': 'Room is full'})
-            return
+    player_sessions[sid] = {
+        'roomId': room_id,
+        'position': position
+    }
 
-    if is_spectator:
-        # Spectator join
-        player_sessions[sid] = {
-            'roomId': room_id,
-            'position': -1,  # -1 indicates spectator
-            'isSpectator': True
-        }
+    join_room(room_id)
 
-        join_room(room_id)
+    print(f'{player_name} joined room {room_id} at position {position}')
 
-        print(f'{player_name} joined room {room_id} as spectator')
+    # Notify the joining player
+    emit('room_joined', {
+        'roomId': room_id,
+        'position': position,
+        'players': room['players']
+    })
 
-        emit('room_joined', {
-            'roomId': room_id,
-            'position': -1,
-            'isSpectator': True,
-            'players': room['players'],
-            'spectators': room.get('spectators', {}),
-            'gameState': room.get('gameState'),
-            'gameInProgress': True
-        })
-
-        # Notify others
-        emit('spectator_joined', {
-            'name': player_name,
-            'spectators': room.get('spectators', {})
-        }, room=room_id, include_self=False)
-    else:
-        # Regular player or replacement
-        if is_replacement:
-            # Take over disconnected player's slot
-            old_player_name = room['players'][position]['name']
-            room['players'][position] = {
-                'oderId': sid,
-                'name': player_name,
-                'ready': True,  # Auto-ready for replacement
-                'connected': True
-            }
-            print(f'{player_name} replaced disconnected {old_player_name} in room {room_id} at position {position}')
-        else:
-            # New player in lobby
-            room['players'][position] = {
-                'oderId': sid,
-                'name': player_name,
-                'ready': False,
-                'connected': True
-            }
-            print(f'{player_name} joined room {room_id} at position {position}')
-
-        room['metadata']['playerCount'] = len([p for p in room['players'].values() if p.get('connected', True)])
-
-        player_sessions[sid] = {
-            'roomId': room_id,
-            'position': position
-        }
-
-        join_room(room_id)
-
-        # Notify the joining player
-        emit('room_joined', {
-            'roomId': room_id,
-            'position': position,
-            'players': room['players'],
-            'isReplacement': is_replacement,
-            'gameState': room.get('gameState') if is_replacement else None,
-            'hands': {position: room['hands'].get(str(position), [])} if is_replacement and room.get('hands') else None,
-            'gameInProgress': is_game_in_progress
-        })
-
-        # Notify others in room
-        emit('players_changed', {
-            'players': room['players'],
-            'reconnected': is_replacement,
-            'position': position
-        }, room=room_id, include_self=False)
+    # Notify others in room
+    emit('players_changed', {'players': room['players']}, room=room_id, include_self=False)
 
 @socketio.on('leave_room')
 def handle_leave_room():
