@@ -1960,6 +1960,13 @@ body {
     }
 }
 
+/* Viewport wrapper for forced landscape */
+#viewport-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
 /* Mobile Portrait Mode - Force Landscape Layout */
 @media screen and (max-width: 900px) and (orientation: portrait) {
     /* Hide rotate overlay - we force landscape instead */
@@ -1967,24 +1974,29 @@ body {
         display: none !important;
     }
 
-    /* Force landscape layout by rotating the entire page */
-    html {
-        /* Rotate the page 90 degrees clockwise */
-        transform: rotate(90deg);
-        transform-origin: left top;
-        /* Swap width/height: width becomes viewport height, height becomes viewport width */
-        width: 100vh;
-        height: 100vw;
-        /* Position to fill the screen after rotation */
-        position: absolute;
-        top: 0;
-        left: 100%;
-        overflow: hidden;
-    }
-
-    body {
+    html, body {
         width: 100%;
         height: 100%;
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Force landscape layout by rotating the viewport wrapper */
+    #viewport-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        /* In portrait: screen width is narrow, height is tall */
+        /* We want landscape: use height as width, width as height */
+        width: 100vh;
+        height: 100vw;
+        /* Rotate 90 degrees counterclockwise so top of game is at left of phone */
+        transform: rotate(-90deg);
+        transform-origin: top left;
+        /* Move into view after rotation */
+        top: 100%;
+        left: 0;
         overflow: hidden;
     }
 
