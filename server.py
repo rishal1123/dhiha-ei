@@ -433,6 +433,41 @@ def handle_new_round(data):
             'hands': rooms[room_id]['hands']
         }, room=room_id)
 
+@socketio.on('ready_for_round')
+def handle_ready_for_round():
+    """Handle player ready for next round"""
+    sid = request.sid
+
+    if sid not in player_sessions:
+        return
+
+    session = player_sessions[sid]
+    room_id = session['roomId']
+    position = session['position']
+
+    if room_id not in rooms:
+        return
+
+    room = rooms[room_id]
+
+    # Initialize ready_for_round tracking if not exists
+    if 'readyForRound' not in room:
+        room['readyForRound'] = {}
+
+    # Mark this player as ready
+    room['readyForRound'][position] = True
+
+    print(f'Player {position} ready for next round in room {room_id}')
+
+    # Check if all 4 players are ready
+    ready_count = sum(1 for p in room['readyForRound'].values() if p)
+    if ready_count >= 4:
+        print(f'All players ready for next round in room {room_id}')
+        # Reset ready states for next time
+        room['readyForRound'] = {}
+        # Notify all players
+        emit('all_ready_for_round', {}, room=room_id)
+
 # ===========================================
 # MATCHMAKING / QUICK MATCH
 # ===========================================

@@ -1633,10 +1633,18 @@
             this.elements.messageButton.style.display = 'none';
             this.elements.messageOverlay.classList.remove('hidden');
 
-            setTimeout(() => {
-                this.elements.messageOverlay.classList.add('hidden');
-                this.elements.messageButton.style.display = '';
-            }, duration);
+            // If duration is 0, message stays until manually hidden
+            if (duration > 0) {
+                setTimeout(() => {
+                    this.elements.messageOverlay.classList.add('hidden');
+                    this.elements.messageButton.style.display = '';
+                }, duration);
+            }
+        }
+
+        hideFlashMessage() {
+            this.elements.messageOverlay.classList.add('hidden');
+            this.elements.messageButton.style.display = '';
         }
     }
 
@@ -2652,6 +2660,14 @@
             // Start listening for remote actions
             this.syncManager.startListening();
 
+            // Set up listener for all players ready for next round
+            if (socket) {
+                socket.on('all_ready_for_round', (data) => {
+                    console.log('All players ready for next round');
+                    this.onAllReadyForRound(data);
+                });
+            }
+
             // Hide lobby, show game
             this.hideLobby();
             this.showMultiplayerStatus(roomId);
@@ -2718,6 +2734,11 @@
 
         // Cleanup multiplayer
         async cleanupMultiplayer() {
+            // Clean up socket listeners
+            if (socket) {
+                socket.off('all_ready_for_round');
+            }
+
             if (this.syncManager) {
                 this.syncManager.cleanup();
                 this.syncManager = null;
@@ -3253,14 +3274,24 @@
             await delay(500);
 
             const state = this.game.getGameState();
+
+            // Determine local player's team for correct win/loss display
+            const localTeam = this.isMultiplayerMode ?
+                this.game.players[this.game.localPlayerPosition].team : 0;
+            const opponentTeam = localTeam === 0 ? 1 : 0;
+
+            // Check if local player's team won
+            const localTeamWon = result.winner === localTeam;
+            const isTie = result.winner === -1 || result.winner === null;
+
             let title, bonusText = '';
 
-            if (result.winner === 0) {
-                title = 'Round Won!';
-            } else if (result.winner === 1) {
-                title = 'Round Lost!';
-            } else {
+            if (isTie) {
                 title = 'Round Tied!';
+            } else if (localTeamWon) {
+                title = 'Round Won!';
+            } else {
+                title = 'Round Lost!';
             }
 
             if (result.points === 1) {
@@ -3269,59 +3300,86 @@
                 bonusText = `\n\n+1 POINT (${typeLabel})`;
             }
 
+            // Show scores from local player's perspective
             const text = result.message + bonusText +
-                `\n\nRound Score:\nYour Team: ${state.tensCollected[0]} tens, ${state.tricksWon[0]} tricks\nOpponents: ${state.tensCollected[1]} tens, ${state.tricksWon[1]} tricks` +
-                `\n\nMatch Score: You ${state.matchPoints[0]} - ${state.matchPoints[1]} Opp`;
+                `\n\nRound Score:\nYour Team: ${state.tensCollected[localTeam]} tens, ${state.tricksWon[localTeam]} tricks\nOpponents: ${state.tensCollected[opponentTeam]} tens, ${state.tricksWon[opponentTeam]} tricks` +
+                `\n\nMatch Score: You ${state.matchPoints[localTeam]} - ${state.matchPoints[opponentTeam]} Opp`;
 
-            await this.renderer.showMessage(title, text, 'Next Round');
-
-            // In multiplayer, only host starts new rounds
+            // In multiplayer, show ready check for next round
             if (this.isMultiplayerMode) {
-                if (this.lobbyManager && this.lobbyManager.isHost()) {
-                    // Host starts round and broadcasts
-                    this.game.startRound();
-                    this.renderer.clearPlayedCards();
-                    this.renderer.clearCollectedTens();
-                    this.renderer.updateSuperiorSuit(null);
-                    this.updateDisplay();
-
-                    // Sync new round to other players
-                    if (this.syncManager) {
-                        const handsData = {};
-                        this.game.players.forEach((player, index) => {
-                            handsData[index] = player.hand.map(card => ({
-                                suit: card.suit,
-                                rank: card.rank
-                            }));
-                        });
-                        this.syncManager.broadcastNewRound({
-                            currentPlayerIndex: this.game.currentPlayerIndex,
-                            trickNumber: this.game.trickNumber,
-                            superiorSuit: null,
-                            tricksWon: [0, 0],
-                            tensCollected: [0, 0],
-                            matchPoints: this.game.matchPoints
-                        }, handsData);
-                    }
-                }
-                // Non-hosts wait for round_started event
+                await this.renderer.showMessage(title, text, 'Ready for Next Round');
+                this.showReadyForNextRound();
             } else {
-                // Single player - just start next round
+                await this.renderer.showMessage(title, text, 'Next Round');
                 this.startNextRound();
             }
+        }
+
+        // Show ready check UI for next round
+        showReadyForNextRound() {
+            // Emit ready for next round
+            if (socket) {
+                socket.emit('ready_for_round');
+            }
+
+            // Show waiting message
+            this.renderer.flashMessage('Waiting for all players to be ready...', 0);
+        }
+
+        // Called when all players are ready for next round (from server)
+        onAllReadyForRound(data) {
+            // Hide waiting message
+            this.renderer.hideFlashMessage();
+
+            // If we're the host, deal the new round
+            if (this.lobbyManager && this.lobbyManager.isHost()) {
+                this.game.startRound();
+                this.renderer.clearPlayedCards();
+                this.renderer.clearCollectedTens();
+                this.renderer.updateSuperiorSuit(null);
+                this.updateDisplay();
+
+                // Sync new round to other players
+                if (this.syncManager) {
+                    const handsData = {};
+                    this.game.players.forEach((player, index) => {
+                        handsData[index] = player.hand.map(card => ({
+                            suit: card.suit,
+                            rank: card.rank
+                        }));
+                    });
+                    this.syncManager.broadcastNewRound({
+                        currentPlayerIndex: this.game.currentPlayerIndex,
+                        trickNumber: this.game.trickNumber,
+                        superiorSuit: null,
+                        tricksWon: [0, 0],
+                        tensCollected: [0, 0],
+                        matchPoints: this.game.matchPoints
+                    }, handsData);
+                }
+            }
+            // Non-hosts wait for round_started event from host
         }
 
         async handleMatchOver(winner, points) {
             await delay(500);
 
+            // Determine local player's team for correct win/loss display
+            const localTeam = this.isMultiplayerMode ?
+                this.game.players[this.game.localPlayerPosition].team : 0;
+            const opponentTeam = localTeam === 0 ? 1 : 0;
+
+            // Check if local player's team won
+            const localTeamWon = winner === localTeam;
+
             let title, text;
 
-            if (winner === 0) {
+            if (localTeamWon) {
                 title = 'MATCH WON!';
-                text = `Congratulations! You won the match!\n\nFinal Score: ${points[0]} - ${points[1]}`;
+                text = `Congratulations! You won the match!\n\nFinal Score: ${points[localTeam]} - ${points[opponentTeam]}`;
             } else {
                 title = 'MATCH LOST';
-                text = `The opponents won the match.\n\nFinal Score: ${points[0]} - ${points[1]}`;
+                text = `The opponents won the match.\n\nFinal Score: ${points[localTeam]} - ${points[opponentTeam]}`;
             }
 
             if (this.isMultiplayerMode) {
