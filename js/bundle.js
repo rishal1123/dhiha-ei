@@ -1876,6 +1876,7 @@
             // Sponsor click handlers - show "cloud time" message
             const drinkSponsor = document.getElementById('drink-sponsor');
             const foodSponsor = document.getElementById('food-sponsor');
+            const tableSponsor = document.getElementById('table-sponsor');
 
             if (drinkSponsor) {
                 drinkSponsor.addEventListener('click', () => {
@@ -1886,6 +1887,12 @@
             if (foodSponsor) {
                 foodSponsor.addEventListener('click', () => {
                     this.renderer.showSponsorMessage('Cloud Time ☁️', 'Crispy Chips - Crunch while you play!');
+                });
+            }
+
+            if (tableSponsor) {
+                tableSponsor.addEventListener('click', () => {
+                    this.renderer.showSponsorMessage('Ooredoo Maldives 📶', 'Stay connected with the best network!');
                 });
             }
         }
@@ -1916,12 +1923,27 @@
             }
         }
 
+        // Show table callout (appears at 10 cards played)
+        showTableCallout() {
+            if (!this.tableCalloutShown) {
+                this.tableCalloutShown = true;
+                const callout = document.getElementById('table-callout');
+                if (callout) {
+                    callout.classList.remove('hidden');
+                    // Auto-hide after 4 seconds
+                    setTimeout(() => callout.classList.add('hidden'), 4000);
+                }
+            }
+        }
+
         // Check card count and show appropriate callouts
         checkSponsorCallouts(cardsPlayed) {
             if (cardsPlayed === 3) {
                 this.showDrinkCallout();
             } else if (cardsPlayed === 7) {
                 this.showFoodCallout();
+            } else if (cardsPlayed === 10) {
+                this.showTableCallout();
             }
         }
 
@@ -1929,11 +1951,14 @@
         resetSponsorTooltips() {
             this.drinkCalloutShown = false;
             this.foodCalloutShown = false;
+            this.tableCalloutShown = false;
             // Hide any visible callouts
             const drinkCallout = document.getElementById('drink-callout');
             const foodCallout = document.getElementById('food-callout');
+            const tableCallout = document.getElementById('table-callout');
             if (drinkCallout) drinkCallout.classList.add('hidden');
             if (foodCallout) foodCallout.classList.add('hidden');
+            if (tableCallout) tableCallout.classList.add('hidden');
         }
 
         // Handle swap player button click
@@ -3377,8 +3402,12 @@
             this.renderer.renderPlayedCard(card, player.position);
             this.updateDisplay();
 
-            // Track only human player's cards for sponsor callouts
-            if (player.isHuman) {
+            // Track local player's cards for sponsor callouts (works for both single and multiplayer)
+            const isLocalPlayer = this.isMultiplayerMode
+                ? player.position === this.game.localPlayerPosition
+                : player.isHuman;
+
+            if (isLocalPlayer) {
                 this.humanCardsPlayedThisGame = (this.humanCardsPlayedThisGame || 0) + 1;
                 this.checkSponsorCallouts(this.humanCardsPlayedThisGame);
             }

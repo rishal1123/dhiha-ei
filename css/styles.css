@@ -1115,6 +1115,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    pointer-events: auto;
+    cursor: pointer;
 }
 
 .sponsor-logo {
@@ -1270,6 +1272,21 @@ body {
     transform: translateY(-50%);
     border-left-color: #9b59b6;
     border-right: none;
+}
+
+/* Table callout - arrow points up, appears below played cards */
+#table-callout {
+    top: calc(100% + 12 * var(--scale));
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#table-callout .callout-arrow {
+    top: calc(-1.4 * var(--scale));
+    left: 50%;
+    transform: translateX(-50%);
+    border-bottom-color: #9b59b6;
+    border-top: none;
 }
 
 @keyframes callout-bounce {
