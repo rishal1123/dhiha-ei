@@ -617,18 +617,18 @@ body {
     flex-direction: column;
 }
 
-/* Player's Cards */
+/* Player's Cards - 1.5x size */
 #player-bottom .card,
 #hand-bottom .card {
-    width: calc(9 * var(--scale));
-    height: calc(12.9 * var(--scale));
-    border-radius: calc(1 * var(--scale));
+    width: calc(13.5 * var(--scale));
+    height: calc(19.35 * var(--scale));
+    border-radius: calc(1.5 * var(--scale));
 }
 
-/* Play Area (Center) */
+/* Play Area (Center) - enlarged for bigger cards */
 #play-area {
-    width: calc(32 * var(--scale));
-    height: calc(32 * var(--scale));
+    width: calc(48 * var(--scale));
+    height: calc(48 * var(--scale));
     position: relative;
     display: flex;
     justify-content: center;
@@ -644,8 +644,8 @@ body {
 
 .played-card {
     position: absolute;
-    width: calc(7 * var(--scale));
-    height: calc(10 * var(--scale));
+    width: calc(10.5 * var(--scale));
+    height: calc(15 * var(--scale));
 }
 
 .played-card .card {
@@ -677,13 +677,13 @@ body {
     transform: translateY(-50%);
 }
 
-/* Cards */
+/* Cards - 1.5x size */
 .card {
-    width: calc(7 * var(--scale));
-    height: calc(10 * var(--scale));
+    width: calc(10.5 * var(--scale));
+    height: calc(15 * var(--scale));
     background: var(--card-white);
-    border-radius: calc(0.8 * var(--scale));
-    box-shadow: 0 calc(0.2 * var(--scale)) calc(0.8 * var(--scale)) var(--card-shadow);
+    border-radius: calc(1.2 * var(--scale));
+    box-shadow: 0 calc(0.3 * var(--scale)) calc(1.2 * var(--scale)) var(--card-shadow);
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     position: relative;
@@ -713,12 +713,12 @@ body {
 
 /* Card hover effects */
 .player-hand .card {
-    margin: 0 calc(-1.5 * var(--scale));
+    margin: 0 calc(-2.25 * var(--scale));
     transition: transform 0.2s ease, margin 0.2s ease;
 }
 
 .player-hand .card:hover {
-    transform: translateY(calc(-1 * var(--scale)));
+    transform: translateY(calc(-1.5 * var(--scale)));
     z-index: 10;
 }
 
