@@ -82,7 +82,7 @@ body {
 /* Superior Suit Display - Below Your Team score */
 #superior-suit-display {
     position: fixed;
-    top: calc(16 * var(--scale) + 20px);
+    top: calc(16 * var(--scale) + 60px);
     left: 100px;
     padding: calc(0.8 * var(--scale)) calc(1.5 * var(--scale));
     background: linear-gradient(145deg, rgba(10, 20, 30, 0.95) 0%, rgba(20, 40, 60, 0.9) 100%);
