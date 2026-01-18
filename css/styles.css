@@ -617,18 +617,18 @@ body {
     flex-direction: column;
 }
 
-/* Player's Cards - 10% bigger */
+/* Player's Cards - 20% bigger */
 #player-bottom .card,
 #hand-bottom .card {
-    width: calc(9.9 * var(--scale));
-    height: calc(14.19 * var(--scale));
-    border-radius: calc(1.1 * var(--scale));
+    width: calc(10.8 * var(--scale));
+    height: calc(15.48 * var(--scale));
+    border-radius: calc(1.2 * var(--scale));
 }
 
 /* Play Area (Center) */
 #play-area {
-    width: calc(35.2 * var(--scale));
-    height: calc(35.2 * var(--scale));
+    width: calc(38.4 * var(--scale));
+    height: calc(38.4 * var(--scale));
     position: relative;
     display: flex;
     justify-content: center;
@@ -644,8 +644,8 @@ body {
 
 .played-card {
     position: absolute;
-    width: calc(7.7 * var(--scale));
-    height: calc(11 * var(--scale));
+    width: calc(8.4 * var(--scale));
+    height: calc(12 * var(--scale));
 }
 
 .played-card .card {
@@ -677,13 +677,13 @@ body {
     transform: translateY(-50%);
 }
 
-/* Cards - 10% bigger */
+/* Cards - 20% bigger */
 .card {
-    width: calc(7.7 * var(--scale));
-    height: calc(11 * var(--scale));
+    width: calc(8.4 * var(--scale));
+    height: calc(12 * var(--scale));
     background: var(--card-white);
-    border-radius: calc(0.88 * var(--scale));
-    box-shadow: 0 calc(0.22 * var(--scale)) calc(0.88 * var(--scale)) var(--card-shadow);
+    border-radius: calc(0.96 * var(--scale));
+    box-shadow: 0 calc(0.24 * var(--scale)) calc(0.96 * var(--scale)) var(--card-shadow);
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     position: relative;
@@ -713,12 +713,12 @@ body {
 
 /* Card hover effects */
 .player-hand .card {
-    margin: 0 calc(-1.65 * var(--scale));
+    margin: 0 calc(-1.8 * var(--scale));
     transition: transform 0.2s ease, margin 0.2s ease;
 }
 
 .player-hand .card:hover {
-    transform: translateY(calc(-1.1 * var(--scale)));
+    transform: translateY(calc(-1.2 * var(--scale)));
     z-index: 10;
 }
 
