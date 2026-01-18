@@ -68,7 +68,7 @@
     <link rel="apple-touch-startup-image" href="splash/splash-ipad-9.7-2048x1536.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
 
     <title>Thaasbai - Maldivian Card Games</title>
-    <link rel="stylesheet" href="css/styles.css?v=58">
+    <link rel="stylesheet" href="css/styles.css?v=59">
 
     <!-- Socket.IO for multiplayer -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
@@ -392,16 +392,16 @@
                 <div class="food-contents"></div>
             </div>
         </div>
-    </div>
 
-    <!-- Game messages and overlays (outside game-container for global visibility) -->
-    <div id="message-overlay" class="hidden">
-        <div id="message-content">
-            <h2 id="message-title"></h2>
-            <p id="message-text"></p>
-            <div id="message-buttons">
-                <button id="message-button">Continue</button>
-                <button id="message-button-secondary" class="hidden">End Game</button>
+        <!-- Game messages and overlays (inside game-container for landscape rotation) -->
+        <div id="message-overlay" class="hidden">
+            <div id="message-content">
+                <h2 id="message-title"></h2>
+                <p id="message-text"></p>
+                <div id="message-buttons">
+                    <button id="message-button">Continue</button>
+                    <button id="message-button-secondary" class="hidden">End Game</button>
+                </div>
             </div>
         </div>
     </div>
