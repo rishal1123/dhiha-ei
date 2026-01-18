@@ -1694,6 +1694,7 @@
 
         // Show detailed sponsor popup with logo and info
         showSponsorDetails() {
+            console.log('showSponsorDetails - elements:', this.elements.messageOverlay, this.elements.messageTitle);
             this.elements.messageTitle.innerHTML = `
                 <svg viewBox="0 0 200 80" width="150" height="60" style="margin-bottom: 10px;">
                     <defs>
@@ -1725,6 +1726,7 @@
             this.elements.messageButtonSecondary.classList.add('hidden');
             this.elements.messageOverlay.classList.remove('hidden');
             this.elements.messageOverlay.classList.add('sponsor-popup');
+            console.log('Popup should now be visible, classes:', this.elements.messageOverlay.className);
 
             const handleClick = () => {
                 this.elements.messageButton.removeEventListener('click', handleClick);
@@ -3792,6 +3794,22 @@
                 PresenceManager,
                 getCurrentUserId: () => currentUserId,
                 initializeMultiplayer
+            }
+        };
+
+        // Global function for inline onclick sponsor popup
+        window.showSponsorPopup = () => {
+            console.log('showSponsorPopup called', { ui, renderer: ui?.renderer });
+            if (ui && ui.renderer) {
+                console.log('Calling showSponsorDetails');
+                try {
+                    ui.renderer.showSponsorDetails();
+                    console.log('showSponsorDetails completed');
+                } catch (e) {
+                    console.error('Error in showSponsorDetails:', e);
+                }
+            } else {
+                console.error('ui or ui.renderer is null');
             }
         };
     });
