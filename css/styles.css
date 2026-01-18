@@ -1151,8 +1151,8 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: calc(22 * var(--scale));
-    height: calc(22 * var(--scale));
+    width: calc(28 * var(--scale));
+    height: calc(28 * var(--scale));
     background: rgba(255, 255, 255, 0.1);
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: calc(1 * var(--scale));
@@ -1172,8 +1172,8 @@ body {
 
 .drink-item,
 .food-item {
-    width: calc(16 * var(--scale));
-    height: calc(16 * var(--scale));
+    width: calc(22 * var(--scale));
+    height: calc(22 * var(--scale));
     position: relative;
     transition: transform 0.1s ease;
     background: rgba(255, 255, 255, 0.3);
