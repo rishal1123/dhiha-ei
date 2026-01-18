@@ -451,10 +451,11 @@ body {
     bottom: calc(1 * var(--scale));
 }
 
-/* Top player (partner) - top right */
+/* Top player (partner) - below name */
 #player-top .shuffle-count {
-    right: calc(1 * var(--scale));
-    top: calc(1 * var(--scale));
+    bottom: calc(-3 * var(--scale));
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 /* Left player - bottom */
