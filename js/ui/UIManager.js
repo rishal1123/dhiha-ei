@@ -13,6 +13,7 @@ export class UIManager {
         this.game = game;
         this.renderer = new Renderer();
         this.isProcessing = false;
+        this.selectedCard = null;
 
         this.setupEventListeners();
         this.bindGameEvents();
@@ -42,6 +43,7 @@ export class UIManager {
      */
     async startNewGame() {
         this.isProcessing = false;
+        this.selectedCard = null;
         this.game.startGame();
         this.renderer.clearPlayedCards();
         this.renderer.updateSuperiorSuit(null);
@@ -61,7 +63,8 @@ export class UIManager {
         this.renderer.renderAllHands(
             this.game.players,
             validCards,
-            (card) => this.handleCardClick(card)
+            (card) => this.handleCardClick(card),
+            this.selectedCard
         );
 
         this.renderer.updateScores(state.tricksWon, state.tensCollected);
@@ -71,22 +74,39 @@ export class UIManager {
 
     /**
      * Handle human player clicking a card
+     * First click selects, second click plays
      * @param {Card} card - Card clicked
      */
     async handleCardClick(card) {
         if (this.isProcessing) return;
         if (!this.game.isHumanTurn()) return;
 
-        this.isProcessing = true;
+        // Check if this card is already selected
+        if (this.selectedCard && this.selectedCard.equals(card)) {
+            // Second click on same card - play it
+            this.isProcessing = true;
+            this.selectedCard = null;
 
-        const success = await this.game.playCard(card);
+            const success = await this.game.playCard(card);
 
-        if (success) {
-            // Continue game (AI turns)
-            await this.game.continueGame();
+            if (success) {
+                // Continue game (AI turns)
+                await this.game.continueGame();
+            }
+
+            this.isProcessing = false;
+        } else {
+            // First click or different card - select it
+            this.selectedCard = card;
+            this.updateDisplay();
         }
+    }
 
-        this.isProcessing = false;
+    /**
+     * Clear selected card
+     */
+    clearSelection() {
+        this.selectedCard = null;
     }
 
     /**

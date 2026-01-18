@@ -41,7 +41,7 @@ export class Renderer {
      * @param {Array<Card>} validCards - Cards that can be played (for human)
      * @param {Function} onCardClick - Click handler for cards
      */
-    renderHand(player, validCards = [], onCardClick = null) {
+    renderHand(player, validCards = [], onCardClick = null, selectedCard = null) {
         const handElement = this.elements.hands[player.position];
         handElement.innerHTML = '';
 
@@ -53,6 +53,11 @@ export class Renderer {
             if (isHuman && validCards.length > 0) {
                 const isValid = validCards.some(c => c.equals(card));
                 CardSprite.setPlayable(cardElement, isValid);
+
+                // Check if this card is selected
+                if (selectedCard && selectedCard.equals(card)) {
+                    cardElement.classList.add('selected');
+                }
 
                 if (isValid && onCardClick) {
                     cardElement.addEventListener('click', () => onCardClick(card));
@@ -68,13 +73,15 @@ export class Renderer {
      * @param {Array<Player>} players - All players
      * @param {Array<Card>} validCards - Valid cards for human
      * @param {Function} onCardClick - Click handler
+     * @param {Card} selectedCard - Currently selected card
      */
-    renderAllHands(players, validCards = [], onCardClick = null) {
+    renderAllHands(players, validCards = [], onCardClick = null, selectedCard = null) {
         players.forEach(player => {
             this.renderHand(
                 player,
                 player.isHuman ? validCards : [],
-                player.isHuman ? onCardClick : null
+                player.isHuman ? onCardClick : null,
+                player.isHuman ? selectedCard : null
             );
         });
     }

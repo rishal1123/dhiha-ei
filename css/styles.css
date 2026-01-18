@@ -690,6 +690,32 @@ body {
     animation: none;
 }
 
+.card.selected {
+    transform: translateY(calc(-2.5 * var(--scale))) scale(1.08);
+    box-shadow:
+        0 0 calc(2 * var(--scale)) rgba(255, 215, 0, 1),
+        0 0 calc(4 * var(--scale)) rgba(255, 215, 0, 0.8),
+        0 calc(1 * var(--scale)) calc(2.5 * var(--scale)) var(--card-shadow);
+    border: calc(0.3 * var(--scale)) solid var(--sunset-gold);
+    animation: selectedPulse 0.8s ease-in-out infinite;
+    z-index: 20;
+}
+
+@keyframes selectedPulse {
+    0%, 100% {
+        box-shadow:
+            0 0 calc(2 * var(--scale)) rgba(255, 215, 0, 1),
+            0 0 calc(4 * var(--scale)) rgba(255, 215, 0, 0.8),
+            0 calc(1 * var(--scale)) calc(2.5 * var(--scale)) var(--card-shadow);
+    }
+    50% {
+        box-shadow:
+            0 0 calc(2.5 * var(--scale)) rgba(255, 215, 0, 1),
+            0 0 calc(5 * var(--scale)) rgba(255, 215, 0, 0.9),
+            0 calc(1 * var(--scale)) calc(2.5 * var(--scale)) var(--card-shadow);
+    }
+}
+
 .card.not-playable,
 .card.disabled {
     opacity: 0.4;

@@ -1468,7 +1468,7 @@
             };
         }
 
-        renderHand(player, validCards = [], onCardClick = null) {
+        renderHand(player, validCards = [], onCardClick = null, selectedCard = null) {
             const handElement = this.elements.hands[player.position];
             handElement.innerHTML = '';
 
@@ -1481,6 +1481,11 @@
                     const isValid = validCards.some(c => c.equals(card));
                     CardSprite.setPlayable(cardElement, isValid);
 
+                    // Check if this card is selected
+                    if (selectedCard && selectedCard.equals(card)) {
+                        cardElement.classList.add('selected');
+                    }
+
                     if (isValid && onCardClick) {
                         cardElement.addEventListener('click', () => onCardClick(card));
                     }
@@ -1490,12 +1495,13 @@
             });
         }
 
-        renderAllHands(players, validCards = [], onCardClick = null) {
+        renderAllHands(players, validCards = [], onCardClick = null, selectedCard = null) {
             players.forEach(player => {
                 this.renderHand(
                     player,
                     player.isHuman ? validCards : [],
-                    player.isHuman ? onCardClick : null
+                    player.isHuman ? onCardClick : null,
+                    player.isHuman ? selectedCard : null
                 );
             });
         }
@@ -1758,6 +1764,7 @@
             this.game = game;
             this.renderer = new Renderer();
             this.isProcessing = false;
+            this.selectedCard = null;
 
             // Multiplayer components
             this.lobbyManager = null;
@@ -3213,6 +3220,7 @@
 
         async startNewMatch() {
             this.isProcessing = false;
+            this.selectedCard = null;
             this.humanCardsPlayedThisGame = 0;
             this.resetSponsorTooltips();
             this.startFoodItemJumps();
@@ -3232,6 +3240,7 @@
 
         async startNextRound() {
             this.isProcessing = false;
+            this.selectedCard = null;
             this.game.startRound();
             this.renderer.clearPlayedCards();
             this.renderer.clearCollectedTens();
@@ -3273,7 +3282,8 @@
                 this.renderer.renderAllHands(
                     this.game.players,
                     validCards,
-                    (card) => this.handleCardClick(card)
+                    (card) => this.handleCardClick(card),
+                    this.selectedCard
                 );
             }
 
@@ -3489,15 +3499,24 @@
                 if (!this.game.isHumanTurn()) return;
             }
 
-            this.isProcessing = true;
+            // Check if this card is already selected
+            if (this.selectedCard && this.selectedCard.equals(card)) {
+                // Second click on same card - play it
+                this.isProcessing = true;
+                this.selectedCard = null;
 
-            const success = await this.game.playCard(card);
+                const success = await this.game.playCard(card);
 
-            if (success) {
-                await this.game.continueGame();
+                if (success) {
+                    await this.game.continueGame();
+                }
+
+                this.isProcessing = false;
+            } else {
+                // First click or different card - select it
+                this.selectedCard = card;
+                this.updateDisplay();
             }
-
-            this.isProcessing = false;
         }
 
         handleStateChange(state) {
