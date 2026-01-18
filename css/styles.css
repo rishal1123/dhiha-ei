@@ -2545,6 +2545,19 @@ html, body {
         margin: 0 calc(-2.5 * var(--scale));
     }
 
+    /* Mobile position adjustments */
+    #match-points-panel {
+        right: calc(2 * var(--scale) + 100px);
+    }
+
+    #player-left {
+        left: calc(4 * var(--scale) + 100px);
+    }
+
+    .drink-sponsor {
+        left: calc(8 * var(--scale) + 100px);
+    }
+
     /* ===== LANDSCAPE OPTIMIZED POPUPS & HOME SCREENS ===== */
 
     /* Lobby Content - compact for landscape */
