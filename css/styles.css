@@ -1126,7 +1126,7 @@ body {
 .sponsor-logo svg {
     width: calc(54 * var(--scale));
     height: auto;
-    opacity: 0.25;
+    opacity: 0.1;
     filter: drop-shadow(0 calc(0.2 * var(--scale)) calc(0.5 * var(--scale)) rgba(0, 0, 0, 0.3));
 }
 
