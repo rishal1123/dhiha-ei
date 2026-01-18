@@ -1895,6 +1895,13 @@
                     this.renderer.showSponsorMessage('Ooredoo Maldives 📶', 'Stay connected with the best network!');
                 });
             }
+
+            // Lobby sponsor click handlers
+            document.querySelectorAll('.lobby-sponsor').forEach(sponsor => {
+                sponsor.addEventListener('click', () => {
+                    this.renderer.showSponsorMessage('Ooredoo Maldives 📶', 'Stay connected with the best network!');
+                });
+            });
         }
 
         // Show drink callout (appears at 3 cards played)

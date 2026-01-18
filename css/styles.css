@@ -1678,6 +1678,13 @@ body {
     border-radius: calc(1 * var(--scale));
     border: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.lobby-sponsor:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .lobby-sponsor-label {
