@@ -1890,17 +1890,50 @@
             }
         }
 
-        // Show food sponsor tooltip once per game
-        showFoodSponsorTooltip() {
-            if (!this.foodTooltipShownThisGame) {
-                this.foodTooltipShownThisGame = true;
-                this.renderer.showSponsorMessage('Snack Time! 🍿', 'Click on the chips for a quick break anytime!');
+        // Show drink callout (appears at 3 cards played)
+        showDrinkCallout() {
+            if (!this.drinkCalloutShown) {
+                this.drinkCalloutShown = true;
+                const callout = document.getElementById('drink-callout');
+                if (callout) {
+                    callout.classList.remove('hidden');
+                    // Auto-hide after 4 seconds
+                    setTimeout(() => callout.classList.add('hidden'), 4000);
+                }
             }
         }
 
-        // Reset sponsor tooltip flag for new game
+        // Show food callout (appears at 7 cards played)
+        showFoodCallout() {
+            if (!this.foodCalloutShown) {
+                this.foodCalloutShown = true;
+                const callout = document.getElementById('food-callout');
+                if (callout) {
+                    callout.classList.remove('hidden');
+                    // Auto-hide after 4 seconds
+                    setTimeout(() => callout.classList.add('hidden'), 4000);
+                }
+            }
+        }
+
+        // Check card count and show appropriate callouts
+        checkSponsorCallouts(cardsPlayed) {
+            if (cardsPlayed === 3) {
+                this.showDrinkCallout();
+            } else if (cardsPlayed === 7) {
+                this.showFoodCallout();
+            }
+        }
+
+        // Reset sponsor callout flags for new game
         resetSponsorTooltips() {
-            this.foodTooltipShownThisGame = false;
+            this.drinkCalloutShown = false;
+            this.foodCalloutShown = false;
+            // Hide any visible callouts
+            const drinkCallout = document.getElementById('drink-callout');
+            const foodCallout = document.getElementById('food-callout');
+            if (drinkCallout) drinkCallout.classList.add('hidden');
+            if (foodCallout) foodCallout.classList.add('hidden');
         }
 
         // Handle swap player button click
@@ -3050,6 +3083,7 @@
 
         async startNewMatch() {
             this.isProcessing = false;
+            this.cardsPlayedThisGame = 0;
             this.resetSponsorTooltips();
             this.game.startNewMatch();
             this.renderer.clearPlayedCards();
@@ -3061,9 +3095,6 @@
                 { normal: 0, 'all-tens': 0, shutout: 0 }
             ]);
             this.updateDisplay();
-
-            // Show food sponsor tooltip once per game
-            setTimeout(() => this.showFoodSponsorTooltip(), 1500);
 
             await this.game.continueGame();
         }
@@ -3345,6 +3376,10 @@
         handleCardPlayed(card, player) {
             this.renderer.renderPlayedCard(card, player.position);
             this.updateDisplay();
+
+            // Track cards played for sponsor callouts
+            this.cardsPlayedThisGame = (this.cardsPlayedThisGame || 0) + 1;
+            this.checkSponsorCallouts(this.cardsPlayedThisGame);
         }
 
         async handleTrickComplete(winner, trick, tens) {

@@ -1213,6 +1213,79 @@ body {
     letter-spacing: calc(0.1 * var(--scale));
 }
 
+/* Sponsor Callout Tooltips */
+.sponsor-callout {
+    position: absolute;
+    background: linear-gradient(145deg, #9b59b6, #8e44ad);
+    padding: calc(1 * var(--scale)) calc(1.5 * var(--scale));
+    border-radius: calc(0.8 * var(--scale));
+    white-space: nowrap;
+    animation: callout-bounce 0.5s ease-out;
+    box-shadow: 0 calc(0.4 * var(--scale)) calc(1 * var(--scale)) rgba(0, 0, 0, 0.4);
+    z-index: 10;
+}
+
+.sponsor-callout.hidden {
+    display: none;
+}
+
+.callout-text {
+    color: #fff;
+    font-size: calc(1.6 * var(--scale));
+    font-weight: 600;
+}
+
+.callout-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border: calc(0.8 * var(--scale)) solid transparent;
+}
+
+/* Drink callout - arrow points left */
+#drink-callout {
+    left: calc(18 * var(--scale));
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#drink-callout .callout-arrow {
+    left: calc(-1.4 * var(--scale));
+    top: 50%;
+    transform: translateY(-50%);
+    border-right-color: #9b59b6;
+    border-left: none;
+}
+
+/* Food callout - arrow points right */
+#food-callout {
+    right: calc(18 * var(--scale));
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#food-callout .callout-arrow {
+    right: calc(-1.4 * var(--scale));
+    top: 50%;
+    transform: translateY(-50%);
+    border-left-color: #9b59b6;
+    border-right: none;
+}
+
+@keyframes callout-bounce {
+    0% {
+        opacity: 0;
+        transform: translateY(-50%) scale(0.8);
+    }
+    50% {
+        transform: translateY(-50%) scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+    }
+}
+
 /* Lobby Overlay */
 #lobby-overlay {
     position: fixed;
