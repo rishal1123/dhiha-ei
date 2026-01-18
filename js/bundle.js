@@ -3083,7 +3083,7 @@
 
         async startNewMatch() {
             this.isProcessing = false;
-            this.cardsPlayedThisGame = 0;
+            this.humanCardsPlayedThisGame = 0;
             this.resetSponsorTooltips();
             this.game.startNewMatch();
             this.renderer.clearPlayedCards();
@@ -3377,9 +3377,11 @@
             this.renderer.renderPlayedCard(card, player.position);
             this.updateDisplay();
 
-            // Track cards played for sponsor callouts
-            this.cardsPlayedThisGame = (this.cardsPlayedThisGame || 0) + 1;
-            this.checkSponsorCallouts(this.cardsPlayedThisGame);
+            // Track only human player's cards for sponsor callouts
+            if (player.isHuman) {
+                this.humanCardsPlayedThisGame = (this.humanCardsPlayedThisGame || 0) + 1;
+                this.checkSponsorCallouts(this.humanCardsPlayedThisGame);
+            }
         }
 
         async handleTrickComplete(winner, trick, tens) {
