@@ -1943,11 +1943,22 @@
             }
 
             // Lobby sponsor click handlers - show detailed popup
-            document.querySelectorAll('.lobby-sponsor').forEach(sponsor => {
-                sponsor.addEventListener('click', () => {
+            const matchmakingSponsor = document.getElementById('matchmaking-sponsor');
+            const waitingRoomSponsor = document.getElementById('waiting-room-sponsor');
+
+            if (matchmakingSponsor) {
+                matchmakingSponsor.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     this.renderer.showSponsorDetails();
                 });
-            });
+            }
+
+            if (waitingRoomSponsor) {
+                waitingRoomSponsor.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.renderer.showSponsorDetails();
+                });
+            }
         }
 
         // Show drink callout (appears at 3 cards played)
