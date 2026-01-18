@@ -980,7 +980,10 @@
             this.matchPoints = [0, 0];
             this.matchOver = false;
             this.matchWinner = null;
-            this.shuffleCount = 0; // Tracks number of deals/rounds
+
+            // Dealer/shuffler tracking
+            this.dealerPosition = 0; // Who is currently dealing
+            this.shuffleCounts = [0, 0, 0, 0]; // How many times each player has shuffled
 
             // Track win types for display
             this.winTypeCount = [
@@ -1086,7 +1089,8 @@
             this.matchPoints = [0, 0];
             this.matchOver = false;
             this.matchWinner = null;
-            this.shuffleCount = 0;
+            this.dealerPosition = 0; // Human starts as dealer
+            this.shuffleCounts = [0, 0, 0, 0];
             this.winTypeCount = [
                 { normal: 0, 'all-tens': 0, shutout: 0 },
                 { normal: 0, 'all-tens': 0, shutout: 0 }
@@ -1096,10 +1100,16 @@
 
         startRound() {
             this.resetRound();
-            this.shuffleCount++;
+            // Current dealer shuffles - increment their count
+            this.shuffleCounts[this.dealerPosition]++;
             this.dealCards();
             this.currentTrick = new Trick();
             this.notifyStateChange();
+        }
+
+        // Called after round ends to rotate dealer for next round
+        rotateDealer() {
+            this.dealerPosition = (this.dealerPosition + 1) % 4;
         }
 
         resetRound() {
@@ -1319,7 +1329,8 @@
                 matchPoints: [...this.matchPoints],
                 matchOver: this.matchOver,
                 matchWinner: this.matchWinner,
-                shuffleCount: this.shuffleCount,
+                dealerPosition: this.dealerPosition,
+                shuffleCounts: [...this.shuffleCounts],
                 winTypeCount: [
                     { ...this.winTypeCount[0] },
                     { ...this.winTypeCount[1] }
@@ -1588,9 +1599,11 @@
             }
         }
 
-        updateShuffleCount(count) {
+        updateShuffleCount(shuffleCounts, dealerPosition, localPosition = 0) {
             if (this.elements.shuffleCount) {
-                this.elements.shuffleCount.textContent = `Shuffle: ${count}`;
+                // Show the local player's shuffle count
+                const playerShuffleCount = shuffleCounts[localPosition];
+                this.elements.shuffleCount.textContent = `Shuffle: ${playerShuffleCount}`;
             }
         }
 
@@ -3252,6 +3265,7 @@
         async startNextRound() {
             this.isProcessing = false;
             this.selectedCard = null;
+            this.game.rotateDealer(); // Rotate dealer before new round
             this.game.startRound();
             this.renderer.clearPlayedCards();
             this.renderer.clearCollectedTens();
@@ -3303,7 +3317,8 @@
             this.renderer.updateWinTypeCounts(state.winTypeCount);
             this.renderer.updateCollectedTens(state.collectedTensCards);
             this.renderer.updateSuperiorSuit(state.superiorSuit);
-            this.renderer.updateShuffleCount(state.shuffleCount);
+            const localPos = this.isMultiplayerMode ? this.game.localPlayerPosition : 0;
+            this.renderer.updateShuffleCount(state.shuffleCounts, state.dealerPosition, localPos);
             this.renderer.showTurnIndicator(state.currentPlayer, this.game.isLocalPlayerTurn());
 
             // Always update avatars (works for both single and multiplayer)
@@ -3687,6 +3702,7 @@
 
             // If we're the host, deal the new round
             if (this.lobbyManager && this.lobbyManager.isHost()) {
+                this.game.rotateDealer(); // Rotate dealer before new round
                 this.game.startRound();
                 this.renderer.clearPlayedCards();
                 this.renderer.clearCollectedTens();
