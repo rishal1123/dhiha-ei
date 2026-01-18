@@ -8,7 +8,24 @@
       "Bash(for f in */ace.svg */jack.svg */queen.svg */king.svg)",
       "Bash(do sed -i '/^  <\\\\/g>$/{N;/^  <\\\\/g>\\\\n$/d}' \"$f\")",
       "Bash(done)",
-      "Bash(gh repo rename:*)"
+      "Bash(gh repo rename:*)",
+      "Bash(taskkill:*)",
+      "Bash(python server.py:*)",
+      "Bash(git push:*)",
+      "Bash(curl:*)",
+      "Bash(Select-String -Pattern \"showSponsorPopup\")",
+      "Bash(Select-Object -First 5)",
+      "Bash(dir /B \"D:\\\\Claude\\\\Thaasbai\\\\icons\")",
+      "Bash(dir \"D:\\\\Claude\\\\Thaasbai\\\\icons\")",
+      "Bash(dir \"D:\\\\Claude\\\\Thaasbai\\\\splash\")",
+      "Bash(node --version:*)",
+      "Bash(npm --version)",
+      "Bash(magick:*)",
+      "Bash(convert:*)",
+      "Bash(pip show:*)",
+      "Bash(pip install:*)",
+      "Bash(python generate-icons.py:*)",
+      "Bash(where:*)"
     ]
   }
 }

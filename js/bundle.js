@@ -980,6 +980,7 @@
             this.matchPoints = [0, 0];
             this.matchOver = false;
             this.matchWinner = null;
+            this.shuffleCount = 0; // Tracks number of deals/rounds
 
             // Track win types for display
             this.winTypeCount = [
@@ -1085,6 +1086,7 @@
             this.matchPoints = [0, 0];
             this.matchOver = false;
             this.matchWinner = null;
+            this.shuffleCount = 0;
             this.winTypeCount = [
                 { normal: 0, 'all-tens': 0, shutout: 0 },
                 { normal: 0, 'all-tens': 0, shutout: 0 }
@@ -1094,6 +1096,7 @@
 
         startRound() {
             this.resetRound();
+            this.shuffleCount++;
             this.dealCards();
             this.currentTrick = new Trick();
             this.notifyStateChange();
@@ -1316,6 +1319,7 @@
                 matchPoints: [...this.matchPoints],
                 matchOver: this.matchOver,
                 matchWinner: this.matchWinner,
+                shuffleCount: this.shuffleCount,
                 winTypeCount: [
                     { ...this.winTypeCount[0] },
                     { ...this.winTypeCount[1] }
@@ -1459,6 +1463,7 @@
                     shutout: [document.getElementById('shutout-0'), document.getElementById('shutout-1')]
                 },
                 superiorSuit: document.getElementById('superior-suit-display'),
+                shuffleCount: document.getElementById('shuffle-count'),
                 turnIndicator: document.getElementById('turn-indicator'),
                 messageOverlay: document.getElementById('message-overlay'),
                 messageTitle: document.getElementById('message-title'),
@@ -1580,6 +1585,12 @@
                 element.classList.add(suit);
             } else {
                 element.textContent = '👑 —';
+            }
+        }
+
+        updateShuffleCount(count) {
+            if (this.elements.shuffleCount) {
+                this.elements.shuffleCount.textContent = `Shuffle: ${count}`;
             }
         }
 
@@ -3292,6 +3303,7 @@
             this.renderer.updateWinTypeCounts(state.winTypeCount);
             this.renderer.updateCollectedTens(state.collectedTensCards);
             this.renderer.updateSuperiorSuit(state.superiorSuit);
+            this.renderer.updateShuffleCount(state.shuffleCount);
             this.renderer.showTurnIndicator(state.currentPlayer, this.game.isLocalPlayerTurn());
 
             // Always update avatars (works for both single and multiplayer)

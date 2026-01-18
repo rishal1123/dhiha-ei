@@ -431,6 +431,21 @@ body {
     font-weight: 600;
 }
 
+/* Shuffle Count Display */
+.shuffle-count {
+    position: absolute;
+    left: calc(1 * var(--scale));
+    bottom: calc(1 * var(--scale));
+    color: var(--text-light);
+    font-size: clamp(12px, calc(1.4 * var(--scale)), 18px);
+    padding: calc(0.4 * var(--scale)) calc(1 * var(--scale));
+    background: linear-gradient(135deg, rgba(27, 40, 56, 0.9) 0%, rgba(0, 105, 148, 0.8) 100%);
+    border-radius: calc(1.5 * var(--scale));
+    border: 1px solid rgba(64, 224, 208, 0.5);
+    font-weight: 500;
+    opacity: 0.9;
+}
+
 /* Player Avatars */
 .player-avatar {
     width: calc(5 * var(--scale));
