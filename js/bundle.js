@@ -1107,9 +1107,9 @@
             this.notifyStateChange();
         }
 
-        // Called after round ends to rotate dealer for next round
+        // Called after round ends to rotate dealer for next round (counter-clockwise)
         rotateDealer() {
-            this.dealerPosition = (this.dealerPosition + 1) % 4;
+            this.dealerPosition = (this.dealerPosition + 3) % 4; // +3 is same as -1 mod 4
         }
 
         resetRound() {
