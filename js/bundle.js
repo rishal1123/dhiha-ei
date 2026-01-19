@@ -3692,10 +3692,25 @@
             // Create clone immediately for visual feedback
             const clone = cardEl.cloneNode(true);
             clone.classList.add('touch-drag-clone');
+
+            // Get the game board to append clone inside (to inherit rotation context)
+            const gameBoard = document.getElementById('digu-game-board');
+            const gameBoardRect = gameBoard ? gameBoard.getBoundingClientRect() : null;
+
+            // Calculate position relative to game board if rotated, otherwise use viewport
+            let cloneLeft = touch.clientX - this.touchDragState.offsetX;
+            let cloneTop = touch.clientY - this.touchDragState.offsetY;
+
+            if (gameBoard && gameBoardRect) {
+                // Adjust for game board position
+                cloneLeft = touch.clientX - gameBoardRect.left - this.touchDragState.offsetX;
+                cloneTop = touch.clientY - gameBoardRect.top - this.touchDragState.offsetY;
+            }
+
             clone.style.cssText = `
-                position: fixed !important;
-                left: ${touch.clientX - this.touchDragState.offsetX}px;
-                top: ${touch.clientY - this.touchDragState.offsetY}px;
+                position: absolute !important;
+                left: ${cloneLeft}px;
+                top: ${cloneTop}px;
                 z-index: 10000 !important;
                 pointer-events: none !important;
                 opacity: 0.95 !important;
@@ -3704,9 +3719,19 @@
                 box-shadow: 0 8px 30px rgba(0,0,0,0.6) !important;
                 transition: none !important;
                 animation: none !important;
+                width: ${rect.width}px !important;
+                height: ${rect.height}px !important;
             `;
-            document.body.appendChild(clone);
+
+            // Append to game board to inherit rotation context
+            if (gameBoard) {
+                gameBoard.appendChild(clone);
+            } else {
+                document.body.appendChild(clone);
+            }
             this.touchDragState.dragClone = clone;
+            this.touchDragState.gameBoard = gameBoard;
+            this.touchDragState.gameBoardRect = gameBoardRect;
 
             cardEl.classList.add('dragging');
         }
@@ -3736,8 +3761,18 @@
 
             // Move the clone to follow finger
             if (this.touchDragState.dragClone) {
-                this.touchDragState.dragClone.style.left = `${touch.clientX - this.touchDragState.offsetX}px`;
-                this.touchDragState.dragClone.style.top = `${touch.clientY - this.touchDragState.offsetY}px`;
+                let cloneLeft = touch.clientX - this.touchDragState.offsetX;
+                let cloneTop = touch.clientY - this.touchDragState.offsetY;
+
+                // Adjust for game board position if clone is inside it
+                if (this.touchDragState.gameBoard) {
+                    const rect = this.touchDragState.gameBoard.getBoundingClientRect();
+                    cloneLeft = touch.clientX - rect.left - this.touchDragState.offsetX;
+                    cloneTop = touch.clientY - rect.top - this.touchDragState.offsetY;
+                }
+
+                this.touchDragState.dragClone.style.left = `${cloneLeft}px`;
+                this.touchDragState.dragClone.style.top = `${cloneTop}px`;
 
                 // Highlight potential drop targets
                 this.highlightTouchDropTarget(touch.clientX, touch.clientY);
