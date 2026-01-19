@@ -3241,7 +3241,7 @@ html, body {
 }
 
 .digu-player.bottom {
-    bottom: calc(2 * var(--scale));
+    bottom: calc(0.5 * var(--scale));
     left: 50%;
     transform: translateX(-50%);
 }
@@ -3698,10 +3698,12 @@ html, body {
     white-space: nowrap;
 }
 
-/* Bottom player (human) - bottom left of hand area */
+/* Bottom player (human) - positioned on left side of screen */
 #digu-player-0 .digu-shuffle-count {
-    left: calc(1 * var(--scale));
-    bottom: calc(-3 * var(--scale));
+    position: fixed;
+    left: calc(2 * var(--scale));
+    bottom: calc(3 * var(--scale));
+    transform: none;
 }
 
 /* Left player - below avatar */
@@ -3852,9 +3854,15 @@ html, body {
         font-size: calc(2.4 * var(--scale)) !important;
     }
 
-    /* Player bottom area with safe area consideration */
+    /* Player bottom area - lower position with safe area */
     .digu-player.bottom {
-        bottom: max(calc(1 * var(--scale)), calc(1 * var(--scale) + env(safe-area-inset-bottom, 0px))) !important;
+        bottom: max(calc(0 * var(--scale)), env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    /* Bottom player shuffle count - fixed left side */
+    #digu-player-0 .digu-shuffle-count {
+        left: max(calc(2 * var(--scale)), calc(2 * var(--scale) + env(safe-area-inset-left, 0px))) !important;
+        bottom: max(calc(3 * var(--scale)), calc(3 * var(--scale) + env(safe-area-inset-bottom, 0px))) !important;
     }
 
     /* Left player with safe area */
