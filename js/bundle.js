@@ -126,12 +126,13 @@
             if (isPortrait) {
                 // In portrait: rotate 90deg clockwise and center
                 // With rotate(90deg) clockwise and transform-origin: top left:
-                // - Container rotates so it extends LEFT (containerHeight) and DOWN (containerWidth)
-                // - Visual bounds after rotation: left = offsetX - containerHeight, top = offsetY
-                // To center: we need offsetX - containerHeight = (vw - containerHeight)/2
-                //            and offsetY = (vh - containerWidth)/2
-                const offsetX = (vw + containerHeight) / 2;
-                const offsetY = Math.max(0, (vh - containerWidth) / 2);
+                // - Container rotates so it extends RIGHT (containerHeight) and UP (containerWidth)
+                // - Visual bounds: left = offsetX, right = offsetX + containerHeight
+                //                  top = offsetY - containerWidth, bottom = offsetY
+                // To center: offsetX = (vw - containerHeight) / 2
+                //            offsetY = (vh + containerWidth) / 2
+                const offsetX = Math.max(0, (vw - containerHeight) / 2);
+                const offsetY = (vh + containerWidth) / 2;
                 gameContainer.style.transform = `translate(${offsetX}px, ${offsetY}px) rotate(90deg)`;
                 gameContainer.style.transformOrigin = 'top left';
             } else {
