@@ -62,14 +62,16 @@
 
     // ============================================
     // AUTO-SCALING FOR ALL SCREEN SIZES
-    // Base resolution: 1920x1080
+    // Base resolution: 1920x1080 (177.78 x 100 scale units)
+    // Elements scale proportionally via dynamic --scale CSS variable
     // Rotates 90deg when viewport is portrait (width < height)
-    // Mobile devices maintain minimum DPI for usable touch targets
     // ============================================
 
-    const BASE_WIDTH = 1920;
-    const BASE_HEIGHT = 1080;
-    let currentGameScale = 1; // Store current scale for drag clone sizing
+    // Base dimensions in scale units (at --scale: 10.8px, this equals 1920x1080)
+    const BASE_WIDTH_UNITS = 177.78;   // 1920 / 10.8
+    const BASE_HEIGHT_UNITS = 100;      // 1080 / 10.8
+    const BASE_SCALE = 10.8;            // Base --scale value in pixels
+    let currentGameScale = 1;           // Store current scale factor for drag clone
 
     // Detect mobile/touch device
     function isMobileDevice() {
@@ -91,50 +93,53 @@
         const effectiveWidth = isPortrait ? vh : vw;
         const effectiveHeight = isPortrait ? vw : vh;
 
-        // Calculate scale to fit viewport while maintaining aspect ratio
-        const scaleX = effectiveWidth / BASE_WIDTH;
-        const scaleY = effectiveHeight / BASE_HEIGHT;
-        let scale = Math.min(scaleX, scaleY);
+        // Calculate scale factor to fit viewport while maintaining aspect ratio
+        const scaleX = effectiveWidth / (BASE_WIDTH_UNITS * BASE_SCALE);
+        const scaleY = effectiveHeight / (BASE_HEIGHT_UNITS * BASE_SCALE);
+        let scaleFactor = Math.min(scaleX, scaleY);
 
-        // For mobile devices, enforce minimum scale to maintain usable DPI
-        // This ensures touch targets remain large enough to interact with
-        // Minimum scale based on DPR: higher DPR screens can use smaller scale
+        // For mobile devices, enforce minimum scale to maintain usable touch targets
         if (isMobile) {
-            // Target: cards should be at least ~50 CSS pixels wide for comfortable touch
-            // Base card width is ~140px (10.8 * 12.9), so min scale = 50/140 ≈ 0.36
-            // Adjust for DPR: higher DPR = more physical pixels per CSS pixel = can go smaller
             const minScale = Math.max(0.32, 0.45 / Math.sqrt(dpr));
-            scale = Math.max(scale, minScale);
+            scaleFactor = Math.max(scaleFactor, minScale);
         }
 
         // Store for use by drag clone
-        currentGameScale = scale;
+        currentGameScale = scaleFactor;
 
-        // Calculate scaled dimensions
-        const scaledWidth = BASE_WIDTH * scale;
-        const scaledHeight = BASE_HEIGHT * scale;
+        // Calculate the dynamic --scale value (proportional scaling)
+        const dynamicScale = BASE_SCALE * scaleFactor;
 
-        // Apply transform to game container (which contains both Dhiha Ei and Digu)
+        // Update CSS --scale variable - this makes ALL elements scale proportionally
+        document.documentElement.style.setProperty('--scale', `${dynamicScale}px`);
+
+        // Calculate actual container dimensions (now based on dynamic --scale)
+        const containerWidth = BASE_WIDTH_UNITS * dynamicScale;
+        const containerHeight = BASE_HEIGHT_UNITS * dynamicScale;
+
+        // Position the container (centered, with rotation for portrait)
         if (gameContainer) {
+            // Set container dimensions explicitly
+            gameContainer.style.width = `${containerWidth}px`;
+            gameContainer.style.height = `${containerHeight}px`;
+
             if (isPortrait) {
-                // In portrait: rotate 90deg, then scale, then center
+                // In portrait: rotate 90deg and center
                 // After rotation, width becomes height and vice versa
-                // If game exceeds viewport, position at top-left (0,0) for natural scroll
-                const offsetX = Math.max(0, (vw - scaledHeight) / 2);
-                const offsetY = Math.max(0, (vh - scaledWidth) / 2);
-                gameContainer.style.transform = `translate(${offsetX}px, ${offsetY}px) rotate(90deg) scale(${scale})`;
+                const offsetX = Math.max(0, (vw - containerHeight) / 2);
+                const offsetY = Math.max(0, (vh - containerWidth) / 2);
+                gameContainer.style.transform = `translate(${offsetX}px, ${offsetY}px) rotate(90deg)`;
                 gameContainer.style.transformOrigin = 'top left';
             } else {
-                // In landscape: just scale and center
-                // If game exceeds viewport, position at top-left (0,0)
-                const offsetX = Math.max(0, (vw - scaledWidth) / 2);
-                const offsetY = Math.max(0, (vh - scaledHeight) / 2);
-                gameContainer.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+                // In landscape: just center (no scale transform needed)
+                const offsetX = Math.max(0, (vw - containerWidth) / 2);
+                const offsetY = Math.max(0, (vh - containerHeight) / 2);
+                gameContainer.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
                 gameContainer.style.transformOrigin = 'top left';
             }
         }
 
-        console.log(`[Scale] Viewport: ${vw}x${vh}, Portrait: ${isPortrait}, Mobile: ${isMobile}, DPR: ${dpr}, Scale: ${scale.toFixed(3)}`);
+        console.log(`[Scale] Viewport: ${vw}x${vh}, Portrait: ${isPortrait}, --scale: ${dynamicScale.toFixed(2)}px, Factor: ${scaleFactor.toFixed(3)}`);
     }
 
     // Scale on load and resize
@@ -4046,16 +4051,9 @@
             const rect = cardEl.getBoundingClientRect();
 
             // Check if game container is rotated (mobile portrait mode)
-            // Use same logic as scaleGame: portrait = width < height
             const vw = window.innerWidth;
             const vh = window.innerHeight;
             const isRotated = vw < vh;
-
-            // Calculate actual visual scale from the card's rendered vs CSS dimensions
-            // This is more reliable than relying on currentGameScale
-            const cssWidth = cardEl.offsetWidth;
-            const visualWidth = rect.width;
-            const actualScale = cssWidth > 0 ? visualWidth / cssWidth : 1;
 
             this.touchDragState = {
                 isDragging: true,
@@ -4069,10 +4067,7 @@
                 dragClone: null,
                 hasMoved: false,
                 touchId: touch.identifier,
-                isRotated: isRotated,
-                gameScale: actualScale,
-                visualWidth: visualWidth,
-                visualHeight: rect.height
+                isRotated: isRotated
             };
 
             // Create clone immediately for visual feedback
@@ -4084,8 +4079,7 @@
             const rotation = isRotated ? 'rotate(-90deg)' : '';
 
             // Position clone at the card's visual position
-            // Use scale transform to match the visual size of cards in the game
-            // The clone inherits CSS dimensions, so we scale it down to match visual size
+            // No scale needed - elements scale proportionally via --scale CSS variable
             clone.style.cssText = `
                 position: fixed !important;
                 left: ${rect.left}px;
@@ -4093,7 +4087,7 @@
                 z-index: 10000 !important;
                 pointer-events: none !important;
                 opacity: 0.9 !important;
-                transform: ${rotation} scale(${actualScale}) !important;
+                transform: ${rotation} !important;
                 transform-origin: top left !important;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
                 transition: none !important;
