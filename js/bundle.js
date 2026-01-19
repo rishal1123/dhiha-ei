@@ -62,13 +62,13 @@
 
     // ============================================
     // AUTO-SCALING FOR ALL SCREEN SIZES
-    // Base resolution: 1920x1080 (177.78 x 100 scale units)
+    // Base resolution: 2020x1080 (187.04 x 100 scale units)
     // Elements scale proportionally via dynamic --scale CSS variable
     // Rotates 90deg when viewport is portrait (width < height)
     // ============================================
 
-    // Base dimensions in scale units (at --scale: 10.8px, this equals 1920x1080)
-    const BASE_WIDTH_UNITS = 177.78;   // 1920 / 10.8
+    // Base dimensions in scale units (at --scale: 10.8px, this equals 2020x1080)
+    const BASE_WIDTH_UNITS = 187.04;   // 2020 / 10.8
     const BASE_HEIGHT_UNITS = 100;      // 1080 / 10.8
     const BASE_SCALE = 10.8;            // Base --scale value in pixels
     let currentGameScale = 1;           // Store current scale factor for drag clone
