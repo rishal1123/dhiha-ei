@@ -2813,6 +2813,9 @@ html, body {
     top: 50%;
     left: calc(50% - 18 * var(--scale));
     transform: translate(-100%, -50%);
+    width: calc(12.4 * var(--scale));
+    height: calc(17.6 * var(--scale));
+    border-radius: calc(1.2 * var(--scale));
     background: linear-gradient(145deg, #1a365d, #0d1b2a);
     border: calc(0.3 * var(--scale)) solid var(--ocean-turquoise);
     box-shadow:
@@ -2845,6 +2848,9 @@ html, body {
     top: 50%;
     left: calc(50% + 18 * var(--scale));
     transform: translate(0%, -50%);
+    width: calc(12.4 * var(--scale));
+    height: calc(17.6 * var(--scale));
+    border-radius: calc(1.2 * var(--scale));
     background: linear-gradient(145deg, rgba(50, 50, 50, 0.9), rgba(30, 30, 30, 0.9));
     border: calc(0.3 * var(--scale)) dashed rgba(255, 255, 255, 0.4);
     z-index: 15;
@@ -3604,9 +3610,10 @@ html, body {
     border: calc(0.3 * var(--scale)) solid var(--sunset-gold);
     border-radius: calc(1.5 * var(--scale));
     padding: calc(2 * var(--scale));
-    max-width: calc(80 * var(--scale));
+    /* Landscape optimized: wider layout */
+    max-width: calc(160 * var(--scale));
     width: 95%;
-    max-height: 90vh;
+    max-height: calc(90 * var(--scale));
     overflow-y: auto;
     box-shadow: 0 0 calc(3 * var(--scale)) rgba(255, 215, 0, 0.3);
 }
@@ -3683,10 +3690,10 @@ html, body {
     color: #ff6b6b;
 }
 
-/* Players Cards Display */
+/* Players Cards Display - Landscape optimized grid */
 #digu-result-players {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: calc(1 * var(--scale));
     margin-bottom: calc(1.5 * var(--scale));
 }
