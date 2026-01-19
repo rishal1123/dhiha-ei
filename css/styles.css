@@ -2580,10 +2580,11 @@ html, body {
     }
 }
 
-/* Mobile Portrait Mode - Lobby in portrait, Game ALWAYS in landscape */
-/* Forces landscape gameplay even when phone is held in portrait */
+/* Mobile Portrait Mode - 19:9 ratio phones, Game rotates to landscape */
+/* After 90deg rotation: width=100vh (~19 units), height=100vw (~9 units) */
 @media screen and (max-width: 932px) and (aspect-ratio < 1) {
-    /* Scale based on vw (phone width = game height after rotation) */
+    /* Scale based on vw (phone width = game height after rotation = 9 units) */
+    /* 1vw = 1% of game height, so 100vw = full game height */
     :root {
         --scale: 1vw;
     }
@@ -2611,11 +2612,11 @@ html, body {
         background: var(--night-blue);
     }
 
-    /* Game container rotates 90deg to landscape - FILLS ENTIRE SCREEN */
+    /* Game container rotates 90deg - 19:9 landscape */
     #game-container {
         position: fixed !important;
-        width: 100vh !important;
-        height: 100vw !important;
+        width: 100vh !important;  /* Game width = phone height (~19 units) */
+        height: 100vw !important; /* Game height = phone width (~9 units) */
         max-width: none !important;
         max-height: none !important;
         transform: rotate(90deg) !important;
@@ -2633,7 +2634,7 @@ html, body {
         position: relative !important;
     }
 
-    /* Digu game board ALSO rotates to landscape - FILLS ENTIRE SCREEN */
+    /* Digu game board - 19:9 landscape */
     #digu-game-board {
         position: fixed !important;
         width: 100vh !important;
@@ -2659,35 +2660,44 @@ html, body {
         display: flex;
     }
 
-    /* Table fills the screen */
+    /* Table - oval that fits 19:9 screen */
+    /* Width uses vh (game width), height uses vw (game height) */
     #game-board::before {
-        width: calc(200 * var(--scale)) !important;
-        height: calc(90 * var(--scale)) !important;
+        width: 85vh !important;
+        height: 80vw !important;
     }
 
     #game-board::after {
-        width: calc(190 * var(--scale)) !important;
-        height: calc(82 * var(--scale)) !important;
+        width: 80vh !important;
+        height: 72vw !important;
     }
 
-    /* Player positions - spread across full screen */
+    /* Player positions for 19:9 ratio */
     #player-bottom {
-        bottom: calc(1 * var(--scale));
+        bottom: 2vw !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
     }
 
     #player-top {
-        top: calc(1 * var(--scale));
+        top: 2vw !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
     }
 
     #player-left {
-        left: calc(2 * var(--scale));
+        left: 2vh !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
     }
 
     #player-right {
-        right: calc(2 * var(--scale));
+        right: 2vh !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
     }
 
-    /* Player's hand cards */
+    /* Player's hand cards - sized for 19:9 */
     #player-bottom .card,
     #hand-bottom .card {
         width: calc(9 * var(--scale));
@@ -2712,10 +2722,10 @@ html, body {
         height: calc(10 * var(--scale));
     }
 
-    /* Play area - fills center */
+    /* Play area - centered for 19:9 */
     #play-area {
-        width: calc(55 * var(--scale));
-        height: calc(40 * var(--scale));
+        width: 40vh !important;
+        height: 45vw !important;
     }
 
     /* Card overlap in hand */
@@ -2723,44 +2733,44 @@ html, body {
         margin: 0 calc(-1.5 * var(--scale));
     }
 
-    /* UI elements */
+    /* UI elements positioned for 19:9 */
     #match-points-panel {
-        top: calc(1 * var(--scale));
-        right: calc(2 * var(--scale));
+        top: 2vw !important;
+        right: 2vh !important;
         padding: calc(1 * var(--scale));
         min-width: auto;
     }
 
     .match-score span {
-        font-size: clamp(20px, calc(5 * var(--scale)), 36px);
+        font-size: clamp(16px, calc(4 * var(--scale)), 28px);
     }
 
     #superior-suit-display {
-        top: calc(12 * var(--scale));
-        left: calc(2 * var(--scale));
+        top: 12vw !important;
+        left: 2vh !important;
         padding: calc(0.5 * var(--scale)) calc(1 * var(--scale));
-        font-size: clamp(12px, calc(2.5 * var(--scale)), 20px);
+        font-size: clamp(10px, calc(2 * var(--scale)), 16px);
     }
 
     .drink-sponsor {
-        left: calc(2 * var(--scale));
-        bottom: calc(20 * var(--scale));
-        font-size: clamp(8px, calc(1.5 * var(--scale)), 14px);
+        left: 2vh !important;
+        bottom: 22vw !important;
+        font-size: clamp(8px, calc(1.5 * var(--scale)), 12px);
     }
 
     .table-sponsor {
-        font-size: clamp(6px, calc(1.5 * var(--scale)), 12px);
+        font-size: clamp(6px, calc(1.2 * var(--scale)), 10px);
     }
 
     /* Team labels */
     .team-label {
-        font-size: clamp(8px, calc(1.8 * var(--scale)), 14px);
-        padding: calc(0.3 * var(--scale)) calc(0.8 * var(--scale));
+        font-size: clamp(8px, calc(1.6 * var(--scale)), 12px);
+        padding: calc(0.3 * var(--scale)) calc(0.6 * var(--scale));
     }
 
     /* Player labels */
     .player-label {
-        font-size: clamp(8px, calc(1.8 * var(--scale)), 14px);
+        font-size: clamp(8px, calc(1.6 * var(--scale)), 12px);
     }
 
     /* ===== PORTRAIT OPTIMIZED LOBBY & HOME SCREENS ===== */
@@ -3846,24 +3856,25 @@ html, body {
     font-weight: 600;
 }
 
-/* Mobile optimized Digu layout - full width, 2x cards only */
+/* Mobile optimized Digu layout - 19:9 ratio, 2x cards */
 @media screen and (max-width: 932px) {
-    /* Digu game board - use full screen width */
+    /* Digu game board - full screen */
     #digu-game-board {
         padding: 0 !important;
         overflow: hidden;
         width: 100% !important;
+        height: 100% !important;
     }
 
-    /* Table fills full width */
+    /* Table for 19:9 ratio - uses vh for width, vw for height after rotation */
     #digu-game-board::before {
-        width: 95% !important;
-        height: calc(85 * var(--scale)) !important;
+        width: 85vh !important;
+        height: 80vw !important;
     }
 
     #digu-game-board::after {
-        width: 90% !important;
-        height: calc(78 * var(--scale)) !important;
+        width: 80vh !important;
+        height: 72vw !important;
     }
 
     /* Player hand cards - 2X SIZE for touch */
@@ -3880,25 +3891,25 @@ html, body {
         margin-left: 0 !important;
     }
 
-    /* Hand container - use FULL WIDTH, allow horizontal scroll */
+    /* Hand container - use FULL WIDTH */
     .digu-player.bottom .digu-player-hand {
         flex-wrap: nowrap !important;
         overflow-x: auto !important;
         overflow-y: hidden !important;
-        width: 100% !important;
-        max-width: 100% !important;
+        width: 100vh !important;
+        max-width: 100vh !important;
         padding: calc(0.5 * var(--scale)) 0 !important;
         -webkit-overflow-scrolling: touch;
         justify-content: center !important;
     }
 
-    /* Piles - 2X SIZE */
+    /* Piles - 2X SIZE, positioned for 19:9 */
     #digu-stock {
         width: calc(14 * var(--scale)) !important;
         height: calc(20 * var(--scale)) !important;
         border-radius: calc(1.5 * var(--scale)) !important;
         top: 50% !important;
-        left: calc(50% - 18 * var(--scale)) !important;
+        left: calc(50% - 10vh) !important;
         transform: translate(-50%, -50%) !important;
     }
 
@@ -3907,7 +3918,7 @@ html, body {
         height: calc(20 * var(--scale)) !important;
         border-radius: calc(1.5 * var(--scale)) !important;
         top: 50% !important;
-        left: calc(50% + 18 * var(--scale)) !important;
+        left: calc(50% + 10vh) !important;
         transform: translate(-50%, -50%) !important;
     }
 
@@ -3951,44 +3962,52 @@ html, body {
         display: none !important;
     }
 
-    /* Bottom player - use full width */
+    /* Bottom player - full width at bottom, 19:9 ratio */
     .digu-player.bottom {
-        width: 100% !important;
+        width: 100vh !important;
         left: 0 !important;
         right: 0 !important;
+        bottom: 2vw !important;
         padding: 0 !important;
-    }
-
-    /* Player bottom - cards at bottom, full width */
-    .digu-player.bottom {
-        bottom: env(safe-area-inset-bottom, 0px) !important;
         gap: 0 !important;
         flex-direction: column-reverse !important;
-        left: 0 !important;
-        right: 0 !important;
-        width: 100% !important;
         transform: none !important;
     }
 
-    /* Top player (partner) - align to top */
+    /* Top player (partner) - align to top, centered horizontally */
     #digu-player-2 {
-        top: calc(1 * var(--scale) + env(safe-area-inset-top, 0px)) !important;
-        left: 50% !important;
+        top: 2vw !important;
+        left: 50vh !important;
         transform: translateX(-50%) !important;
     }
 
-    /* Left player - edge of screen */
+    /* Left player - 2vh from left edge, centered vertically */
     #digu-player-1 {
-        left: 0 !important;
-        top: 50% !important;
+        left: 2vh !important;
+        top: 50vw !important;
         transform: translateY(-50%) !important;
     }
 
-    /* Right player - edge of screen */
+    /* Right player - 2vh from right edge, centered vertically */
     #digu-player-3 {
-        right: 0 !important;
-        top: 50% !important;
+        right: 2vh !important;
+        top: 50vw !important;
         transform: translateY(-50%) !important;
+    }
+
+    /* Digu scores panel - top-right for 19:9 */
+    #digu-scores {
+        top: 2vw !important;
+        right: 2vh !important;
+        padding: calc(0.8 * var(--scale)) calc(1 * var(--scale)) !important;
+        min-width: auto !important;
+    }
+
+    /* Digu phase indicator - centered top */
+    #digu-phase {
+        top: 2vw !important;
+        left: 50vh !important;
+        transform: translateX(-50%) !important;
     }
 
     /* Center area */
