@@ -3407,7 +3407,7 @@ html, body {
     box-shadow:
         0 0 calc(0.8 * var(--scale)) rgba(255, 215, 0, 0.7),
         inset 0 0 calc(0.3 * var(--scale)) rgba(255, 215, 0, 0.2);
-    border-color: rgba(255, 215, 0, 0.8);
+    border: calc(0.25 * var(--scale)) solid rgba(255, 215, 0, 0.8);
 }
 
 .digu-player.bottom .digu-player-hand .card.meld-set::after {
@@ -3426,7 +3426,7 @@ html, body {
     box-shadow:
         0 0 calc(0.8 * var(--scale)) rgba(64, 224, 208, 0.7),
         inset 0 0 calc(0.3 * var(--scale)) rgba(64, 224, 208, 0.2);
-    border-color: rgba(64, 224, 208, 0.8);
+    border: calc(0.25 * var(--scale)) solid rgba(64, 224, 208, 0.8);
 }
 
 .digu-player.bottom .digu-player-hand .card.meld-run::after {
