@@ -2980,11 +2980,11 @@ html, body {
     z-index: 10;
 }
 
-/* Digu Pile (Stock/Discard) */
+/* Digu Pile (Stock/Discard) - 1.3x larger */
 .digu-pile {
-    width: calc(10 * var(--scale));
-    height: calc(14 * var(--scale));
-    border-radius: calc(1 * var(--scale));
+    width: calc(13 * var(--scale));
+    height: calc(18.2 * var(--scale));
+    border-radius: calc(1.3 * var(--scale));
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -3399,12 +3399,9 @@ html, body {
         0 calc(0.3 * var(--scale)) calc(1 * var(--scale)) rgba(0, 0, 0, 0.4);
 }
 
+/* Card count hidden - not needed for Digu */
 .digu-card-count {
-    font-size: clamp(10px, calc(1.2 * var(--scale)), 14px);
-    color: rgba(255, 255, 255, 0.7);
-    background: rgba(0, 0, 0, 0.3);
-    padding: calc(0.2 * var(--scale)) calc(0.6 * var(--scale));
-    border-radius: calc(0.3 * var(--scale));
+    display: none;
 }
 
 /* Team labels */
