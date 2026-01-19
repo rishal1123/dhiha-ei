@@ -6,7 +6,7 @@
   <!-- Top-left rank and suit -->
   <g transform="translate(25, 90)">
     <text x="0" y="0" font-family="Georgia, serif" font-size="96" font-weight="bold" fill="#1A1A1A">Q</text>
-    <g transform="translate(18, 40)">
+    <g transform="translate(-9, 33) scale(3)">
       <circle cx="0" cy="-10" r="8" fill="#1A1A1A"/>
       <circle cx="-8" cy="0" r="8" fill="#1A1A1A"/>
       <circle cx="8" cy="0" r="8" fill="#1A1A1A"/>

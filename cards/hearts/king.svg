@@ -6,7 +6,9 @@
   <!-- Top-left rank and suit -->
   <g transform="translate(25, 90)">
     <text x="0" y="0" font-family="Georgia, serif" font-size="96" font-weight="bold" fill="#8B1E1E">K</text>
-    <path d="M12,12 C12,12 12,8 8,8 C4,8 2,12 2,15 C2,21 12,28 12,28 C12,28 22,21 22,15 C22,12 20,8 16,8 C12,8 12,12 12,12 Z" fill="#8B1E1E" transform="translate(2, 12)"/>
+    <g transform="translate(-10, 5) scale(3)">
+      <path d="M12,12 C12,12 12,8 8,8 C4,8 2,12 2,15 C2,21 12,28 12,28 C12,28 22,21 22,15 C22,12 20,8 16,8 C12,8 12,12 12,12 Z" fill="#8B1E1E"/>
+    </g>
   </g>
 
   <!-- King abstract geometric design - Heavy throne/pillar motif -->

@@ -6,7 +6,7 @@
   <!-- Top-left rank and suit -->
   <g transform="translate(25, 90)">
     <text x="0" y="0" font-family="Georgia, serif" font-size="96" font-weight="bold" fill="#1A1A1A">Q</text>
-    <g transform="translate(3, 12)">
+    <g transform="translate(-9, 5) scale(3)">
       <path d="M12,0 C12,0 2,12 2,17 C2,21 5,24 9,24 C11,24 12,22 12,22 C12,22 13,24 15,24 C19,24 22,21 22,17 C22,12 12,0 12,0 Z" fill="#1A1A1A"/>
       <rect x="9" y="21" width="6" height="9" fill="#1A1A1A"/>
     </g>
