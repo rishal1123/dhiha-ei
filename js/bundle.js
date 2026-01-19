@@ -3486,11 +3486,18 @@
             if (!btn || !this.diguGame) return;
 
             const player = this.diguGame.players[0];
-            const canDeclare = player.canDeclareDigu() &&
+            const hasValidMelds = player.canDeclareDigu();
+            const canDeclare = hasValidMelds &&
                               this.diguGame.isHumanTurn() &&
                               this.diguGame.gamePhase === 'meld';
 
-            btn.disabled = !canDeclare;
+            // Show button only when all cards form valid melds
+            if (hasValidMelds) {
+                btn.classList.remove('hidden');
+                btn.disabled = !canDeclare;
+            } else {
+                btn.classList.add('hidden');
+            }
         }
 
         handleDiguDraw(source) {
