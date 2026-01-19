@@ -2967,10 +2967,10 @@ html, body {
     z-index: 1;
 }
 
-/* Digu Center Area - Phase & Button only */
+/* Digu Center Area - Phase & Button above table sponsor */
 #digu-center-area {
     position: absolute;
-    top: 50%;
+    top: calc(50% - 12 * var(--scale));
     left: 50%;
     transform: translate(-50%, -50%);
     display: flex;
