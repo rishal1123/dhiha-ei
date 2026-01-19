@@ -2571,6 +2571,15 @@ html, body {
     position: relative;
 }
 
+/* Large screens (1920px+) - add 50px padding on each side */
+@media screen and (min-width: 1920px) {
+    #game-container,
+    #digu-game-board {
+        padding-left: 50px;
+        padding-right: 50px;
+    }
+}
+
 /* Mobile Portrait Mode - Lobby in portrait, Game in landscape */
 @media screen and (max-width: 900px) and (orientation: portrait) {
     /* Recalculate scale for rotated mobile view */
