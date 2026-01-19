@@ -3666,7 +3666,7 @@
             this.updateDiguDisplay();
         }
 
-        // Touch drag handlers for mobile - improved for better responsiveness
+        // Touch drag handlers for mobile - improved for rotated game container
         handleTouchDragStart(e, cardEl, cardIndex, card) {
             // Prevent default to stop scrolling
             e.preventDefault();
@@ -3674,6 +3674,10 @@
 
             const touch = e.touches[0];
             const rect = cardEl.getBoundingClientRect();
+
+            // Check if game container is rotated (mobile portrait mode)
+            const gameContainer = document.getElementById('game-container');
+            const isRotated = gameContainer && window.innerWidth < 900;
 
             this.touchDragState = {
                 isDragging: true,
@@ -3686,35 +3690,24 @@
                 offsetY: touch.clientY - rect.top,
                 dragClone: null,
                 hasMoved: false,
-                touchId: touch.identifier
+                touchId: touch.identifier,
+                isRotated: isRotated
             };
 
             // Create clone immediately for visual feedback
             const clone = cardEl.cloneNode(true);
             clone.classList.add('touch-drag-clone');
 
-            // Get the game board to append clone inside (to inherit rotation context)
-            const gameBoard = document.getElementById('digu-game-board');
-            const gameBoardRect = gameBoard ? gameBoard.getBoundingClientRect() : null;
-
-            // Calculate position relative to game board if rotated, otherwise use viewport
-            let cloneLeft = touch.clientX - this.touchDragState.offsetX;
-            let cloneTop = touch.clientY - this.touchDragState.offsetY;
-
-            if (gameBoard && gameBoardRect) {
-                // Adjust for game board position
-                cloneLeft = touch.clientX - gameBoardRect.left - this.touchDragState.offsetX;
-                cloneTop = touch.clientY - gameBoardRect.top - this.touchDragState.offsetY;
-            }
-
+            // For rotated container, append to body and use fixed positioning
+            // This avoids coordinate transformation issues
             clone.style.cssText = `
-                position: absolute !important;
-                left: ${cloneLeft}px;
-                top: ${cloneTop}px;
+                position: fixed !important;
+                left: ${touch.clientX - this.touchDragState.offsetX}px;
+                top: ${touch.clientY - this.touchDragState.offsetY}px;
                 z-index: 10000 !important;
                 pointer-events: none !important;
                 opacity: 0.95 !important;
-                transform: scale(1.1) rotate(0deg) !important;
+                transform: scale(1.1) !important;
                 transform-origin: center center !important;
                 box-shadow: 0 8px 30px rgba(0,0,0,0.6) !important;
                 transition: none !important;
@@ -3723,15 +3716,8 @@
                 height: ${rect.height}px !important;
             `;
 
-            // Append to game board to inherit rotation context
-            if (gameBoard) {
-                gameBoard.appendChild(clone);
-            } else {
-                document.body.appendChild(clone);
-            }
+            document.body.appendChild(clone);
             this.touchDragState.dragClone = clone;
-            this.touchDragState.gameBoard = gameBoard;
-            this.touchDragState.gameBoardRect = gameBoardRect;
 
             cardEl.classList.add('dragging');
         }
@@ -3759,20 +3745,10 @@
                 this.touchDragState.hasMoved = true;
             }
 
-            // Move the clone to follow finger
+            // Move the clone to follow finger (using fixed positioning)
             if (this.touchDragState.dragClone) {
-                let cloneLeft = touch.clientX - this.touchDragState.offsetX;
-                let cloneTop = touch.clientY - this.touchDragState.offsetY;
-
-                // Adjust for game board position if clone is inside it
-                if (this.touchDragState.gameBoard) {
-                    const rect = this.touchDragState.gameBoard.getBoundingClientRect();
-                    cloneLeft = touch.clientX - rect.left - this.touchDragState.offsetX;
-                    cloneTop = touch.clientY - rect.top - this.touchDragState.offsetY;
-                }
-
-                this.touchDragState.dragClone.style.left = `${cloneLeft}px`;
-                this.touchDragState.dragClone.style.top = `${cloneTop}px`;
+                this.touchDragState.dragClone.style.left = `${touch.clientX - this.touchDragState.offsetX}px`;
+                this.touchDragState.dragClone.style.top = `${touch.clientY - this.touchDragState.offsetY}px`;
 
                 // Highlight potential drop targets
                 this.highlightTouchDropTarget(touch.clientX, touch.clientY);
