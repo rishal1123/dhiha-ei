@@ -1449,12 +1449,12 @@
 
             for (const card of cards) {
                 // Check same suit (case-insensitive)
-                if (card.suit.toLowerCase() !== suit.toLowerCase()) {
+                if (String(card.suit).toLowerCase() !== String(suit).toLowerCase()) {
                     return false;
                 }
-                // Ensure rank is a number
-                const rankNum = parseInt(card.rank, 10);
-                if (isNaN(rankNum)) return false;
+                // Get rank as number - handle both number and string types
+                let rankNum = typeof card.rank === 'number' ? card.rank : parseInt(card.rank, 10);
+                if (isNaN(rankNum) || rankNum < 2 || rankNum > 14) return false;
                 ranks.push(rankNum);
             }
 
@@ -1534,15 +1534,16 @@
 
             for (const suit in bySuit) {
                 // Sort by numeric rank value
-                const suitCards = bySuit[suit].sort((a, b) => parseInt(a.rank, 10) - parseInt(b.rank, 10));
+                const getRank = (c) => typeof c.rank === 'number' ? c.rank : parseInt(c.rank, 10);
+                const suitCards = bySuit[suit].sort((a, b) => getRank(a) - getRank(b));
 
                 // Find all consecutive sequences of 3+ cards
                 for (let start = 0; start < suitCards.length - 2; start++) {
                     let run = [suitCards[start]];
 
                     for (let i = start + 1; i < suitCards.length; i++) {
-                        // Use parseInt to ensure numeric comparison
-                        if (parseInt(suitCards[i].rank, 10) === parseInt(run[run.length - 1].rank, 10) + 1) {
+                        // Compare numeric ranks
+                        if (getRank(suitCards[i]) === getRank(run[run.length - 1]) + 1) {
                             run.push(suitCards[i]);
                         } else {
                             break;
