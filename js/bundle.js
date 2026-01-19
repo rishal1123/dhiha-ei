@@ -3487,9 +3487,8 @@
 
             const player = this.diguGame.players[0];
             const hasValidMelds = player.canDeclareDigu();
-            const canDeclare = hasValidMelds &&
-                              this.diguGame.isHumanTurn() &&
-                              this.diguGame.gamePhase === 'meld';
+            // Can declare at any time during your turn if you have valid melds
+            const canDeclare = hasValidMelds && this.diguGame.isHumanTurn();
 
             // Show button only when all cards form valid melds
             if (hasValidMelds) {
