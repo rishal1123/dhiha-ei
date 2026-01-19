@@ -1167,9 +1167,50 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* Rotate overlay - hidden for 16:9 landscape */
+/* Rotate overlay - shown when device is in portrait */
 #rotate-overlay {
     display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 24, 37, 0.98);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#rotate-overlay.show {
+    display: flex;
+}
+
+.rotate-content {
+    text-align: center;
+    color: var(--text-light);
+    padding: calc(2 * var(--scale));
+}
+
+.rotate-icon {
+    margin-bottom: calc(2 * var(--scale));
+    animation: rotate-hint 2s ease-in-out infinite;
+}
+
+@keyframes rotate-hint {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(-90deg); }
+}
+
+.rotate-content h2 {
+    font-size: calc(3 * var(--scale));
+    color: var(--sunset-gold);
+    margin-bottom: calc(1 * var(--scale));
+}
+
+.rotate-content p {
+    font-size: calc(1.8 * var(--scale));
+    color: var(--ocean-turquoise);
 }
 
 /* Scrollbar styling */
@@ -2662,13 +2703,8 @@ html, body {
     }
 }
 
-/* Mobile touch enhancements - auto-scaling handles all sizes */
+/* Mobile touch enhancements */
 @media (pointer: coarse) {
-    /* Hide rotate overlay - auto-scaling handles all orientations */
-    #rotate-overlay {
-        display: none !important;
-    }
-
     /* iOS PWA button touch feedback */
     button, .clickable, [role="button"] {
         -webkit-tap-highlight-color: transparent;

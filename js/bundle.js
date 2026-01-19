@@ -162,6 +162,76 @@
     }
 
     // ============================================
+    // FORCE LANDSCAPE ORIENTATION
+    // ============================================
+
+    // Try to lock orientation to landscape
+    async function lockLandscape() {
+        try {
+            // Try Screen Orientation API (works in fullscreen on most browsers)
+            if (screen.orientation && screen.orientation.lock) {
+                await screen.orientation.lock('landscape');
+                console.log('[Orientation] Locked to landscape');
+                return true;
+            }
+        } catch (e) {
+            console.log('[Orientation] Lock failed:', e.message);
+        }
+        return false;
+    }
+
+    // Request fullscreen and lock orientation
+    async function requestFullscreenLandscape() {
+        const elem = document.documentElement;
+        try {
+            if (elem.requestFullscreen) {
+                await elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) {
+                await elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                await elem.msRequestFullscreen();
+            }
+            await lockLandscape();
+        } catch (e) {
+            console.log('[Fullscreen] Request failed:', e.message);
+        }
+    }
+
+    // Show/hide rotate overlay based on orientation
+    function updateRotateOverlay() {
+        const overlay = document.getElementById('rotate-overlay');
+        if (!overlay) return;
+
+        const isPortrait = window.innerWidth < window.innerHeight;
+        if (isPortrait && isMobileDevice()) {
+            overlay.classList.add('show');
+        } else {
+            overlay.classList.remove('show');
+        }
+    }
+
+    // Listen for orientation changes
+    window.addEventListener('resize', updateRotateOverlay);
+    window.addEventListener('orientationchange', () => {
+        setTimeout(updateRotateOverlay, 100);
+    });
+
+    // Initial check
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', updateRotateOverlay);
+    } else {
+        updateRotateOverlay();
+    }
+
+    // Try to lock on first user interaction (required by browsers)
+    document.addEventListener('click', async function onFirstClick() {
+        if (isMobileDevice() && window.innerWidth < window.innerHeight) {
+            await requestFullscreenLandscape();
+        }
+        document.removeEventListener('click', onFirstClick);
+    }, { once: true });
+
+    // ============================================
     // WEBSOCKET MULTIPLAYER CONFIGURATION
     // ============================================
 
