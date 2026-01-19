@@ -1242,6 +1242,107 @@
             return DiGuRules.getHandValue(this.hand);
         }
 
+        // Get value of unmelded cards (for scoring penalty)
+        getUnmeldedValue() {
+            const result = this.getMeldsFromHand();
+
+            // If all cards are melded (valid structure found), return 0
+            if (result.valid !== false && result.structure) {
+                return 0;
+            }
+
+            // Calculate value of cards not in valid melds
+            const cards = this.hand.slice(0, 10);
+            let unmeldedValue = 0;
+
+            // Try to find valid melds and exclude their values
+            const structures = [
+                [4, 3, 3],
+                [3, 4, 3],
+                [3, 3, 4]
+            ];
+
+            // Find which cards are in valid melds
+            const meldedIndices = new Set();
+
+            for (const structure of structures) {
+                const meld1 = cards.slice(0, structure[0]);
+                const meld2 = cards.slice(structure[0], structure[0] + structure[1]);
+                const meld3 = cards.slice(structure[0] + structure[1], 10);
+
+                // Mark valid melds
+                if (DiGuRules.isValidMeld(meld1)) {
+                    for (let i = 0; i < structure[0]; i++) meldedIndices.add(i);
+                }
+                if (DiGuRules.isValidMeld(meld2)) {
+                    for (let i = structure[0]; i < structure[0] + structure[1]; i++) meldedIndices.add(i);
+                }
+                if (DiGuRules.isValidMeld(meld3)) {
+                    for (let i = structure[0] + structure[1]; i < 10; i++) meldedIndices.add(i);
+                }
+            }
+
+            // Sum value of unmelded cards
+            for (let i = 0; i < cards.length; i++) {
+                if (!meldedIndices.has(i)) {
+                    unmeldedValue += DiGuRules.getCardValue(cards[i]);
+                }
+            }
+
+            return unmeldedValue;
+        }
+
+        // Get detailed meld information for end-game display
+        getMeldDetails() {
+            const result = this.getMeldsFromHand();
+            const cards = this.hand.slice(0, 10);
+            const meldDetails = [];
+
+            if (result.structure) {
+                const [s1, s2, s3] = result.structure;
+                meldDetails.push({
+                    cards: cards.slice(0, s1),
+                    valid: DiGuRules.isValidMeld(cards.slice(0, s1)),
+                    type: this.getMeldType(cards.slice(0, s1))
+                });
+                meldDetails.push({
+                    cards: cards.slice(s1, s1 + s2),
+                    valid: DiGuRules.isValidMeld(cards.slice(s1, s1 + s2)),
+                    type: this.getMeldType(cards.slice(s1, s1 + s2))
+                });
+                meldDetails.push({
+                    cards: cards.slice(s1 + s2, 10),
+                    valid: DiGuRules.isValidMeld(cards.slice(s1 + s2, 10)),
+                    type: this.getMeldType(cards.slice(s1 + s2, 10))
+                });
+            } else {
+                // Default 3+3+4 structure
+                meldDetails.push({
+                    cards: cards.slice(0, 3),
+                    valid: DiGuRules.isValidMeld(cards.slice(0, 3)),
+                    type: this.getMeldType(cards.slice(0, 3))
+                });
+                meldDetails.push({
+                    cards: cards.slice(3, 6),
+                    valid: DiGuRules.isValidMeld(cards.slice(3, 6)),
+                    type: this.getMeldType(cards.slice(3, 6))
+                });
+                meldDetails.push({
+                    cards: cards.slice(6, 10),
+                    valid: DiGuRules.isValidMeld(cards.slice(6, 10)),
+                    type: this.getMeldType(cards.slice(6, 10))
+                });
+            }
+
+            return meldDetails;
+        }
+
+        getMeldType(cards) {
+            if (DiGuRules.isValidSet(cards)) return 'set';
+            if (DiGuRules.isValidRun(cards)) return 'run';
+            return 'invalid';
+        }
+
         get cardCount() {
             return this.hand.length;
         }
@@ -1260,100 +1361,208 @@
         chooseDrawSource(discardTopCard, hand) {
             if (!discardTopCard) return 'stock';
 
-            // Check if discard top card helps form melds
-            const currentMelds = DiGuRules.findPossibleMelds(hand);
-            const withDiscard = DiGuRules.findPossibleMelds([...hand, discardTopCard]);
+            // Score the potential benefit of taking the discard card
+            const benefitScore = this.evaluateCardBenefit(discardTopCard, hand);
 
-            // If adding discard creates more/better melds, take it
-            if (withDiscard.length > currentMelds.length) {
-                return 'discard';
-            }
+            // Take from discard if benefit is significant (score >= 2)
+            return benefitScore >= 2 ? 'discard' : 'stock';
+        }
 
-            // Check if it completes a set
-            const sameRank = hand.filter(c => c.rank === discardTopCard.rank);
+        // Evaluate how much a card would benefit our hand
+        evaluateCardBenefit(card, hand) {
+            let score = 0;
+
+            // Check if it completes a set (3 or 4 of a kind)
+            const sameRank = hand.filter(c => c.rank === card.rank);
             if (sameRank.length >= 2) {
-                return 'discard';
+                // Would complete a set of 3+
+                const suits = new Set(sameRank.map(c => c.suit));
+                if (!suits.has(card.suit)) {
+                    score += 5; // Valid set (different suits)
+                }
+            } else if (sameRank.length === 1) {
+                // Has one matching rank - building towards set
+                const existingSuit = sameRank[0].suit;
+                if (existingSuit !== card.suit) {
+                    score += 2; // Different suit, potential set
+                }
             }
 
-            // Check if it extends a run
-            const sameSuit = hand.filter(c => c.suit === discardTopCard.suit);
-            const ranks = sameSuit.map(c => c.rank);
-            if (ranks.includes(discardTopCard.rank - 1) || ranks.includes(discardTopCard.rank + 1)) {
-                return 'discard';
+            // Check if it helps a run (consecutive same suit)
+            const sameSuit = hand.filter(c => c.suit === card.suit);
+            const sameSuitRanks = sameSuit.map(c => c.rank).sort((a, b) => a - b);
+
+            // Check for adjacent cards
+            const hasLower = sameSuitRanks.includes(card.rank - 1);
+            const hasHigher = sameSuitRanks.includes(card.rank + 1);
+            const hasTwoLower = sameSuitRanks.includes(card.rank - 2);
+            const hasTwoHigher = sameSuitRanks.includes(card.rank + 2);
+
+            if (hasLower && hasHigher) {
+                // Completes a run of at least 3
+                score += 5;
+            } else if ((hasLower && hasTwoLower) || (hasHigher && hasTwoHigher)) {
+                // Extends an existing run
+                score += 4;
+            } else if (hasLower || hasHigher) {
+                // Building towards a run
+                score += 2;
             }
 
-            return 'stock';
+            // Ace is high only - penalize A-2 combinations
+            if (card.rank === 14 && sameSuitRanks.includes(2)) {
+                score -= 3;
+            }
+            if (card.rank === 2 && sameSuitRanks.includes(14)) {
+                score -= 3;
+            }
+
+            return score;
         }
 
-        // Choose which card to discard
+        // Choose which card to discard - improved logic
         chooseDiscard(hand) {
-            // Find cards that are part of melds
-            const melds = DiGuRules.findPossibleMelds(hand);
-            const cardsInMelds = new Set();
+            if (hand.length === 0) return null;
 
-            melds.forEach(meld => {
-                meld.cards.forEach(card => {
-                    cardsInMelds.add(card.id);
-                });
-            });
+            // Score each card - lower score = better to discard
+            const cardScores = hand.map((card, index) => ({
+                card,
+                index,
+                score: this.evaluateCardKeepValue(card, hand)
+            }));
 
-            // Prefer discarding cards not in any meld
-            const isolatedCards = hand.filter(c => !cardsInMelds.has(c.id));
+            // Sort by score ascending (lowest score = discard first)
+            cardScores.sort((a, b) => a.score - b.score);
 
-            if (isolatedCards.length > 0) {
-                // Discard highest value isolated card
-                isolatedCards.sort((a, b) => DiGuRules.getCardValue(b) - DiGuRules.getCardValue(a));
-                return isolatedCards[0];
-            }
-
-            // If all cards are in melds, discard highest value card
-            const sorted = [...hand].sort((a, b) => DiGuRules.getCardValue(b) - DiGuRules.getCardValue(a));
-            return sorted[0];
+            // Return the card with lowest keep value
+            return cardScores[0].card;
         }
 
-        // Automatically arrange melds for AI
+        // Evaluate how valuable a card is to keep
+        evaluateCardKeepValue(card, hand) {
+            let score = 0;
+            const otherCards = hand.filter(c => c !== card);
+
+            // Check set potential
+            const sameRank = otherCards.filter(c => c.rank === card.rank);
+            if (sameRank.length >= 2) {
+                // Part of a valid set (3+)
+                const suits = new Set([card.suit, ...sameRank.map(c => c.suit)]);
+                if (suits.size === sameRank.length + 1) {
+                    score += 10; // Valid set with different suits
+                }
+            } else if (sameRank.length === 1) {
+                // Potential pair towards set
+                if (sameRank[0].suit !== card.suit) {
+                    score += 3;
+                }
+            }
+
+            // Check run potential
+            const sameSuit = otherCards.filter(c => c.suit === card.suit);
+            const sameSuitRanks = sameSuit.map(c => c.rank).sort((a, b) => a - b);
+
+            // Check for run of 3+
+            const hasLower = sameSuitRanks.includes(card.rank - 1);
+            const hasHigher = sameSuitRanks.includes(card.rank + 1);
+            const hasTwoLower = sameSuitRanks.includes(card.rank - 2);
+            const hasTwoHigher = sameSuitRanks.includes(card.rank + 2);
+
+            if (hasLower && hasHigher) {
+                score += 10; // Part of a run
+            } else if ((hasLower && hasTwoLower) || (hasHigher && hasTwoHigher)) {
+                score += 8; // Extends existing run
+            } else if (hasLower || hasHigher) {
+                score += 4; // Building towards run
+            }
+
+            // Penalize Ace in invalid positions (A-2 wrap not allowed)
+            if (card.rank === 14 && sameSuitRanks.includes(2) && !sameSuitRanks.includes(13)) {
+                score -= 3;
+            }
+            if (card.rank === 2 && sameSuitRanks.includes(14) && !sameSuitRanks.includes(3)) {
+                score -= 3;
+            }
+
+            // Higher value cards are slightly worse to keep if isolated
+            // (more penalty if unmelded at game end)
+            if (score < 3) {
+                score -= DiGuRules.getCardValue(card) * 0.2;
+            }
+
+            return score;
+        }
+
+        // Try to find valid meld arrangement for DIGU declaration
         autoArrangeMelds() {
-            const melds = DiGuRules.findPossibleMelds(this.hand);
+            // Use first 10 cards only (11th is discard)
+            const cards = this.hand.slice(0, 10);
+            if (cards.length < 10) return false;
 
-            // Try to find a valid 3+3+4 combination
-            for (const meld1 of melds) {
-                if (meld1.cards.length === 3) {
-                    const remaining1 = this.hand.filter(c =>
-                        !meld1.cards.some(mc => mc.suit === c.suit && mc.rank === c.rank)
-                    );
-                    const melds2 = DiGuRules.findPossibleMelds(remaining1);
+            const melds = DiGuRules.findPossibleMelds(cards);
 
-                    for (const meld2 of melds2) {
-                        if (meld2.cards.length === 3) {
-                            const remaining2 = remaining1.filter(c =>
-                                !meld2.cards.some(mc => mc.suit === c.suit && mc.rank === c.rank)
-                            );
+            // Try all structures: 3+3+4, 3+4+3, 4+3+3
+            const structures = [[3, 3, 4], [3, 4, 3], [4, 3, 3]];
 
-                            if (remaining2.length === 4 && DiGuRules.isValidMeld(remaining2)) {
-                                this.arrangedMelds = [meld1.cards, meld2.cards, remaining2];
-                                return true;
-                            }
-                        }
-                        if (meld2.cards.length === 4) {
-                            const remaining2 = remaining1.filter(c =>
-                                !meld2.cards.some(mc => mc.suit === c.suit && mc.rank === c.rank)
-                            );
-
-                            if (remaining2.length === 3 && DiGuRules.isValidMeld(remaining2)) {
-                                this.arrangedMelds = [meld1.cards, remaining2, meld2.cards];
-                                return true;
-                            }
-                        }
+            for (const [size1, size2, size3] of structures) {
+                const result = this.findMeldCombination(cards, melds, [size1, size2, size3]);
+                if (result) {
+                    // Rearrange hand to match the found melds
+                    const newHand = [...result[0], ...result[1], ...result[2]];
+                    if (this.hand.length > 10) {
+                        newHand.push(this.hand[10]); // Keep 11th card for discard
                     }
+                    this.hand = newHand;
+                    this.arrangedMelds = result;
+                    return true;
                 }
             }
 
             return false;
         }
 
+        // Find a valid combination of melds with specified sizes
+        findMeldCombination(cards, melds, sizes) {
+            const [size1, size2, size3] = sizes;
+
+            // Get melds of each required size
+            const melds1 = melds.filter(m => m.cards.length === size1);
+
+            for (const m1 of melds1) {
+                const used1 = new Set(m1.cards.map(c => `${c.suit}-${c.rank}`));
+                const remaining1 = cards.filter(c => !used1.has(`${c.suit}-${c.rank}`));
+
+                const remainingMelds = DiGuRules.findPossibleMelds(remaining1);
+                const melds2 = remainingMelds.filter(m => m.cards.length === size2);
+
+                for (const m2 of melds2) {
+                    const used2 = new Set(m2.cards.map(c => `${c.suit}-${c.rank}`));
+                    const remaining2 = remaining1.filter(c => !used2.has(`${c.suit}-${c.rank}`));
+
+                    // Check if remaining cards form valid meld of size3
+                    if (remaining2.length === size3 && DiGuRules.isValidMeld(remaining2)) {
+                        return [m1.cards, m2.cards, remaining2];
+                    }
+                }
+            }
+
+            return null;
+        }
+
         // Check if AI should declare Digu
         shouldDeclareDigu() {
-            return this.autoArrangeMelds();
+            // First try auto-arrange which also rearranges hand
+            if (this.autoArrangeMelds()) {
+                return true;
+            }
+
+            // Fallback: check using getMeldsFromHand
+            const result = this.getMeldsFromHand();
+            if (result.valid !== false && result.structure) {
+                return DiGuRules.isWinningHand(result.melds);
+            }
+
+            return false;
         }
     }
 
@@ -1381,6 +1590,18 @@
                 B: [1, 3]  // Opponents
             };
 
+            // Dealer/shuffler tracking
+            this.dealerPosition = 0; // Who is currently dealing
+            this.shuffleCounts = [0, 0, 0, 0]; // How many times each player has shuffled
+            this.shouldRotateDealer = false; // Rotate dealer only if their team wins
+
+            // Match statistics (persists across games in a session)
+            this.matchStats = {
+                matchesPlayed: 0,
+                teamWins: [0, 0], // Team A wins, Team B wins
+                totalPoints: [0, 0] // Cumulative points for each team
+            };
+
             // Event callbacks
             this.onStateChange = null;
             this.onCardDrawn = null;
@@ -1402,6 +1623,18 @@
             return teammates.find(i => i !== playerIndex);
         }
 
+        // Reset match statistics for a new match session
+        resetMatchStats() {
+            this.matchStats = {
+                matchesPlayed: 0,
+                teamWins: [0, 0],
+                totalPoints: [0, 0]
+            };
+            this.shuffleCounts = [0, 0, 0, 0];
+            this.dealerPosition = 0;
+            this.shouldRotateDealer = false;
+        }
+
         // Initialize a new game
         startGame(numPlayers = 4) {
             this.numPlayers = Math.max(2, Math.min(4, numPlayers));
@@ -1419,12 +1652,24 @@
                 }
             }
 
+            // Current dealer shuffles - increment their count
+            this.shuffleCounts[this.dealerPosition]++;
             this.dealCards();
             this.currentPlayerIndex = 0;
             this.gamePhase = 'draw';
 
             if (this.onStateChange) this.onStateChange(this.getGameState());
             if (this.onPhaseChange) this.onPhaseChange('draw');
+        }
+
+        // Start next game in match (only rotate dealer if their team won)
+        startNextGame() {
+            // Only rotate dealer if their team won the last game
+            if (this.shouldRotateDealer) {
+                this.rotateDealerPosition();
+            }
+            this.shouldRotateDealer = false;
+            this.startGame(this.numPlayers);
         }
 
         // Deal 10 cards to each player (counter-clockwise like Dhiha Ei)
@@ -1465,7 +1710,9 @@
                 gameOver: this.gameOver,
                 winner: this.winner,
                 scores: this.scores,
-                numPlayers: this.numPlayers
+                numPlayers: this.numPlayers,
+                dealerPosition: this.dealerPosition,
+                shuffleCounts: [...this.shuffleCounts]
             };
         }
 
@@ -1568,7 +1815,11 @@
                     winningTeam: this.winningTeam,
                     scores: this.scores,
                     teamScores: this.teamScores,
-                    players: this.players
+                    playerPenalties: this.playerPenalties,
+                    playerCardTotals: this.playerCardTotals,
+                    playerMeldedValues: this.playerMeldedValues,
+                    players: this.players,
+                    matchStats: { ...this.matchStats }
                 });
             }
 
@@ -1576,24 +1827,70 @@
         }
 
         // Calculate final scores (team-based)
+        // Winning team: 100 bonus + card total - unmelded cards (= 100 + melded card values)
+        // Losing team: negative penalty for unmelded cards
         calculateScores() {
             this.teamScores = [0, 0]; // Reset team scores
+            this.playerPenalties = []; // Track individual penalties for display
+            this.playerCardTotals = []; // Track total card values
+            this.playerMeldedValues = []; // Track melded card values
 
+            const winningTeamIndex = this.winningTeam === 'A' ? 0 : 1;
+            const losingTeamIndex = winningTeamIndex === 0 ? 1 : 0;
+
+            // Calculate values for each player
             for (let i = 0; i < this.players.length; i++) {
-                if (this.players[i] === this.winner) {
-                    this.scores[i] = 0; // Winner scores 0
-                } else {
-                    this.scores[i] = this.players[i].getHandValue();
-                }
+                const player = this.players[i];
+                const totalCardValue = player.getHandValue();
+                const unmeldedValue = player.getUnmeldedValue();
+                const meldedValue = totalCardValue - unmeldedValue;
 
-                // Add to team score
-                const team = this.getPlayerTeam(i);
-                if (team === 'A') {
-                    this.teamScores[0] += this.scores[i];
+                this.playerCardTotals[i] = totalCardValue;
+                this.playerPenalties[i] = unmeldedValue;
+                this.playerMeldedValues[i] = meldedValue;
+
+                if (player === this.winner) {
+                    this.scores[i] = meldedValue; // Winner contributes melded value
                 } else {
-                    this.teamScores[1] += this.scores[i];
+                    this.scores[i] = unmeldedValue; // Others have penalty
                 }
             }
+
+            // Calculate winning team score: 100 bonus + total card values - unmelded penalties
+            let winningTeamCardTotal = 0;
+            let winningTeamUnmelded = 0;
+            for (let i = 0; i < this.players.length; i++) {
+                const team = this.getPlayerTeam(i);
+                const teamIndex = team === 'A' ? 0 : 1;
+                if (teamIndex === winningTeamIndex) {
+                    winningTeamCardTotal += this.playerCardTotals[i];
+                    winningTeamUnmelded += this.playerPenalties[i];
+                }
+            }
+            // Winning team: 100 + card total - unmelded = 100 + melded value
+            this.teamScores[winningTeamIndex] = 100 + winningTeamCardTotal - winningTeamUnmelded;
+
+            // Losing team gets penalties deducted (negative points)
+            let losingTeamPenalty = 0;
+            for (let i = 0; i < this.players.length; i++) {
+                const team = this.getPlayerTeam(i);
+                const teamIndex = team === 'A' ? 0 : 1;
+                if (teamIndex === losingTeamIndex) {
+                    losingTeamPenalty += this.playerPenalties[i];
+                }
+            }
+            this.teamScores[losingTeamIndex] = -losingTeamPenalty;
+
+            // Update match statistics
+            this.matchStats.matchesPlayed++;
+            this.matchStats.teamWins[winningTeamIndex]++;
+            this.matchStats.totalPoints[0] += this.teamScores[0];
+            this.matchStats.totalPoints[1] += this.teamScores[1];
+
+            // Check if dealer's team won - if so, dealer rotates for next game
+            const dealerTeam = this.getPlayerTeam(this.dealerPosition);
+            const dealerTeamIndex = dealerTeam === 'A' ? 0 : 1;
+            this.shouldRotateDealer = (dealerTeamIndex === winningTeamIndex);
         }
 
         // Move to next turn (counter-clockwise: 0 -> 3 -> 2 -> 1 -> 0)
@@ -1614,9 +1911,15 @@
             // Keep top card of discard
             const topCard = this.discardPile.pop();
 
-            // Shuffle rest into stock
+            // Shuffle rest into stock - current dealer does the reshuffle
+            this.shuffleCounts[this.dealerPosition]++;
             this.stockPile = shuffle([...this.discardPile]);
             this.discardPile = [topCard];
+        }
+
+        // Rotate dealer position counter-clockwise for next game
+        rotateDealerPosition() {
+            this.dealerPosition = (this.dealerPosition - 1 + this.numPlayers) % this.numPlayers;
         }
 
         // AI takes its turn
@@ -2536,6 +2839,17 @@
             this.diguActiveMeldSlot = null;
             this.diguNumPlayers = 4;
 
+            // Touch drag state for mobile
+            this.touchDragState = {
+                isDragging: false,
+                dragElement: null,
+                dragClone: null,
+                startIndex: -1,
+                startCard: null,
+                startX: 0,
+                startY: 0
+            };
+
             this.setupEventListeners();
             this.setupLobbyEventListeners();
             this.setupDiguEventListeners();
@@ -2932,6 +3246,14 @@
                     countEl.textContent = `${player.hand.length} cards`;
                 }
 
+                // Update shuffle count
+                const shuffleEl = document.getElementById(`digu-shuffle-count-${i}`);
+                if (shuffleEl) {
+                    shuffleEl.textContent = `Shuffle: ${state.shuffleCounts[i]}`;
+                    // Highlight current dealer
+                    shuffleEl.classList.toggle('current-dealer', i === state.dealerPosition);
+                }
+
                 // Render hand area
                 const handEl = playerEl.querySelector('.digu-player-hand');
                 if (handEl) {
@@ -3029,6 +3351,19 @@
                                 }
                             });
 
+                            // Touch events for mobile drag and drop
+                            cardEl.addEventListener('touchstart', (e) => {
+                                this.handleTouchDragStart(e, cardEl, cardIndex, card);
+                            }, { passive: false });
+
+                            cardEl.addEventListener('touchmove', (e) => {
+                                this.handleTouchDragMove(e);
+                            }, { passive: false });
+
+                            cardEl.addEventListener('touchend', (e) => {
+                                this.handleTouchDragEnd(e);
+                            }, { passive: false });
+
                             handEl.appendChild(cardEl);
                         });
                     }
@@ -3049,15 +3384,34 @@
         }
 
         renderDiguScores(state) {
-            // Update team scores
+            if (!this.diguGame) return;
+
+            const stats = this.diguGame.matchStats;
+
+            // Update games count
+            const gamesCount = document.getElementById('digu-games-count');
+            if (gamesCount) {
+                gamesCount.textContent = stats.matchesPlayed;
+            }
+
+            // Update team wins
+            const teamAWins = document.getElementById('team-a-wins');
+            const teamBWins = document.getElementById('team-b-wins');
+            if (teamAWins) {
+                teamAWins.textContent = `${stats.teamWins[0]} wins`;
+            }
+            if (teamBWins) {
+                teamBWins.textContent = `${stats.teamWins[1]} wins`;
+            }
+
+            // Update total scores
             const teamAScore = document.getElementById('team-a-score');
             const teamBScore = document.getElementById('team-b-score');
-
-            if (teamAScore && this.diguGame) {
-                teamAScore.textContent = this.diguGame.teamScores[0] || 0;
+            if (teamAScore) {
+                teamAScore.textContent = stats.totalPoints[0];
             }
-            if (teamBScore && this.diguGame) {
-                teamBScore.textContent = this.diguGame.teamScores[1] || 0;
+            if (teamBScore) {
+                teamBScore.textContent = stats.totalPoints[1];
             }
         }
 
@@ -3289,29 +3643,356 @@
             this.updateDiguDisplay();
         }
 
+        // Touch drag handlers for mobile
+        handleTouchDragStart(e, cardEl, cardIndex, card) {
+            // Prevent scrolling while dragging
+            e.preventDefault();
+
+            const touch = e.touches[0];
+
+            this.touchDragState = {
+                isDragging: true,
+                dragElement: cardEl,
+                startIndex: cardIndex,
+                startCard: card,
+                startX: touch.clientX,
+                startY: touch.clientY,
+                dragClone: null,
+                longPressTimer: null,
+                hasMoved: false
+            };
+
+            // Add dragging class after a short delay to distinguish from tap
+            this.touchDragState.longPressTimer = setTimeout(() => {
+                if (this.touchDragState.isDragging) {
+                    // Create clone for visual feedback
+                    const clone = cardEl.cloneNode(true);
+                    clone.classList.add('touch-drag-clone');
+                    clone.style.position = 'fixed';
+                    clone.style.left = `${touch.clientX - 30}px`;
+                    clone.style.top = `${touch.clientY - 45}px`;
+                    clone.style.zIndex = '1000';
+                    clone.style.pointerEvents = 'none';
+                    clone.style.opacity = '0.9';
+                    clone.style.transform = 'scale(1.1)';
+                    clone.style.boxShadow = '0 5px 20px rgba(0,0,0,0.5)';
+                    document.body.appendChild(clone);
+                    this.touchDragState.dragClone = clone;
+
+                    cardEl.classList.add('dragging');
+                }
+            }, 150);
+        }
+
+        handleTouchDragMove(e) {
+            if (!this.touchDragState.isDragging) return;
+            e.preventDefault();
+
+            const touch = e.touches[0];
+            const dx = Math.abs(touch.clientX - this.touchDragState.startX);
+            const dy = Math.abs(touch.clientY - this.touchDragState.startY);
+
+            // Mark as moved if moved more than threshold
+            if (dx > 10 || dy > 10) {
+                this.touchDragState.hasMoved = true;
+            }
+
+            // Move the clone
+            if (this.touchDragState.dragClone) {
+                this.touchDragState.dragClone.style.left = `${touch.clientX - 30}px`;
+                this.touchDragState.dragClone.style.top = `${touch.clientY - 45}px`;
+
+                // Highlight potential drop targets
+                this.highlightTouchDropTarget(touch.clientX, touch.clientY);
+            }
+        }
+
+        handleTouchDragEnd(e) {
+            if (!this.touchDragState.isDragging) return;
+
+            // Clear long press timer
+            if (this.touchDragState.longPressTimer) {
+                clearTimeout(this.touchDragState.longPressTimer);
+            }
+
+            const touch = e.changedTouches[0];
+
+            // Remove clone
+            if (this.touchDragState.dragClone) {
+                this.touchDragState.dragClone.remove();
+            }
+
+            // Remove dragging class
+            if (this.touchDragState.dragElement) {
+                this.touchDragState.dragElement.classList.remove('dragging');
+            }
+
+            // Clear highlights
+            this.clearTouchDropHighlights();
+
+            // Only process drop if we actually moved
+            if (this.touchDragState.hasMoved) {
+                // Find drop target
+                const dropTarget = this.findTouchDropTarget(touch.clientX, touch.clientY);
+
+                if (dropTarget) {
+                    if (dropTarget.type === 'card') {
+                        // Move card to new position
+                        this.moveCardInHand(this.touchDragState.startIndex, dropTarget.index);
+                    } else if (dropTarget.type === 'discard') {
+                        // Discard the card
+                        if (this.canDiscardCard()) {
+                            this.handleDiguDiscard(this.touchDragState.startCard);
+                        }
+                    }
+                }
+            }
+
+            // Reset state
+            this.touchDragState = {
+                isDragging: false,
+                dragElement: null,
+                dragClone: null,
+                startIndex: -1,
+                startCard: null,
+                startX: 0,
+                startY: 0
+            };
+        }
+
+        highlightTouchDropTarget(x, y) {
+            // Clear previous highlights
+            this.clearTouchDropHighlights();
+
+            // Check discard pile
+            const discardPile = document.getElementById('digu-discard');
+            if (discardPile) {
+                const rect = discardPile.getBoundingClientRect();
+                if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                    if (this.canDiscardCard()) {
+                        discardPile.classList.add('drag-over');
+                    }
+                    return;
+                }
+            }
+
+            // Check other cards
+            const handEl = document.querySelector('.digu-player.bottom .digu-player-hand');
+            if (handEl) {
+                const cards = handEl.querySelectorAll('.card');
+                cards.forEach((card) => {
+                    if (card === this.touchDragState.dragElement) return;
+                    const rect = card.getBoundingClientRect();
+                    if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                        card.classList.add('drag-over');
+                    }
+                });
+            }
+        }
+
+        clearTouchDropHighlights() {
+            // Clear discard pile highlight
+            const discardPile = document.getElementById('digu-discard');
+            if (discardPile) {
+                discardPile.classList.remove('drag-over');
+            }
+
+            // Clear card highlights
+            const handEl = document.querySelector('.digu-player.bottom .digu-player-hand');
+            if (handEl) {
+                handEl.querySelectorAll('.card.drag-over').forEach(card => {
+                    card.classList.remove('drag-over');
+                });
+            }
+        }
+
+        findTouchDropTarget(x, y) {
+            // Check discard pile first
+            const discardPile = document.getElementById('digu-discard');
+            if (discardPile) {
+                const rect = discardPile.getBoundingClientRect();
+                if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                    return { type: 'discard' };
+                }
+            }
+
+            // Check cards
+            const handEl = document.querySelector('.digu-player.bottom .digu-player-hand');
+            if (handEl) {
+                const cards = handEl.querySelectorAll('.card');
+                for (const card of cards) {
+                    if (card === this.touchDragState.dragElement) continue;
+                    const rect = card.getBoundingClientRect();
+                    if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                        const index = parseInt(card.dataset.cardIndex);
+                        if (!isNaN(index)) {
+                            return { type: 'card', index };
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
         async onDiguGameOver(result) {
             this.updateDiguDisplay();
+            this.showDiguResultModal(result);
+        }
 
-            const winnerName = result.winner.name;
+        showDiguResultModal(result) {
+            const modal = document.getElementById('digu-result-modal');
+            const titleEl = document.getElementById('digu-result-title');
+            const playersContainer = document.getElementById('digu-result-players');
+            const gameScoreEl = document.querySelector('.digu-game-score');
+
             const winningTeam = result.winningTeam;
             const isYourTeamWinner = winningTeam === 'A';
 
-            // Team scores
-            const yourTeamScore = result.teamScores[0];
-            const opponentScore = result.teamScores[1];
+            // Set title with appropriate styling
+            titleEl.textContent = isYourTeamWinner ? 'Your Team Wins!' : 'Opponents Win!';
+            titleEl.className = isYourTeamWinner ? 'win' : 'lose';
 
-            let scoreText = 'Team Scores:\n';
-            scoreText += `Your Team: ${yourTeamScore} points\n`;
-            scoreText += `Opponents: ${opponentScore} points\n\n`;
-            scoreText += `${winnerName} declared DIGU!`;
+            // Update match stats display
+            const stats = result.matchStats;
+            document.getElementById('digu-matches-played').textContent = stats.matchesPlayed;
+            document.getElementById('digu-team-a-wins').textContent = stats.teamWins[0];
+            document.getElementById('digu-team-b-wins').textContent = stats.teamWins[1];
+            document.getElementById('digu-total-points-a').textContent = stats.totalPoints[0];
+            document.getElementById('digu-total-points-b').textContent = stats.totalPoints[1];
 
-            const title = isYourTeamWinner ? 'Your Team Wins!' : 'Opponents Win!';
-            const message = scoreText + '\n\n(Lower score is better - winner gets 0)';
+            // Calculate winning team breakdown
+            const winningTeamIndex = isYourTeamWinner ? 0 : 1;
+            const losingTeamIndex = isYourTeamWinner ? 1 : 0;
+            const winningTeamPlayers = isYourTeamWinner ? [0, 2] : [1, 3];
 
-            await this.renderer.showMessage(title, message, 'Play Again');
+            let winningMeldedTotal = 0;
+            for (const pi of winningTeamPlayers) {
+                winningMeldedTotal += result.playerMeldedValues[pi] || 0;
+            }
 
-            // Restart or return to lobby
-            this.returnToDiguLobby();
+            // Update this game score section
+            gameScoreEl.innerHTML = `
+                <h3>This Game - ${result.winner.name} declared DIGU!</h3>
+                <div class="game-score-row">
+                    <span>${isYourTeamWinner ? 'Your Team' : 'Opponents'} Bonus:</span>
+                    <span>+100</span>
+                </div>
+                <div class="game-score-row">
+                    <span>Total Melded Card Value:</span>
+                    <span>+${winningMeldedTotal}</span>
+                </div>
+                <div class="game-score-row winner">
+                    <span>${isYourTeamWinner ? 'Your Team' : 'Opponents'} Total:</span>
+                    <span>+${result.teamScores[winningTeamIndex]}</span>
+                </div>
+                <div class="game-score-row penalty">
+                    <span>${isYourTeamWinner ? 'Opponents' : 'Your Team'} (Penalty):</span>
+                    <span>${result.teamScores[losingTeamIndex]}</span>
+                </div>
+            `;
+
+            // Render all players' cards
+            playersContainer.innerHTML = '';
+            for (let i = 0; i < result.players.length; i++) {
+                const player = result.players[i];
+                const isWinner = player === result.winner;
+                const team = this.diguGame.getPlayerTeam(i);
+                const teamName = team === 'A' ? 'Your Team' : 'Opponents';
+                const penalty = result.playerPenalties[i];
+                const cardTotal = result.playerCardTotals[i] || 0;
+                const meldedValue = result.playerMeldedValues[i] || 0;
+                const isWinningTeam = (team === 'A' && isYourTeamWinner) || (team === 'B' && !isYourTeamWinner);
+
+                const playerRow = document.createElement('div');
+                playerRow.className = `result-player-row ${isWinner ? 'winner' : (isWinningTeam ? 'winner' : 'loser')}`;
+
+                // Player header
+                const headerEl = document.createElement('div');
+                headerEl.className = 'result-player-header';
+
+                const nameEl = document.createElement('span');
+                nameEl.className = `result-player-name ${i === 0 ? 'you' : ''}`;
+                nameEl.innerHTML = `${player.name} <span class="result-player-team">(${teamName})</span>`;
+                if (isWinner) nameEl.innerHTML += ' - DIGU!';
+
+                const scoreEl = document.createElement('span');
+                if (isWinningTeam) {
+                    // Winning team: show melded value
+                    scoreEl.className = 'result-player-score positive';
+                    scoreEl.textContent = `Melded: +${meldedValue}`;
+                } else {
+                    // Losing team: show penalty
+                    scoreEl.className = `result-player-score ${penalty > 0 ? 'negative' : 'positive'}`;
+                    scoreEl.textContent = penalty > 0 ? `Unmelded: -${penalty}` : 'All melded!';
+                }
+
+                headerEl.appendChild(nameEl);
+                headerEl.appendChild(scoreEl);
+                playerRow.appendChild(headerEl);
+
+                // Player cards with meld grouping
+                const cardsEl = document.createElement('div');
+                cardsEl.className = 'result-player-cards';
+
+                const meldDetails = player.getMeldDetails();
+                for (const meld of meldDetails) {
+                    const meldGroup = document.createElement('div');
+                    meldGroup.className = `meld-group ${meld.valid ? `valid-${meld.type}` : 'invalid'}`;
+
+                    for (const card of meld.cards) {
+                        const cardEl = CardSprite.createCardElement(card, true);
+                        meldGroup.appendChild(cardEl);
+                    }
+
+                    cardsEl.appendChild(meldGroup);
+                }
+
+                playerRow.appendChild(cardsEl);
+                playersContainer.appendChild(playerRow);
+            }
+
+            // Show modal
+            modal.classList.remove('hidden');
+
+            // Set up button handlers
+            this.setupDiguResultButtons();
+        }
+
+        setupDiguResultButtons() {
+            const nextGameBtn = document.getElementById('digu-next-game-btn');
+            const newMatchBtn = document.getElementById('digu-new-match-btn');
+            const exitBtn = document.getElementById('digu-exit-btn');
+
+            // Remove old handlers
+            nextGameBtn.replaceWith(nextGameBtn.cloneNode(true));
+            newMatchBtn.replaceWith(newMatchBtn.cloneNode(true));
+            exitBtn.replaceWith(exitBtn.cloneNode(true));
+
+            // Re-get elements after cloning
+            const newNextBtn = document.getElementById('digu-next-game-btn');
+            const newNewMatchBtn = document.getElementById('digu-new-match-btn');
+            const newExitBtn = document.getElementById('digu-exit-btn');
+
+            newNextBtn.addEventListener('click', () => {
+                document.getElementById('digu-result-modal').classList.add('hidden');
+                this.diguGame.startNextGame();
+                this.diguSelectedCards = [];
+                this.updateDiguDisplay();
+            });
+
+            newNewMatchBtn.addEventListener('click', () => {
+                document.getElementById('digu-result-modal').classList.add('hidden');
+                this.diguGame.resetMatchStats();
+                this.diguGame.startGame(4);
+                this.diguSelectedCards = [];
+                this.updateDiguDisplay();
+            });
+
+            newExitBtn.addEventListener('click', () => {
+                document.getElementById('digu-result-modal').classList.add('hidden');
+                this.returnToDiguLobby();
+            });
         }
 
         returnToDiguLobby() {

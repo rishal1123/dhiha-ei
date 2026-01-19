@@ -3390,6 +3390,13 @@ html, body {
 }
 
 /* Team score styles */
+.digu-match-info {
+    text-align: center;
+    font-size: clamp(11px, calc(1.2 * var(--scale)), 14px);
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: calc(0.5 * var(--scale));
+}
+
 .digu-team-scores {
     display: flex;
     flex-direction: column;
@@ -3403,6 +3410,13 @@ html, body {
     align-items: center;
     padding: calc(0.4 * var(--scale)) calc(0.8 * var(--scale));
     border-radius: calc(0.4 * var(--scale));
+    flex-wrap: wrap;
+    gap: calc(0.3 * var(--scale));
+}
+
+.team-wins-value {
+    font-size: clamp(10px, calc(1 * var(--scale)), 12px);
+    color: rgba(255, 255, 255, 0.7);
 }
 
 .digu-team-score.team-a {
@@ -3665,4 +3679,424 @@ html, body {
     background: var(--ocean-turquoise);
     color: var(--night-blue);
     font-weight: 600;
+}
+
+/* Digu Shuffle Count Display */
+.digu-shuffle-count {
+    position: absolute;
+    color: var(--text-light);
+    font-size: clamp(10px, calc(1.2 * var(--scale)), 14px);
+    padding: calc(0.3 * var(--scale)) calc(0.8 * var(--scale));
+    background: linear-gradient(135deg, rgba(27, 40, 56, 0.9) 0%, rgba(0, 105, 148, 0.8) 100%);
+    border-radius: calc(1.5 * var(--scale));
+    border: 1px solid rgba(64, 224, 208, 0.5);
+    font-weight: 500;
+    opacity: 0.9;
+    white-space: nowrap;
+}
+
+/* Bottom player (human) - bottom left of hand area */
+#digu-player-0 .digu-shuffle-count {
+    left: calc(1 * var(--scale));
+    bottom: calc(-3 * var(--scale));
+}
+
+/* Left player - below avatar */
+#digu-player-1 .digu-shuffle-count {
+    bottom: calc(-2.5 * var(--scale));
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Top player (partner) - below avatar */
+#digu-player-2 .digu-shuffle-count {
+    bottom: calc(-2.5 * var(--scale));
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Right player - below avatar */
+#digu-player-3 .digu-shuffle-count {
+    bottom: calc(-2.5 * var(--scale));
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Current dealer highlight for Digu */
+.digu-shuffle-count.current-dealer {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.9) 0%, rgba(218, 165, 32, 0.8) 100%);
+    color: var(--night-blue);
+    border: 1px solid rgba(255, 215, 0, 0.8);
+    font-weight: 600;
+}
+
+/* Mobile 2x scaling for Digu */
+@media screen and (max-width: 900px) {
+    #digu-game-board {
+        --digu-mobile-scale: 2;
+    }
+
+    /* Scale Digu cards 2x on mobile */
+    #digu-game-board .card {
+        width: calc(6.5 * var(--scale) * 2) !important;
+        height: calc(9.5 * var(--scale) * 2) !important;
+        font-size: calc(2.5 * var(--scale) * 2) !important;
+        border-radius: calc(0.5 * var(--scale) * 2) !important;
+    }
+
+    /* Scale piles */
+    #digu-piles {
+        gap: calc(2 * var(--scale) * 2);
+    }
+
+    #digu-stock, #digu-discard {
+        width: calc(7 * var(--scale) * 2) !important;
+        height: calc(10 * var(--scale) * 2) !important;
+        border-radius: calc(0.6 * var(--scale) * 2) !important;
+    }
+
+    /* Scale player hand area */
+    .digu-player.bottom .digu-player-hand {
+        min-height: calc(12 * var(--scale) * 2);
+    }
+
+    .digu-player.bottom .digu-player-hand .card {
+        margin-left: calc(-4 * var(--scale) * 2);
+    }
+
+    .digu-player.bottom .digu-player-hand .card:first-child {
+        margin-left: 0;
+    }
+
+    /* Scale meld end margin */
+    .digu-player.bottom .digu-player-hand .card.meld-end {
+        margin-right: calc(1.2 * var(--scale) * 2);
+    }
+
+    /* Scale DIGU button */
+    #digu-btn {
+        font-size: calc(1.8 * var(--scale) * 2) !important;
+        padding: calc(1 * var(--scale) * 2) calc(2.5 * var(--scale) * 2) !important;
+        border-radius: calc(1 * var(--scale) * 2) !important;
+    }
+
+    /* Scale avatars */
+    .digu-avatar {
+        width: calc(5 * var(--scale) * 2) !important;
+        height: calc(5 * var(--scale) * 2) !important;
+    }
+
+    .digu-avatar-icon {
+        font-size: calc(3 * var(--scale) * 2) !important;
+    }
+
+    /* Scale labels */
+    .digu-player-label,
+    .digu-team-label,
+    .digu-card-count {
+        font-size: calc(1.2 * var(--scale) * 2) !important;
+    }
+
+    /* Scale phase indicator */
+    #digu-phase {
+        font-size: calc(1.4 * var(--scale) * 2) !important;
+        padding: calc(0.5 * var(--scale) * 2) calc(1 * var(--scale) * 2) !important;
+    }
+
+    /* Scale shuffle counts */
+    .digu-shuffle-count {
+        font-size: calc(1.2 * var(--scale) * 2) !important;
+        padding: calc(0.3 * var(--scale) * 2) calc(0.8 * var(--scale) * 2) !important;
+    }
+
+    /* Scale sort buttons */
+    .hand-sort-buttons .sort-btn {
+        font-size: calc(1 * var(--scale) * 2) !important;
+        padding: calc(0.4 * var(--scale) * 2) calc(0.8 * var(--scale) * 2) !important;
+    }
+
+    /* Scale scores panel */
+    #digu-scores {
+        padding: calc(1.2 * var(--scale) * 2) calc(1.8 * var(--scale) * 2) !important;
+        font-size: calc(1.4 * var(--scale) * 2) !important;
+    }
+
+    /* Scale meld hint */
+    #meld-hint {
+        font-size: calc(1.2 * var(--scale) * 2) !important;
+    }
+}
+
+/* ============================================
+   DIGU END GAME RESULT MODAL
+   ============================================ */
+
+#digu-result-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+    padding: calc(2 * var(--scale));
+}
+
+#digu-result-modal.hidden {
+    display: none;
+}
+
+.digu-result-content {
+    background: linear-gradient(145deg, rgba(10, 20, 30, 0.98) 0%, rgba(20, 40, 60, 0.95) 100%);
+    border: calc(0.3 * var(--scale)) solid var(--sunset-gold);
+    border-radius: calc(1.5 * var(--scale));
+    padding: calc(2 * var(--scale));
+    max-width: calc(80 * var(--scale));
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 0 calc(3 * var(--scale)) rgba(255, 215, 0, 0.3);
+}
+
+.digu-result-content h2 {
+    font-size: clamp(18px, calc(2.5 * var(--scale)), 32px);
+    color: var(--sunset-gold);
+    text-align: center;
+    margin-bottom: calc(1.5 * var(--scale));
+    text-transform: uppercase;
+}
+
+.digu-result-content h2.win {
+    color: var(--palm-green);
+}
+
+.digu-result-content h2.lose {
+    color: #ff6b6b;
+}
+
+/* Match Stats Section */
+.digu-match-stats {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: calc(1 * var(--scale));
+    padding: calc(1 * var(--scale));
+    margin-bottom: calc(1.5 * var(--scale));
+}
+
+.match-stats-row {
+    display: flex;
+    justify-content: space-between;
+    padding: calc(0.4 * var(--scale)) calc(0.8 * var(--scale));
+    font-size: clamp(12px, calc(1.3 * var(--scale)), 16px);
+    color: var(--text-light);
+}
+
+.match-stats-row.total {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: calc(0.5 * var(--scale));
+    padding-top: calc(0.6 * var(--scale));
+    font-weight: 600;
+}
+
+.match-stat-label {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Game Score Section */
+.digu-game-score {
+    margin-bottom: calc(1.5 * var(--scale));
+}
+
+.digu-game-score h3 {
+    font-size: clamp(14px, calc(1.6 * var(--scale)), 20px);
+    color: var(--ocean-turquoise);
+    margin-bottom: calc(0.8 * var(--scale));
+    text-align: center;
+}
+
+.game-score-row {
+    display: flex;
+    justify-content: space-between;
+    padding: calc(0.4 * var(--scale)) calc(1 * var(--scale));
+    font-size: clamp(12px, calc(1.3 * var(--scale)), 16px);
+    color: var(--text-light);
+}
+
+.game-score-row.winner {
+    color: var(--palm-green);
+    font-weight: 600;
+}
+
+.game-score-row.penalty {
+    color: #ff6b6b;
+}
+
+/* Players Cards Display */
+#digu-result-players {
+    display: flex;
+    flex-direction: column;
+    gap: calc(1 * var(--scale));
+    margin-bottom: calc(1.5 * var(--scale));
+}
+
+.result-player-row {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: calc(0.8 * var(--scale));
+    padding: calc(0.8 * var(--scale));
+}
+
+.result-player-row.winner {
+    border: calc(0.15 * var(--scale)) solid var(--palm-green);
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.result-player-row.loser {
+    border: calc(0.15 * var(--scale)) solid rgba(255, 107, 107, 0.5);
+}
+
+.result-player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: calc(0.6 * var(--scale));
+}
+
+.result-player-name {
+    font-size: clamp(12px, calc(1.4 * var(--scale)), 18px);
+    color: var(--text-light);
+    font-weight: 600;
+}
+
+.result-player-name.you {
+    color: var(--sunset-gold);
+}
+
+.result-player-team {
+    font-size: clamp(10px, calc(1.1 * var(--scale)), 14px);
+    color: rgba(255, 255, 255, 0.6);
+    margin-left: calc(0.5 * var(--scale));
+}
+
+.result-player-score {
+    font-size: clamp(12px, calc(1.3 * var(--scale)), 16px);
+    font-weight: 600;
+}
+
+.result-player-score.positive {
+    color: var(--palm-green);
+}
+
+.result-player-score.negative {
+    color: #ff6b6b;
+}
+
+.result-player-score.neutral {
+    color: var(--sunset-gold);
+}
+
+/* Player Cards Display */
+.result-player-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(0.3 * var(--scale));
+    justify-content: flex-start;
+}
+
+.result-player-cards .card {
+    width: calc(4.5 * var(--scale)) !important;
+    height: calc(6.5 * var(--scale)) !important;
+    font-size: calc(1.5 * var(--scale)) !important;
+}
+
+.result-player-cards .meld-group {
+    display: flex;
+    gap: calc(0.2 * var(--scale));
+    margin-right: calc(0.8 * var(--scale));
+    padding: calc(0.2 * var(--scale));
+    border-radius: calc(0.3 * var(--scale));
+}
+
+.result-player-cards .meld-group.valid-set {
+    background: rgba(255, 215, 0, 0.15);
+    border: 1px solid rgba(255, 215, 0, 0.4);
+}
+
+.result-player-cards .meld-group.valid-run {
+    background: rgba(64, 224, 208, 0.15);
+    border: 1px solid rgba(64, 224, 208, 0.4);
+}
+
+.result-player-cards .meld-group.invalid {
+    background: rgba(255, 107, 107, 0.15);
+    border: 1px solid rgba(255, 107, 107, 0.4);
+}
+
+/* Action Buttons */
+.digu-result-buttons {
+    display: flex;
+    gap: calc(1 * var(--scale));
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.digu-result-btn {
+    padding: calc(0.8 * var(--scale)) calc(1.5 * var(--scale));
+    border-radius: calc(0.6 * var(--scale));
+    font-size: clamp(12px, calc(1.4 * var(--scale)), 18px);
+    cursor: pointer;
+    border: calc(0.15 * var(--scale)) solid var(--ocean-turquoise);
+    background: rgba(64, 224, 208, 0.2);
+    color: var(--text-light);
+    transition: all 0.2s;
+}
+
+.digu-result-btn:hover {
+    background: rgba(64, 224, 208, 0.4);
+}
+
+.digu-result-btn.primary {
+    background: linear-gradient(145deg, var(--sunset-gold) 0%, var(--sunset-orange) 100%);
+    border-color: var(--sunset-gold);
+    color: var(--night-blue);
+    font-weight: 600;
+}
+
+.digu-result-btn.primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 calc(1 * var(--scale)) var(--sunset-gold);
+}
+
+/* Touch Drag Clone for Mobile */
+.touch-drag-clone {
+    position: fixed !important;
+    z-index: 1000 !important;
+    pointer-events: none !important;
+    opacity: 0.9 !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 calc(0.5 * var(--scale)) calc(2 * var(--scale)) rgba(0, 0, 0, 0.5) !important;
+    transition: none !important;
+}
+
+/* Dragging card state */
+.digu-player.bottom .digu-player-hand .card.dragging {
+    opacity: 0.4;
+    transform: scale(0.95);
+}
+
+/* Drag over highlight for cards */
+.digu-player.bottom .digu-player-hand .card.drag-over {
+    transform: translateY(calc(-1 * var(--scale)));
+    box-shadow: 0 0 calc(1 * var(--scale)) var(--ocean-turquoise);
+    border-color: var(--ocean-turquoise);
+}
+
+/* Drag over highlight for discard pile */
+#digu-discard.drag-over {
+    box-shadow: 0 0 calc(1.5 * var(--scale)) var(--sunset-gold),
+                inset 0 0 calc(1 * var(--scale)) rgba(255, 215, 0, 0.3);
+    border-color: var(--sunset-gold);
+    transform: scale(1.05);
 }

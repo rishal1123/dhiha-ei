@@ -360,6 +360,7 @@
                     <button id="sort-by-suit-btn" class="sort-btn">Sort by Suit</button>
                     <button id="sort-by-rank-btn" class="sort-btn">Sort by Rank</button>
                 </div>
+                <div class="digu-shuffle-count" id="digu-shuffle-count-0">Shuffle: 0</div>
             </div>
             <div id="digu-player-1" class="digu-player left team-b">
                 <div class="digu-avatar">
@@ -368,6 +369,7 @@
                 <div class="digu-team-label">Opponent</div>
                 <div class="digu-player-label">Player 2</div>
                 <div class="digu-card-count">10 cards</div>
+                <div class="digu-shuffle-count" id="digu-shuffle-count-1">Shuffle: 0</div>
             </div>
             <div id="digu-player-2" class="digu-player top team-a">
                 <div class="digu-avatar">
@@ -376,6 +378,7 @@
                 <div class="digu-team-label">Partner</div>
                 <div class="digu-player-label">Player 3</div>
                 <div class="digu-card-count">10 cards</div>
+                <div class="digu-shuffle-count" id="digu-shuffle-count-2">Shuffle: 0</div>
             </div>
             <div id="digu-player-3" class="digu-player right team-b">
                 <div class="digu-avatar">
@@ -384,18 +387,24 @@
                 <div class="digu-team-label">Opponent</div>
                 <div class="digu-player-label">Player 4</div>
                 <div class="digu-card-count">10 cards</div>
+                <div class="digu-shuffle-count" id="digu-shuffle-count-3">Shuffle: 0</div>
             </div>
 
             <!-- Scores Panel -->
             <div id="digu-scores">
-                <div class="digu-scores-title">Team Scores</div>
+                <div class="digu-scores-title">Match Stats</div>
+                <div class="digu-match-info">
+                    <span>Games: <span id="digu-games-count">0</span></span>
+                </div>
                 <div class="digu-team-scores">
                     <div class="digu-team-score team-a">
                         <span class="team-name">Your Team</span>
+                        <span class="team-wins-value" id="team-a-wins">0 wins</span>
                         <span class="team-score-value" id="team-a-score">0</span>
                     </div>
                     <div class="digu-team-score team-b">
                         <span class="team-name">Opponents</span>
+                        <span class="team-wins-value" id="team-b-wins">0 wins</span>
                         <span class="team-score-value" id="team-b-score">0</span>
                     </div>
                 </div>
@@ -403,6 +412,58 @@
 
             <!-- Turn Indicator -->
             <div id="digu-turn-indicator"></div>
+
+            <!-- End Game Result Modal -->
+            <div id="digu-result-modal" class="hidden">
+                <div class="digu-result-content">
+                    <h2 id="digu-result-title">Game Over</h2>
+
+                    <!-- Match Stats Summary -->
+                    <div class="digu-match-stats">
+                        <div class="match-stats-row">
+                            <span class="match-stat-label">Matches Played:</span>
+                            <span id="digu-matches-played">0</span>
+                        </div>
+                        <div class="match-stats-row">
+                            <span class="match-stat-label">Your Team Wins:</span>
+                            <span id="digu-team-a-wins">0</span>
+                        </div>
+                        <div class="match-stats-row">
+                            <span class="match-stat-label">Opponents Wins:</span>
+                            <span id="digu-team-b-wins">0</span>
+                        </div>
+                        <div class="match-stats-row total">
+                            <span class="match-stat-label">Total Points - Your Team:</span>
+                            <span id="digu-total-points-a">0</span>
+                        </div>
+                        <div class="match-stats-row total">
+                            <span class="match-stat-label">Total Points - Opponents:</span>
+                            <span id="digu-total-points-b">0</span>
+                        </div>
+                    </div>
+
+                    <!-- This Game Score -->
+                    <div class="digu-game-score">
+                        <h3>This Game</h3>
+                        <div class="game-score-row winner">
+                            <span>Winning Team Bonus:</span>
+                            <span>+100</span>
+                        </div>
+                    </div>
+
+                    <!-- All Players Cards Display -->
+                    <div id="digu-result-players">
+                        <!-- Player cards will be inserted here dynamically -->
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="digu-result-buttons">
+                        <button id="digu-next-game-btn" class="digu-result-btn primary">Next Game</button>
+                        <button id="digu-new-match-btn" class="digu-result-btn">New Match</button>
+                        <button id="digu-exit-btn" class="digu-result-btn">Exit to Lobby</button>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <!-- New game button -->
