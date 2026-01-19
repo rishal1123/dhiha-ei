@@ -64,11 +64,19 @@
     // AUTO-SCALING FOR ALL SCREEN SIZES
     // Base resolution: 2796x1290 (iPhone 15 Pro Max landscape)
     // Rotates 90deg when viewport is portrait (width < height)
+    // Mobile devices maintain minimum DPI for usable touch targets
     // ============================================
 
     const BASE_WIDTH = 2796;
     const BASE_HEIGHT = 1290;
     let currentGameScale = 1; // Store current scale for drag clone sizing
+
+    // Detect mobile/touch device
+    function isMobileDevice() {
+        return 'ontouchstart' in window ||
+               navigator.maxTouchPoints > 0 ||
+               window.matchMedia('(pointer: coarse)').matches;
+    }
 
     function scaleGame() {
         const gameContainer = document.getElementById('game-container');
@@ -76,6 +84,8 @@
         const vw = window.innerWidth;
         const vh = window.innerHeight;
         const isPortrait = vw < vh;
+        const isMobile = isMobileDevice();
+        const dpr = window.devicePixelRatio || 1;
 
         // In portrait mode, swap dimensions for scale calculation (game rotates 90deg)
         const effectiveWidth = isPortrait ? vh : vw;
@@ -84,12 +94,23 @@
         // Calculate scale to fit viewport while maintaining aspect ratio
         const scaleX = effectiveWidth / BASE_WIDTH;
         const scaleY = effectiveHeight / BASE_HEIGHT;
-        const scale = Math.min(scaleX, scaleY);
+        let scale = Math.min(scaleX, scaleY);
+
+        // For mobile devices, enforce minimum scale to maintain usable DPI
+        // This ensures touch targets remain large enough to interact with
+        // Minimum scale based on DPR: higher DPR screens can use smaller scale
+        if (isMobile) {
+            // Target: cards should be at least ~50 CSS pixels wide for comfortable touch
+            // Base card width is ~140px (10.8 * 12.9), so min scale = 50/140 ≈ 0.36
+            // Adjust for DPR: higher DPR = more physical pixels per CSS pixel = can go smaller
+            const minScale = Math.max(0.32, 0.45 / Math.sqrt(dpr));
+            scale = Math.max(scale, minScale);
+        }
 
         // Store for use by drag clone
         currentGameScale = scale;
 
-        // Calculate centering offsets
+        // Calculate scaled dimensions
         const scaledWidth = BASE_WIDTH * scale;
         const scaledHeight = BASE_HEIGHT * scale;
 
@@ -98,20 +119,22 @@
             if (isPortrait) {
                 // In portrait: rotate 90deg, then scale, then center
                 // After rotation, width becomes height and vice versa
-                const offsetX = (vw - scaledHeight) / 2;
-                const offsetY = (vh - scaledWidth) / 2;
+                // If game exceeds viewport, position at top-left (0,0) for natural scroll
+                const offsetX = Math.max(0, (vw - scaledHeight) / 2);
+                const offsetY = Math.max(0, (vh - scaledWidth) / 2);
                 gameContainer.style.transform = `translate(${offsetX}px, ${offsetY}px) rotate(90deg) scale(${scale})`;
                 gameContainer.style.transformOrigin = 'top left';
             } else {
                 // In landscape: just scale and center
-                const offsetX = (vw - scaledWidth) / 2;
-                const offsetY = (vh - scaledHeight) / 2;
+                // If game exceeds viewport, position at top-left (0,0)
+                const offsetX = Math.max(0, (vw - scaledWidth) / 2);
+                const offsetY = Math.max(0, (vh - scaledHeight) / 2);
                 gameContainer.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
                 gameContainer.style.transformOrigin = 'top left';
             }
         }
 
-        console.log(`[Scale] Viewport: ${vw}x${vh}, Portrait: ${isPortrait}, Scale: ${scale.toFixed(3)}`);
+        console.log(`[Scale] Viewport: ${vw}x${vh}, Portrait: ${isPortrait}, Mobile: ${isMobile}, DPR: ${dpr}, Scale: ${scale.toFixed(3)}`);
     }
 
     // Scale on load and resize
