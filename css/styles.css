@@ -1,5 +1,5 @@
 /* Thaasbai - Maldivian Card Games Styles */
-/* Optimized for 16:9 ratio screens - scales automatically */
+/* Optimized for 16:9 ratio screens (1920x1080) - scales automatically */
 
 :root {
     /* Maldivian Color Palette */
@@ -29,8 +29,9 @@
     --highlight-color: rgba(64, 224, 208, 0.6);
     --accent-gold: #FFD700;
 
-    /* Scaling base - uses vmin for proportional scaling */
-    --scale: 1vmin;
+    /* 16:9 aspect ratio scaling - based on height for landscape */
+    /* 1vh = 1% of viewport height, scale accordingly */
+    --scale: min(1vh, 0.5625vw);
 
     /* Text multiplier for better readability (best practice: 16px minimum) */
     --text-mult: 1.6;
@@ -44,17 +45,22 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--ocean-deep);
+    background-color: var(--night-blue);
     min-height: 100vh;
     overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     /* Base font size: minimum 16px, scales with viewport */
     font-size: clamp(16px, calc(1.8 * var(--scale)), 24px);
 }
 
 #game-container {
-    width: 100vw;
-    height: 100vh;
-    height: -webkit-fill-available; /* iOS fix */
+    /* 16:9 aspect ratio container */
+    width: min(100vw, 177.78vh); /* 16:9 = 1.7778 */
+    height: min(100vh, 56.25vw); /* 9:16 = 0.5625 */
+    max-width: 1920px;
+    max-height: 1080px;
     display: flex;
     flex-direction: column;
     background:
@@ -2567,6 +2573,12 @@ html, body {
 
 /* Mobile Portrait Mode - Lobby in portrait, Game in landscape */
 @media screen and (max-width: 900px) and (orientation: portrait) {
+    /* Recalculate scale for rotated mobile view */
+    :root {
+        /* After 90deg rotation: width=vh, height=vw, so scale based on vw (the shorter side) */
+        --scale: min(1vw, 1.78vh);
+    }
+
     /* Hide rotate overlay - we handle it properly */
     #rotate-overlay {
         display: none !important;
@@ -2588,22 +2600,28 @@ html, body {
         overflow: hidden;
     }
 
-    /* Game container rotates to landscape when visible */
+    /* Game container rotates to landscape - 16:9 within rotated space */
     #game-container {
         position: fixed;
-        width: 100vh;
-        height: 100vw;
+        /* After rotation: logical width=vh, logical height=vw */
+        /* Constrain to 16:9 within the rotated space */
+        width: min(100vh, 177.78vw);
+        height: min(100vw, 56.25vh);
+        max-width: none;
+        max-height: none;
         transform: rotate(90deg);
         transform-origin: top left;
         top: 0;
         left: 100vw;
     }
 
-    /* Digu game board also rotates to landscape */
+    /* Digu game board also rotates to landscape - 16:9 */
     #digu-game-board {
         position: fixed;
-        width: 100vh;
-        height: 100vw;
+        width: min(100vh, 177.78vw);
+        height: min(100vw, 56.25vh);
+        max-width: none;
+        max-height: none;
         transform: rotate(90deg);
         transform-origin: top left;
         top: 0;
@@ -2873,13 +2891,18 @@ html, body {
 
 /* Digu Game Board */
 #digu-game-board {
-    flex: 1;
+    /* 16:9 aspect ratio container - same as game-container */
+    width: min(100vw, 177.78vh);
+    height: min(100vh, 56.25vw);
+    max-width: 1920px;
+    max-height: 1080px;
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
     background:
         radial-gradient(ellipse at center bottom, var(--lagoon) 0%, var(--ocean-turquoise) 30%, var(--ocean-deep) 70%, var(--night-blue) 100%);
+    margin: auto;
 }
 
 #digu-game-board.hidden {

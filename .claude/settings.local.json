@@ -26,7 +26,8 @@
       "Bash(pip install:*)",
       "Bash(python generate-icons.py:*)",
       "Bash(where:*)",
-      "Bash(powershell -Command \"\\(Get-Content css/styles.css | Select-String -Pattern ''}'' -AllMatches\\).Matches.Count\")"
+      "Bash(powershell -Command \"\\(Get-Content css/styles.css | Select-String -Pattern ''}'' -AllMatches\\).Matches.Count\")",
+      "Bash(start http://127.0.0.1:8000/)"
     ]
   }
 }
