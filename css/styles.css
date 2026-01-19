@@ -3834,9 +3834,13 @@ html, body {
 
     /* Scale labels - 2x */
     .digu-player-label,
-    .digu-team-label,
-    .digu-card-count {
+    .digu-team-label {
         font-size: calc(3 * var(--scale)) !important;
+    }
+
+    /* Hide card count on mobile */
+    .digu-card-count {
+        display: none !important;
     }
 
     /* Scale phase indicator - 2x */
