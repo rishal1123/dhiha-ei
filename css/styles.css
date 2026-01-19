@@ -3776,14 +3776,14 @@ html, body {
         margin-left: 0 !important;
     }
 
-    /* Piles - 1.82x size, side by side in center */
+    /* Piles - next to table sponsor (left and right of center) */
     #digu-stock {
         width: calc(16.4 * var(--scale)) !important;
         height: calc(23.4 * var(--scale)) !important;
         border-radius: calc(1.5 * var(--scale)) !important;
         top: 50% !important;
-        left: calc(50% - 10 * var(--scale)) !important;
-        transform: translate(-100%, -50%) !important;
+        left: calc(50% - 18 * var(--scale)) !important;
+        transform: translate(-50%, -50%) !important;
     }
 
     #digu-discard {
@@ -3791,8 +3791,8 @@ html, body {
         height: calc(23.4 * var(--scale)) !important;
         border-radius: calc(1.5 * var(--scale)) !important;
         top: 50% !important;
-        left: calc(50% + 10 * var(--scale)) !important;
-        transform: translate(0%, -50%) !important;
+        left: calc(50% + 18 * var(--scale)) !important;
+        transform: translate(-50%, -50%) !important;
     }
 
     /* Card inside discard pile - same size as pile */
@@ -3810,10 +3810,9 @@ html, body {
         border-radius: calc(1.5 * var(--scale)) !important;
     }
 
-    /* Pile labels */
+    /* Hide pile labels on mobile */
     #digu-game-board .pile-label {
-        font-size: calc(2.3 * var(--scale)) !important;
-        top: calc(-3.5 * var(--scale)) !important;
+        display: none !important;
     }
 
     #digu-game-board .pile-count {
@@ -3912,19 +3911,25 @@ html, body {
         transform: none !important;
     }
 
-    /* Top player */
+    /* Top player (partner) - align to top */
     #digu-player-2 {
-        top: calc(2 * var(--scale) + env(safe-area-inset-top, 0px)) !important;
+        top: calc(1 * var(--scale) + env(safe-area-inset-top, 0px)) !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
     }
 
     /* Left player - with 50px cutout margin */
     #digu-player-1 {
         left: calc(var(--mobile-cutout) + 2 * var(--scale) + env(safe-area-inset-left, 0px)) !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
     }
 
     /* Right player - with 50px cutout margin */
     #digu-player-3 {
         right: calc(var(--mobile-cutout) + 2 * var(--scale) + env(safe-area-inset-right, 0px)) !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
     }
 
     /* Center area */
@@ -3939,9 +3944,22 @@ html, body {
         user-select: none;
     }
 
+    /* Ensure cards don't rotate */
+    #digu-game-board .card {
+        transform: rotate(0deg) !important;
+    }
+
+    #digu-game-board .card:hover {
+        transform: translateY(calc(-1 * var(--scale))) rotate(0deg) !important;
+    }
+
+    #digu-game-board .card.selected {
+        transform: translateY(calc(-2 * var(--scale))) rotate(0deg) !important;
+    }
+
     /* Make discard pile a better drop target */
     #digu-discard.drag-over {
-        transform: translate(0%, -50%) scale(1.1) !important;
+        transform: translate(-50%, -50%) scale(1.1) !important;
         box-shadow: 0 0 calc(3 * var(--scale)) var(--sunset-gold) !important;
     }
 }
