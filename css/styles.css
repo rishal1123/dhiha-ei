@@ -3777,6 +3777,21 @@ html, body {
         transform: translate(0%, -50%) !important;
     }
 
+    /* Card inside discard pile - same size as pile */
+    #digu-discard .discard-card .card {
+        width: calc(18 * var(--scale)) !important;
+        height: calc(25.8 * var(--scale)) !important;
+        font-size: calc(6 * var(--scale)) !important;
+        border-radius: calc(1.5 * var(--scale)) !important;
+    }
+
+    /* Card inside stock pile - same size as pile */
+    #digu-stock .card {
+        width: calc(18 * var(--scale)) !important;
+        height: calc(25.8 * var(--scale)) !important;
+        border-radius: calc(1.5 * var(--scale)) !important;
+    }
+
     /* Scale pile labels - 2x */
     #digu-game-board .pile-label {
         font-size: calc(2.6 * var(--scale)) !important;
