@@ -72,7 +72,6 @@
     function scaleGame() {
         const gameContainer = document.getElementById('game-container');
         const diguGameBoard = document.getElementById('digu-game-board');
-        const lobbyOverlay = document.getElementById('lobby-overlay');
 
         const vw = window.innerWidth;
         const vh = window.innerHeight;
@@ -87,33 +86,32 @@
         const scaleY = effectiveHeight / BASE_HEIGHT;
         const scale = Math.min(scaleX, scaleY);
 
-        // Build transform: rotate if portrait, then scale
-        let gameTransform;
-        if (isPortrait) {
-            // Rotate 90deg clockwise, then scale
-            // After rotation: game width aligns with viewport height, game height with viewport width
-            gameTransform = `rotate(90deg) scale(${scale})`;
-        } else {
-            gameTransform = `scale(${scale})`;
-        }
+        // Calculate centering offsets
+        const scaledWidth = BASE_WIDTH * scale;
+        const scaledHeight = BASE_HEIGHT * scale;
 
-        // Apply transform to game container
-        if (gameContainer) {
-            gameContainer.style.transform = gameTransform;
-        }
+        // Apply styles to game containers
+        const applyTransform = (element) => {
+            if (!element) return;
 
-        // Apply transform to Digu game board (when visible)
-        if (diguGameBoard) {
-            diguGameBoard.style.transform = gameTransform;
-        }
+            if (isPortrait) {
+                // In portrait: rotate 90deg, then scale, then center
+                // After rotation, width becomes height and vice versa
+                const offsetX = (vw - scaledHeight) / 2;
+                const offsetY = (vh - scaledWidth) / 2;
+                element.style.transform = `translate(${offsetX}px, ${offsetY}px) rotate(90deg) scale(${scale})`;
+                element.style.transformOrigin = 'top left';
+            } else {
+                // In landscape: just scale and center
+                const offsetX = (vw - scaledWidth) / 2;
+                const offsetY = (vh - scaledHeight) / 2;
+                element.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+                element.style.transformOrigin = 'top left';
+            }
+        };
 
-        // Lobby stays in native orientation (no rotation)
-        if (lobbyOverlay) {
-            const lobbyScaleX = vw / BASE_WIDTH;
-            const lobbyScaleY = vh / BASE_HEIGHT;
-            const lobbyScale = Math.min(lobbyScaleX, lobbyScaleY);
-            lobbyOverlay.style.transform = `scale(${lobbyScale})`;
-        }
+        applyTransform(gameContainer);
+        applyTransform(diguGameBoard);
 
         console.log(`[Scale] Viewport: ${vw}x${vh}, Portrait: ${isPortrait}, Scale: ${scale.toFixed(3)}`);
     }
