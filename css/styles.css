@@ -2967,12 +2967,12 @@ html, body {
     box-shadow: 0 0 calc(1.5 * var(--scale)) rgba(64, 224, 208, 0.8);
 }
 
-/* Stock Pile - Center top */
+/* Stock Pile - Left of Table Sponsor */
 #digu-stock {
     position: absolute;
-    top: calc(15%);
-    left: 50%;
-    transform: translate(-50%, 0);
+    top: 50%;
+    left: calc(50% - 18 * var(--scale));
+    transform: translate(-100%, -50%);
     background: linear-gradient(145deg, #1a365d, #0d1b2a);
     border: calc(0.3 * var(--scale)) solid var(--ocean-turquoise);
     box-shadow:
@@ -2999,12 +2999,12 @@ html, body {
     border-radius: calc(0.8 * var(--scale));
 }
 
-/* Discard Pile - Center below stock */
+/* Discard Pile - Right of Table Sponsor */
 #digu-discard {
     position: absolute;
-    top: calc(15% + 16 * var(--scale));
-    left: 50%;
-    transform: translate(-50%, 0);
+    top: 50%;
+    left: calc(50% + 18 * var(--scale));
+    transform: translate(0%, -50%);
     background: linear-gradient(145deg, rgba(50, 50, 50, 0.9), rgba(30, 30, 30, 0.9));
     border: calc(0.3 * var(--scale)) dashed rgba(255, 255, 255, 0.4);
     z-index: 15;
@@ -3015,7 +3015,7 @@ html, body {
     border-style: solid;
     background: linear-gradient(145deg, rgba(255, 215, 0, 0.3), rgba(218, 165, 32, 0.2));
     box-shadow: 0 0 calc(2 * var(--scale)) var(--sunset-gold);
-    transform: translate(-50%, 0) scale(1.08);
+    transform: translate(0%, -50%) scale(1.08);
 }
 
 .discard-card {
@@ -3761,23 +3761,21 @@ html, body {
         margin-left: 0 !important;
     }
 
-    /* Piles - 2x size, stacked vertically in center */
+    /* Piles - 2x size, positioned next to center sponsor with safe area */
     #digu-stock {
         width: calc(18 * var(--scale)) !important;
         height: calc(25.8 * var(--scale)) !important;
         border-radius: calc(1.5 * var(--scale)) !important;
-        top: calc(5%) !important;
-        left: 50% !important;
-        transform: translate(-50%, 0) !important;
+        left: calc(50% - 25 * var(--scale)) !important;
+        transform: translate(-100%, -50%) !important;
     }
 
     #digu-discard {
         width: calc(18 * var(--scale)) !important;
         height: calc(25.8 * var(--scale)) !important;
         border-radius: calc(1.5 * var(--scale)) !important;
-        top: calc(5% + 28 * var(--scale)) !important;
-        left: 50% !important;
-        transform: translate(-50%, 0) !important;
+        left: calc(50% + 25 * var(--scale)) !important;
+        transform: translate(0%, -50%) !important;
     }
 
     /* Card inside discard pile - same size as pile */
