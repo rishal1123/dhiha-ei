@@ -68,6 +68,7 @@
 
     const BASE_WIDTH = 2796;
     const BASE_HEIGHT = 1290;
+    let currentGameScale = 1; // Store current scale for drag clone sizing
 
     function scaleGame() {
         const gameContainer = document.getElementById('game-container');
@@ -84,6 +85,9 @@
         const scaleX = effectiveWidth / BASE_WIDTH;
         const scaleY = effectiveHeight / BASE_HEIGHT;
         const scale = Math.min(scaleX, scaleY);
+
+        // Store for use by drag clone
+        currentGameScale = scale;
 
         // Calculate centering offsets
         const scaledWidth = BASE_WIDTH * scale;
@@ -4019,8 +4023,16 @@
             const rect = cardEl.getBoundingClientRect();
 
             // Check if game container is rotated (mobile portrait mode)
-            const gameContainer = document.getElementById('game-container');
-            const isRotated = gameContainer && window.innerWidth < 900;
+            // Use same logic as scaleGame: portrait = width < height
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const isRotated = vw < vh;
+
+            // Calculate actual visual scale from the card's rendered vs CSS dimensions
+            // This is more reliable than relying on currentGameScale
+            const cssWidth = cardEl.offsetWidth;
+            const visualWidth = rect.width;
+            const actualScale = cssWidth > 0 ? visualWidth / cssWidth : 1;
 
             this.touchDragState = {
                 isDragging: true,
@@ -4034,31 +4046,35 @@
                 dragClone: null,
                 hasMoved: false,
                 touchId: touch.identifier,
-                isRotated: isRotated
+                isRotated: isRotated,
+                gameScale: actualScale,
+                visualWidth: visualWidth,
+                visualHeight: rect.height
             };
 
             // Create clone immediately for visual feedback
             const clone = cardEl.cloneNode(true);
             clone.classList.add('touch-drag-clone');
 
-            // For rotated container on mobile, counter-rotate the clone
+            // For rotated container, counter-rotate the clone
             // since it's appended to body (not rotated) but viewed in rotated context
-            const rotation = isRotated ? 'rotate(-90deg)' : 'rotate(0deg)';
+            const rotation = isRotated ? 'rotate(-90deg)' : '';
 
+            // Position clone at the card's visual position
+            // Use scale transform to match the visual size of cards in the game
+            // The clone inherits CSS dimensions, so we scale it down to match visual size
             clone.style.cssText = `
                 position: fixed !important;
-                left: ${touch.clientX - this.touchDragState.offsetX}px;
-                top: ${touch.clientY - this.touchDragState.offsetY}px;
+                left: ${rect.left}px;
+                top: ${rect.top}px;
                 z-index: 10000 !important;
                 pointer-events: none !important;
                 opacity: 0.9 !important;
-                transform: ${rotation} !important;
-                transform-origin: center center !important;
+                transform: ${rotation} scale(${actualScale}) !important;
+                transform-origin: top left !important;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
                 transition: none !important;
                 animation: none !important;
-                width: ${rect.width}px !important;
-                height: ${rect.height}px !important;
             `;
 
             document.body.appendChild(clone);
