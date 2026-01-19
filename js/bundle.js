@@ -3693,9 +3693,11 @@
                 z-index: 10000 !important;
                 pointer-events: none !important;
                 opacity: 0.95 !important;
-                transform: scale(1.05) !important;
+                transform: scale(1.1) rotate(0deg) !important;
+                transform-origin: center center !important;
                 box-shadow: 0 8px 30px rgba(0,0,0,0.6) !important;
                 transition: none !important;
+                animation: none !important;
             `;
             document.body.appendChild(clone);
             this.touchDragState.dragClone = clone;
