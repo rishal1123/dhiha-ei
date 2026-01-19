@@ -3675,8 +3675,9 @@ html, body {
     /* Landscape optimized: wider layout */
     max-width: calc(160 * var(--scale));
     width: 95%;
-    max-height: calc(90 * var(--scale));
-    overflow-y: auto;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
     box-shadow: 0 0 calc(3 * var(--scale)) rgba(255, 215, 0, 0.3);
 }
 
@@ -3758,6 +3759,9 @@ html, body {
     grid-template-columns: repeat(2, 1fr);
     gap: calc(1 * var(--scale));
     margin-bottom: calc(1.5 * var(--scale));
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 .result-player-row {
@@ -3898,6 +3902,10 @@ html, body {
     gap: calc(1 * var(--scale));
     justify-content: center;
     flex-wrap: wrap;
+    flex-shrink: 0;
+    padding-top: calc(1 * var(--scale));
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: auto;
 }
 
 .digu-result-btn {
