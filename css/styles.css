@@ -2581,7 +2581,8 @@ html, body {
 }
 
 /* Mobile Portrait Mode - Lobby in portrait, Game in landscape */
-@media screen and (max-width: 900px) and (orientation: portrait) {
+/* Uses aspect-ratio for more reliable phone detection */
+@media screen and (max-width: 932px) and (aspect-ratio < 1) {
     /* Recalculate scale for rotated mobile view */
     :root {
         /* After 90deg rotation: width=vh, height=vw, so scale based on vw (the shorter side) */
