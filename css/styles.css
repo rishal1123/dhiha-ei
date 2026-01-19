@@ -3484,10 +3484,10 @@ html, body {
     color: #ff8888;
 }
 
-/* Digu hand cards */
+/* Digu hand cards - 1.5x larger for better visibility */
 .digu-player.bottom .digu-player-hand .card {
-    width: calc(9 * var(--scale));
-    height: calc(12.9 * var(--scale));
+    width: calc(13.5 * var(--scale));
+    height: calc(19.35 * var(--scale));
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
 }
