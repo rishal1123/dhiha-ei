@@ -4028,6 +4028,8 @@
             const validMelds = [];
             const maxIndex = Math.min(hand.length, 10); // Only check first 10 cards
 
+            console.log('[findAllValidMelds] Hand:', hand.map(c => `${c.rank}${c.suit[0]}`).join(', '));
+
             // Scan for valid melds of size 3 and 4
             for (let size = 4; size >= 3; size--) {
                 for (let start = 0; start <= maxIndex - size; start++) {
@@ -4040,20 +4042,26 @@
                     if (overlaps) continue;
 
                     const group = hand.slice(start, start + size);
+                    console.log(`[findAllValidMelds] Checking group at ${start}, size ${size}:`, group.map(c => `${c.rank}${c.suit[0]}`).join(', '));
 
                     // Check if valid set
-                    if (DiGuRules.isValidSet(group)) {
+                    const isSet = DiGuRules.isValidSet(group);
+                    console.log(`[findAllValidMelds] isValidSet: ${isSet}`);
+                    if (isSet) {
                         validMelds.push({ start, length: size, type: 'set' });
                         continue;
                     }
 
                     // Check if valid run
-                    if (DiGuRules.isValidRun(group)) {
+                    const isRun = DiGuRules.isValidRun(group);
+                    console.log(`[findAllValidMelds] isValidRun: ${isRun}`);
+                    if (isRun) {
                         validMelds.push({ start, length: size, type: 'run' });
                     }
                 }
             }
 
+            console.log('[findAllValidMelds] Found melds:', validMelds);
             // Sort by start position
             validMelds.sort((a, b) => a.start - b.start);
             return validMelds;
