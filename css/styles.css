@@ -1,61 +1,19 @@
 /* Thaasbai - Maldivian Card Games Styles */
 /* Optimized for 16:9 ratio screens - scales automatically */
-/* Apple PWA compliant */
+/* Mobile PWA compliant (iOS & Android) */
 
 /* ============================================
-   iOS PWA FIXES - Apple Standards
+   MOBILE PWA BASE FIXES
    ============================================ */
 
-/* Prevent iOS overscroll bounce */
-html {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    overscroll-behavior: none;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* iOS safe areas and touch handling */
+/* Prevent overscroll bounce and touch issues */
 html, body {
-    /* Prevent pull-to-refresh */
-    overscroll-behavior-y: none;
-    /* Prevent text selection on long press */
+    overscroll-behavior: none;
     -webkit-user-select: none;
     user-select: none;
-    /* Prevent tap highlight */
     -webkit-tap-highlight-color: transparent;
-    /* Prevent callout on long press */
     -webkit-touch-callout: none;
-    /* Smooth momentum scrolling where needed */
-    -webkit-overflow-scrolling: touch;
-}
-
-/* Standalone mode (PWA) specific styles */
-@media all and (display-mode: standalone) {
-    body {
-        /* Extra padding for notch in standalone */
-        padding-top: env(safe-area-inset-top, 0px);
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-        padding-left: env(safe-area-inset-left, 0px);
-        padding-right: env(safe-area-inset-right, 0px);
-    }
-}
-
-/* iOS 15+ Dynamic Island support */
-@supports (padding-top: env(safe-area-inset-top)) {
-    .ios-safe-top {
-        padding-top: env(safe-area-inset-top, 20px);
-    }
-    .ios-safe-bottom {
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
-    .ios-safe-left {
-        padding-left: env(safe-area-inset-left, 0px);
-    }
-    .ios-safe-right {
-        padding-right: env(safe-area-inset-right, 0px);
-    }
+    touch-action: manipulation;
 }
 
 :root {
@@ -107,12 +65,9 @@ body {
     overflow: hidden;
     /* Base font size: minimum 16px, scales with viewport */
     font-size: clamp(16px, calc(1.8 * var(--scale)), 24px);
-    /* iOS PWA touch fixes */
-    touch-action: manipulation; /* Disable double-tap zoom */
     -webkit-text-size-adjust: 100%; /* Prevent font size adjustment */
-    position: fixed;
-    width: 100%;
-    height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 #game-container {
@@ -121,11 +76,6 @@ body {
     height: -webkit-fill-available; /* iOS fix */
     display: flex;
     flex-direction: column;
-    /* iOS safe area support */
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    padding-left: env(safe-area-inset-left, 0px);
-    padding-right: env(safe-area-inset-right, 0px);
     background:
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2340E0D0' fill-opacity='0.1' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") bottom/cover no-repeat,
         radial-gradient(ellipse at center bottom, var(--lagoon) 0%, var(--ocean-turquoise) 30%, var(--ocean-deep) 70%, var(--night-blue) 100%);
@@ -4355,52 +4305,22 @@ html, body {
    MOBILE PWA SPECIFIC STYLES (iOS & Android)
    ============================================ */
 
-/* Mobile device detection via JS class */
+/* Mobile device - smoother rendering */
 html.mobile {
-    /* Smoother animations */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* iOS specific */
-html.ios {
-    /* iOS-specific optimizations */
-}
-
-/* Android specific */
-html.android {
-    /* Android-specific optimizations */
-}
-
-/* Standalone PWA mode (both iOS and Android) */
-html.standalone {
-    /* PWA mode active */
-}
-
-html.standalone #game-container,
-html.ios-standalone #game-container,
-html.android-standalone #game-container {
-    /* Ensure full screen in PWA mode */
+/* Standalone PWA mode */
+html.standalone #game-container {
     min-height: 100vh;
     min-height: -webkit-fill-available;
-}
-
-/* Notch/cutout safe areas (iOS Dynamic Island, Android display cutouts) */
-@supports (padding-top: max(0px)) {
-    #digu-game-board {
-        padding-top: max(env(safe-area-inset-top, 0px), 0px);
-        padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
-        padding-left: max(env(safe-area-inset-left, 0px), 50px);
-        padding-right: max(env(safe-area-inset-right, 0px), 50px);
-    }
 }
 
 /* Ensure cards are touchable on mobile */
 html.mobile .card {
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
 }
 
 /* Mobile-optimized button styling */
@@ -4409,18 +4329,7 @@ html.mobile button {
     appearance: none;
 }
 
-/* Prevent zoom on input focus (both iOS and Android) */
+/* Prevent zoom on input focus */
 html.mobile input, html.mobile select, html.mobile textarea {
-    font-size: 16px !important; /* Prevents zoom on focus */
-}
-
-/* Android-specific touch feedback */
-html.android button:active,
-html.android .clickable:active {
-    background-color: rgba(0, 0, 0, 0.1);
-}
-
-/* Android navigation bar safe area */
-html.android-standalone #game-container {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    font-size: 16px !important;
 }
