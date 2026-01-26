@@ -5254,12 +5254,16 @@
 
                 playerRow.appendChild(cardsEl);
 
-                // Add score summary row
+                // Add score summary row (Points = Melded - Unmelded)
                 const scoreSummary = document.createElement('div');
                 scoreSummary.className = 'player-score-summary';
+                const netScore = validMeldScore - invalidMeldScore;
+                const netScoreClass = netScore >= 0 ? 'valid-score' : 'invalid-score';
+                const netScoreSign = netScore >= 0 ? '+' : '';
                 scoreSummary.innerHTML = `
-                    <span class="valid-score">Melded: +${validMeldScore}</span>
-                    <span class="invalid-score">Unmelded: -${invalidMeldScore}</span>
+                    <span class="valid-score">+${validMeldScore}</span>
+                    <span class="invalid-score">-${invalidMeldScore}</span>
+                    <span class="${netScoreClass}">= ${netScoreSign}${netScore}</span>
                 `;
                 playerRow.appendChild(scoreSummary);
 
