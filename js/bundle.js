@@ -655,6 +655,340 @@
     }
 
     // ============================================
+    // DIGU LOBBY MANAGER
+    // ============================================
+
+    class DiGuLobbyManager {
+        constructor() {
+            this.currentRoomId = null;
+            this.currentPosition = null;
+            this.maxPlayers = 4;
+            this.onPlayersChanged = null;
+            this.onGameStart = null;
+            this.onError = null;
+            this.gameStartData = null;
+        }
+
+        setupSocketListeners() {
+            if (!socket) {
+                console.error('DiGuLobbyManager: socket is null');
+                return;
+            }
+            console.log('DiGuLobbyManager: setting up listeners');
+
+            // Players changed
+            socket.on('digu_players_changed', (data) => {
+                if (this.onPlayersChanged) {
+                    this.onPlayersChanged(data.players);
+                }
+            });
+
+            // Game started
+            socket.on('digu_game_started', (data) => {
+                console.log('digu_game_started event received:', data);
+                this.gameStartData = data;
+                if (this.onGameStart) {
+                    this.onGameStart(data);
+                }
+            });
+
+            // Player left during game
+            socket.on('digu_player_left', (data) => {
+                console.log('digu_player_left:', data);
+                if (this.onPlayersChanged) {
+                    this.onPlayersChanged(data.players);
+                }
+            });
+
+            // Error handling
+            socket.on('error', (data) => {
+                if (this.onError) {
+                    this.onError(data.message);
+                }
+            });
+        }
+
+        async createRoom(hostName, maxPlayers = 4) {
+            if (!socket || !isConnected) {
+                throw new Error('Not connected to server');
+            }
+
+            return new Promise((resolve, reject) => {
+                socket.emit('create_digu_room', { playerName: hostName, maxPlayers });
+
+                socket.once('digu_room_created', (data) => {
+                    this.currentRoomId = data.roomId;
+                    this.currentPosition = data.position;
+                    this.maxPlayers = data.maxPlayers;
+                    this.setupSocketListeners();
+
+                    if (this.onPlayersChanged) {
+                        this.onPlayersChanged(data.players);
+                    }
+
+                    resolve({ roomId: data.roomId, position: data.position, maxPlayers: data.maxPlayers });
+                });
+
+                socket.once('error', (data) => {
+                    reject(new Error(data.message));
+                });
+            });
+        }
+
+        async joinRoom(roomId, playerName) {
+            if (!socket || !isConnected) {
+                throw new Error('Not connected to server');
+            }
+
+            return new Promise((resolve, reject) => {
+                socket.emit('join_digu_room', {
+                    roomId: roomId.toUpperCase().trim(),
+                    playerName
+                });
+
+                socket.once('digu_room_joined', (data) => {
+                    this.currentRoomId = data.roomId;
+                    this.currentPosition = data.position;
+                    this.maxPlayers = data.maxPlayers;
+                    this.setupSocketListeners();
+
+                    if (this.onPlayersChanged) {
+                        this.onPlayersChanged(data.players);
+                    }
+
+                    resolve({
+                        roomId: data.roomId,
+                        position: data.position,
+                        players: data.players,
+                        maxPlayers: data.maxPlayers
+                    });
+                });
+
+                socket.once('error', (data) => {
+                    reject(new Error(data.message));
+                });
+            });
+        }
+
+        async setReady(ready) {
+            if (!socket || this.currentPosition === null) return;
+            socket.emit('digu_set_ready', { ready });
+        }
+
+        async startGame(gameState, hands) {
+            if (!socket || !this.currentRoomId) return;
+
+            return new Promise((resolve, reject) => {
+                socket.emit('start_digu_game', { gameState, hands });
+
+                const timeout = setTimeout(() => {
+                    reject(new Error('Start game timeout'));
+                }, 5000);
+
+                socket.once('digu_game_started', () => {
+                    clearTimeout(timeout);
+                    resolve();
+                });
+
+                socket.once('error', (data) => {
+                    clearTimeout(timeout);
+                    reject(new Error(data.message));
+                });
+            });
+        }
+
+        async leaveRoom() {
+            if (!socket) return;
+
+            socket.emit('leave_digu_room');
+
+            // Clean up listeners
+            socket.off('digu_players_changed');
+            socket.off('digu_game_started');
+            socket.off('digu_player_left');
+
+            this.currentRoomId = null;
+            this.currentPosition = null;
+        }
+
+        isHost() {
+            return this.currentPosition === 0;
+        }
+
+        getRoomId() {
+            return this.currentRoomId;
+        }
+
+        getPosition() {
+            return this.currentPosition;
+        }
+
+        getMaxPlayers() {
+            return this.maxPlayers;
+        }
+
+        getGameStartData() {
+            return this.gameStartData;
+        }
+    }
+
+    // ============================================
+    // DIGU SYNC MANAGER
+    // ============================================
+
+    class DiGuSyncManager {
+        constructor(roomId, userId, position) {
+            this.roomId = roomId;
+            this.userId = userId;
+            this.localPosition = position;
+            this.onRemoteCardDrawn = null;
+            this.onRemoteCardDiscarded = null;
+            this.onRemoteDeclare = null;
+            this.onGameStateChanged = null;
+            this.onMatchStarted = null;
+            this.onRemoteGameOver = null;
+            this.isListening = false;
+        }
+
+        startListening() {
+            if (this.isListening || !socket) return;
+            this.isListening = true;
+
+            // Listen for remote card draws
+            socket.on('digu_remote_card_drawn', (data) => {
+                console.log('Remote card drawn:', data);
+                if (this.onRemoteCardDrawn) {
+                    this.onRemoteCardDrawn(data.source, data.card, data.position);
+                }
+            });
+
+            // Listen for remote card discards
+            socket.on('digu_remote_card_discarded', (data) => {
+                console.log('Remote card discarded:', data);
+                if (this.onRemoteCardDiscarded) {
+                    this.onRemoteCardDiscarded(data.card, data.position);
+                }
+            });
+
+            // Listen for remote Digu declarations
+            socket.on('digu_remote_declare', (data) => {
+                console.log('Remote Digu declare:', data);
+                if (this.onRemoteDeclare) {
+                    this.onRemoteDeclare(data.position, data.melds, data.isValid);
+                }
+            });
+
+            // Listen for game state updates
+            socket.on('digu_state_updated', (data) => {
+                if (this.onGameStateChanged) {
+                    this.onGameStateChanged(data.gameState);
+                }
+            });
+
+            // Listen for new match
+            socket.on('digu_match_started', (data) => {
+                if (this.onMatchStarted) {
+                    this.onMatchStarted(data.gameState, data.hands);
+                }
+            });
+
+            // Listen for remote game over
+            socket.on('digu_remote_game_over', (data) => {
+                if (this.onRemoteGameOver) {
+                    this.onRemoteGameOver(data.results, data.declaredBy);
+                }
+            });
+        }
+
+        stopListening() {
+            if (socket) {
+                socket.off('digu_remote_card_drawn');
+                socket.off('digu_remote_card_discarded');
+                socket.off('digu_remote_declare');
+                socket.off('digu_state_updated');
+                socket.off('digu_match_started');
+                socket.off('digu_remote_game_over');
+            }
+            this.isListening = false;
+        }
+
+        async broadcastCardDraw(source, card, position) {
+            if (!socket) return;
+
+            socket.emit('digu_draw_card', {
+                source: source,
+                card: card ? { suit: card.suit, rank: card.rank } : null,
+                position: position
+            });
+        }
+
+        async broadcastCardDiscard(card, position) {
+            if (!socket) return;
+
+            socket.emit('digu_discard_card', {
+                card: { suit: card.suit, rank: card.rank },
+                position: position
+            });
+        }
+
+        async broadcastDeclare(melds, isValid, position) {
+            if (!socket) return;
+
+            const meldsData = melds.map(meld =>
+                meld.map(card => ({ suit: card.suit, rank: card.rank }))
+            );
+
+            socket.emit('digu_declare', {
+                melds: meldsData,
+                isValid: isValid,
+                position: position
+            });
+        }
+
+        async broadcastGameState(state) {
+            if (!socket) return;
+
+            socket.emit('digu_update_state', {
+                gameState: {
+                    currentPlayerIndex: state.currentPlayerIndex,
+                    phase: state.phase,
+                    stockCount: state.stockCount,
+                    discardTop: state.discardTop ? { suit: state.discardTop.suit, rank: state.discardTop.rank } : null
+                }
+            });
+        }
+
+        async broadcastGameOver(results) {
+            if (!socket) return;
+
+            socket.emit('digu_game_over', {
+                results: results
+            });
+        }
+
+        async broadcastNewMatch(gameState, hands) {
+            if (!socket) return;
+
+            const handsData = {};
+            hands.forEach((hand, index) => {
+                handsData[index] = hand.map(card => ({
+                    suit: card.suit,
+                    rank: card.rank
+                }));
+            });
+
+            socket.emit('digu_new_match', {
+                gameState: gameState,
+                hands: handsData
+            });
+        }
+
+        cleanup() {
+            this.stopListening();
+        }
+    }
+
+    // ============================================
     // CONSTANTS
     // ============================================
 
@@ -1707,89 +2041,171 @@
 
             // If all cards are melded (valid structure found), return 0
             if (result.valid !== false && result.structure) {
-                return 0;
+                // Check if ALL melds in the structure are actually valid
+                const cards = this.hand.slice(0, 10);
+                const [s1, s2, s3] = result.structure;
+                const meld1Valid = DiGuRules.isValidMeld(cards.slice(0, s1));
+                const meld2Valid = DiGuRules.isValidMeld(cards.slice(s1, s1 + s2));
+                const meld3Valid = DiGuRules.isValidMeld(cards.slice(s1 + s2, 10));
+                if (meld1Valid && meld2Valid && meld3Valid) {
+                    return 0;
+                }
             }
 
-            // Calculate value of cards not in valid melds
-            const cards = this.hand.slice(0, 10);
-            let unmeldedValue = 0;
+            // Find best meld arrangement that minimizes penalty
+            const bestArrangement = this.findBestMeldArrangement();
+            return bestArrangement.unmeldedValue;
+        }
 
-            // Try to find valid melds and exclude their values
+        // Find the best meld arrangement to minimize unmelded penalty
+        findBestMeldArrangement() {
+            const cards = this.hand.slice(0, 10);
+            if (cards.length < 10) {
+                return {
+                    melds: [],
+                    unmeldedCards: cards,
+                    unmeldedValue: DiGuRules.getHandValue(cards)
+                };
+            }
+
+            // All possible meld structures to try (including partial melds)
+            // Format: [meld1Size, meld2Size, meld3Size] where 0 means no meld
             const structures = [
-                [4, 3, 3],
-                [3, 4, 3],
-                [3, 3, 4]
+                // Full 10-card structures (winning hands)
+                [4, 3, 3], [3, 4, 3], [3, 3, 4],
+                [4, 4, 2], [4, 2, 4], [2, 4, 4], // 4+4+2 not valid but check anyway
+                [5, 3, 2], [5, 2, 3], [3, 5, 2], [2, 5, 3], [3, 2, 5], [2, 3, 5],
+                [5, 5, 0], [5, 0, 5], [0, 5, 5],
+                [6, 4, 0], [6, 0, 4], [4, 6, 0], [0, 6, 4], [4, 0, 6], [0, 4, 6],
+                [6, 3, 1], [6, 1, 3], [3, 6, 1], [1, 6, 3], [3, 1, 6], [1, 3, 6],
+                [7, 3, 0], [7, 0, 3], [3, 7, 0], [0, 7, 3], [3, 0, 7], [0, 3, 7],
+                // 9-card structures (3+3+3)
+                [3, 3, 3],
+                // 7-card structures (4+3 or 3+4)
+                [4, 3, 0], [4, 0, 3], [3, 4, 0], [0, 4, 3], [3, 0, 4], [0, 3, 4],
+                // 6-card structures (3+3)
+                [3, 3, 0], [3, 0, 3], [0, 3, 3],
+                // 4-card structures (single 4-card meld)
+                [4, 0, 0], [0, 4, 0], [0, 0, 4],
+                // 3-card structures (single 3-card meld)
+                [3, 0, 0], [0, 3, 0], [0, 0, 3],
             ];
 
-            // Find which cards are in valid melds
-            const meldedIndices = new Set();
+            let bestResult = {
+                melds: [],
+                unmeldedCards: cards,
+                unmeldedValue: DiGuRules.getHandValue(cards),
+                structure: [0, 0, 0]
+            };
 
             for (const structure of structures) {
-                const meld1 = cards.slice(0, structure[0]);
-                const meld2 = cards.slice(structure[0], structure[0] + structure[1]);
-                const meld3 = cards.slice(structure[0] + structure[1], 10);
+                const [s1, s2, s3] = structure;
 
-                // Mark valid melds
-                if (DiGuRules.isValidMeld(meld1)) {
-                    for (let i = 0; i < structure[0]; i++) meldedIndices.add(i);
+                // Skip invalid structures (must add up to <= 10)
+                if (s1 + s2 + s3 > 10) continue;
+
+                let pos = 0;
+                const melds = [];
+                const meldedIndices = new Set();
+                let validMeldValue = 0;
+
+                // Check each meld slot
+                for (let i = 0; i < 3; i++) {
+                    const size = structure[i];
+                    if (size > 0 && pos + size <= 10) {
+                        const meldCards = cards.slice(pos, pos + size);
+                        const isValid = DiGuRules.isValidMeld(meldCards);
+                        melds.push({
+                            cards: meldCards,
+                            valid: isValid,
+                            startIndex: pos
+                        });
+                        if (isValid) {
+                            for (let j = pos; j < pos + size; j++) {
+                                meldedIndices.add(j);
+                            }
+                            validMeldValue += meldCards.reduce((sum, c) => sum + DiGuRules.getCardValue(c), 0);
+                        }
+                        pos += size;
+                    }
                 }
-                if (DiGuRules.isValidMeld(meld2)) {
-                    for (let i = structure[0]; i < structure[0] + structure[1]; i++) meldedIndices.add(i);
+
+                // Calculate unmelded value
+                let unmeldedValue = 0;
+                const unmeldedCards = [];
+                for (let i = 0; i < cards.length; i++) {
+                    if (!meldedIndices.has(i)) {
+                        unmeldedValue += DiGuRules.getCardValue(cards[i]);
+                        unmeldedCards.push(cards[i]);
+                    }
                 }
-                if (DiGuRules.isValidMeld(meld3)) {
-                    for (let i = structure[0] + structure[1]; i < 10; i++) meldedIndices.add(i);
+
+                // Keep best arrangement (lowest unmelded value)
+                if (unmeldedValue < bestResult.unmeldedValue) {
+                    bestResult = {
+                        melds,
+                        unmeldedCards,
+                        unmeldedValue,
+                        structure,
+                        validMeldValue
+                    };
                 }
             }
 
-            // Sum value of unmelded cards
-            for (let i = 0; i < cards.length; i++) {
-                if (!meldedIndices.has(i)) {
-                    unmeldedValue += DiGuRules.getCardValue(cards[i]);
-                }
-            }
-
-            return unmeldedValue;
+            return bestResult;
         }
 
         // Get detailed meld information for end-game display
         getMeldDetails() {
-            const result = this.getMeldsFromHand();
             const cards = this.hand.slice(0, 10);
             const meldDetails = [];
 
-            if (result.structure) {
-                const [s1, s2, s3] = result.structure;
+            // First check if there's a complete winning structure
+            const winningResult = this.getMeldsFromHand();
+            if (winningResult.valid !== false && winningResult.structure) {
+                const [s1, s2, s3] = winningResult.structure;
+                const meld1 = cards.slice(0, s1);
+                const meld2 = cards.slice(s1, s1 + s2);
+                const meld3 = cards.slice(s1 + s2, 10);
+
+                if (DiGuRules.isValidMeld(meld1) && DiGuRules.isValidMeld(meld2) && DiGuRules.isValidMeld(meld3)) {
+                    // All melds valid - return winning structure
+                    meldDetails.push({ cards: meld1, valid: true, type: this.getMeldType(meld1) });
+                    meldDetails.push({ cards: meld2, valid: true, type: this.getMeldType(meld2) });
+                    meldDetails.push({ cards: meld3, valid: true, type: this.getMeldType(meld3) });
+                    return meldDetails;
+                }
+            }
+
+            // Find best partial meld arrangement
+            const bestArrangement = this.findBestMeldArrangement();
+
+            // Add valid melds from best arrangement
+            for (const meld of bestArrangement.melds) {
+                if (meld.valid && meld.cards.length > 0) {
+                    meldDetails.push({
+                        cards: meld.cards,
+                        valid: true,
+                        type: this.getMeldType(meld.cards)
+                    });
+                }
+            }
+
+            // Add unmelded cards as invalid group
+            if (bestArrangement.unmeldedCards && bestArrangement.unmeldedCards.length > 0) {
                 meldDetails.push({
-                    cards: cards.slice(0, s1),
-                    valid: DiGuRules.isValidMeld(cards.slice(0, s1)),
-                    type: this.getMeldType(cards.slice(0, s1))
+                    cards: bestArrangement.unmeldedCards,
+                    valid: false,
+                    type: 'invalid'
                 });
+            }
+
+            // If no melds found, return all cards as invalid
+            if (meldDetails.length === 0) {
                 meldDetails.push({
-                    cards: cards.slice(s1, s1 + s2),
-                    valid: DiGuRules.isValidMeld(cards.slice(s1, s1 + s2)),
-                    type: this.getMeldType(cards.slice(s1, s1 + s2))
-                });
-                meldDetails.push({
-                    cards: cards.slice(s1 + s2, 10),
-                    valid: DiGuRules.isValidMeld(cards.slice(s1 + s2, 10)),
-                    type: this.getMeldType(cards.slice(s1 + s2, 10))
-                });
-            } else {
-                // Default 3+3+4 structure
-                meldDetails.push({
-                    cards: cards.slice(0, 3),
-                    valid: DiGuRules.isValidMeld(cards.slice(0, 3)),
-                    type: this.getMeldType(cards.slice(0, 3))
-                });
-                meldDetails.push({
-                    cards: cards.slice(3, 6),
-                    valid: DiGuRules.isValidMeld(cards.slice(3, 6)),
-                    type: this.getMeldType(cards.slice(3, 6))
-                });
-                meldDetails.push({
-                    cards: cards.slice(6, 10),
-                    valid: DiGuRules.isValidMeld(cards.slice(6, 10)),
-                    type: this.getMeldType(cards.slice(6, 10))
+                    cards: cards,
+                    valid: false,
+                    type: 'invalid'
                 });
             }
 
@@ -1877,19 +2293,25 @@
         evaluateCardBenefit(card, hand) {
             let score = 0;
 
-            // Check if it completes a set (3 or 4 of a kind)
+            // Check if it completes or extends a set (3 or 4 of a kind)
             const sameRank = hand.filter(c => c.rank === card.rank);
-            if (sameRank.length >= 2) {
-                // Would complete a set of 3+
+            if (sameRank.length >= 3) {
+                // Would complete a 4-card set
                 const suits = new Set(sameRank.map(c => c.suit));
                 if (!suits.has(card.suit)) {
-                    score += 5; // Valid set (different suits)
+                    score += 8; // Completes 4-card set
+                }
+            } else if (sameRank.length >= 2) {
+                // Would complete a 3-card set
+                const suits = new Set(sameRank.map(c => c.suit));
+                if (!suits.has(card.suit)) {
+                    score += 6; // Completes valid 3-card set
                 }
             } else if (sameRank.length === 1) {
                 // Has one matching rank - building towards set
                 const existingSuit = sameRank[0].suit;
                 if (existingSuit !== card.suit) {
-                    score += 2; // Different suit, potential set
+                    score += 3; // Different suit, potential set
                 }
             }
 
@@ -1897,29 +2319,42 @@
             const sameSuit = hand.filter(c => c.suit === card.suit);
             const sameSuitRanks = sameSuit.map(c => c.rank).sort((a, b) => a - b);
 
-            // Check for adjacent cards
-            const hasLower = sameSuitRanks.includes(card.rank - 1);
-            const hasHigher = sameSuitRanks.includes(card.rank + 1);
-            const hasTwoLower = sameSuitRanks.includes(card.rank - 2);
-            const hasTwoHigher = sameSuitRanks.includes(card.rank + 2);
+            // Count consecutive cards in both directions
+            let lowerCount = 0;
+            let higherCount = 0;
 
-            if (hasLower && hasHigher) {
-                // Completes a run of at least 3
-                score += 5;
-            } else if ((hasLower && hasTwoLower) || (hasHigher && hasTwoHigher)) {
-                // Extends an existing run
-                score += 4;
-            } else if (hasLower || hasHigher) {
-                // Building towards a run
-                score += 2;
+            for (let r = card.rank - 1; r >= 2; r--) {
+                if (sameSuitRanks.includes(r)) lowerCount++;
+                else break;
+            }
+            for (let r = card.rank + 1; r <= 14; r++) {
+                if (sameSuitRanks.includes(r)) higherCount++;
+                else break;
+            }
+
+            const runLength = 1 + lowerCount + higherCount;
+
+            if (runLength >= 4) {
+                score += 8; // Creates or extends to 4+ card run
+            } else if (runLength >= 3) {
+                score += 6; // Creates valid 3-card run
+            } else if (runLength === 2) {
+                score += 3; // Building towards run
+            }
+
+            // Check if it fills a gap in a potential run
+            const fillsGapLower = sameSuitRanks.includes(card.rank - 2) && sameSuitRanks.includes(card.rank + 1);
+            const fillsGapHigher = sameSuitRanks.includes(card.rank + 2) && sameSuitRanks.includes(card.rank - 1);
+            if (fillsGapLower || fillsGapHigher) {
+                score += 5; // Fills gap to complete run
             }
 
             // Ace is high only - penalize A-2 combinations
             if (card.rank === 14 && sameSuitRanks.includes(2)) {
-                score -= 3;
+                score -= 4;
             }
             if (card.rank === 2 && sameSuitRanks.includes(14)) {
-                score -= 3;
+                score -= 4;
             }
 
             return score;
@@ -1948,57 +2383,91 @@
             let score = 0;
             const otherCards = hand.filter(c => c !== card);
 
-            // Check set potential
+            // Check set potential (3 or 4 of same rank, different suits)
             const sameRank = otherCards.filter(c => c.rank === card.rank);
-            if (sameRank.length >= 2) {
-                // Part of a valid set (3+)
+            if (sameRank.length >= 3) {
+                // Part of a 4-card set
+                const suits = new Set([card.suit, ...sameRank.map(c => c.suit)]);
+                if (suits.size === 4) {
+                    score += 15; // Complete 4-card set
+                }
+            } else if (sameRank.length >= 2) {
+                // Part of a valid 3-card set
                 const suits = new Set([card.suit, ...sameRank.map(c => c.suit)]);
                 if (suits.size === sameRank.length + 1) {
-                    score += 10; // Valid set with different suits
+                    score += 12; // Valid 3+ set with different suits
                 }
             } else if (sameRank.length === 1) {
                 // Potential pair towards set
                 if (sameRank[0].suit !== card.suit) {
-                    score += 3;
+                    score += 4; // Building towards set
                 }
             }
 
-            // Check run potential
+            // Check run potential (consecutive same suit)
             const sameSuit = otherCards.filter(c => c.suit === card.suit);
             const sameSuitRanks = sameSuit.map(c => c.rank).sort((a, b) => a - b);
 
-            // Check for run of 3+
-            const hasLower = sameSuitRanks.includes(card.rank - 1);
-            const hasHigher = sameSuitRanks.includes(card.rank + 1);
-            const hasTwoLower = sameSuitRanks.includes(card.rank - 2);
-            const hasTwoHigher = sameSuitRanks.includes(card.rank + 2);
+            // Count consecutive cards in both directions
+            let runLength = 1;
+            let lowerCount = 0;
+            let higherCount = 0;
 
-            if (hasLower && hasHigher) {
-                score += 10; // Part of a run
-            } else if ((hasLower && hasTwoLower) || (hasHigher && hasTwoHigher)) {
-                score += 8; // Extends existing run
-            } else if (hasLower || hasHigher) {
-                score += 4; // Building towards run
+            // Count lower consecutive cards
+            for (let r = card.rank - 1; r >= 2; r--) {
+                if (sameSuitRanks.includes(r)) {
+                    lowerCount++;
+                } else {
+                    break;
+                }
+            }
+
+            // Count higher consecutive cards
+            for (let r = card.rank + 1; r <= 14; r++) {
+                if (sameSuitRanks.includes(r)) {
+                    higherCount++;
+                } else {
+                    break;
+                }
+            }
+
+            runLength = 1 + lowerCount + higherCount;
+
+            if (runLength >= 4) {
+                score += 15; // Part of 4+ card run
+            } else if (runLength >= 3) {
+                score += 12; // Part of valid 3-card run
+            } else if (runLength === 2) {
+                score += 5; // Building towards run (2 consecutive)
+            } else if (lowerCount > 0 || higherCount > 0) {
+                score += 3; // Has at least one adjacent card
+            }
+
+            // Check for gap runs (e.g., 5-7 waiting for 6)
+            const hasGapLower = sameSuitRanks.includes(card.rank - 2) && !sameSuitRanks.includes(card.rank - 1);
+            const hasGapHigher = sameSuitRanks.includes(card.rank + 2) && !sameSuitRanks.includes(card.rank + 1);
+            if (hasGapLower || hasGapHigher) {
+                score += 2; // Part of a potential run with gap
             }
 
             // Penalize Ace in invalid positions (A-2 wrap not allowed)
             if (card.rank === 14 && sameSuitRanks.includes(2) && !sameSuitRanks.includes(13)) {
-                score -= 3;
+                score -= 4;
             }
             if (card.rank === 2 && sameSuitRanks.includes(14) && !sameSuitRanks.includes(3)) {
-                score -= 3;
+                score -= 4;
             }
 
-            // Higher value cards are slightly worse to keep if isolated
-            // (more penalty if unmelded at game end)
-            if (score < 3) {
-                score -= DiGuRules.getCardValue(card) * 0.2;
+            // Higher value cards are worse to keep if isolated (more penalty if unmelded)
+            // But only penalize if not part of any meld potential
+            if (score < 5) {
+                score -= DiGuRules.getCardValue(card) * 0.3;
             }
 
             return score;
         }
 
-        // Try to find valid meld arrangement for DIGU declaration
+        // Try to find valid meld arrangement for DIGU declaration or best partial arrangement
         autoArrangeMelds() {
             // Use first 10 cards only (11th is discard)
             const cards = this.hand.slice(0, 10);
@@ -2006,12 +2475,12 @@
 
             const melds = DiGuRules.findPossibleMelds(cards);
 
-            // Try all structures: 3+3+4, 3+4+3, 4+3+3
-            const structures = [[3, 3, 4], [3, 4, 3], [4, 3, 3]];
+            // First try winning structures: 3+3+4, 3+4+3, 4+3+3
+            const winningStructures = [[3, 3, 4], [3, 4, 3], [4, 3, 3]];
 
-            for (const [size1, size2, size3] of structures) {
+            for (const [size1, size2, size3] of winningStructures) {
                 const result = this.findMeldCombination(cards, melds, [size1, size2, size3]);
-                if (result) {
+                if (result && result.every(m => m.length > 0 && DiGuRules.isValidMeld(m))) {
                     // Rearrange hand to match the found melds
                     const newHand = [...result[0], ...result[1], ...result[2]];
                     if (this.hand.length > 10) {
@@ -2023,10 +2492,84 @@
                 }
             }
 
+            // No winning structure - find best partial arrangement for scoring
+            this.arrangeBestPartialMelds(cards, melds);
             return false;
         }
 
-        // Find a valid combination of melds with specified sizes
+        // Arrange cards to show best partial melds (for end-game scoring display)
+        arrangeBestPartialMelds(cards, melds) {
+            // All partial structures to try (prioritized by total melded cards)
+            const partialStructures = [
+                // 9 cards melded
+                [3, 3, 3],
+                // 8 cards melded
+                [4, 4, 0], [5, 3, 0], [3, 5, 0],
+                // 7 cards melded
+                [4, 3, 0], [3, 4, 0],
+                // 6 cards melded
+                [3, 3, 0], [6, 0, 0],
+                // 5 cards melded
+                [5, 0, 0],
+                // 4 cards melded
+                [4, 0, 0],
+                // 3 cards melded
+                [3, 0, 0],
+            ];
+
+            let bestArrangement = null;
+            let bestMeldedCount = 0;
+
+            for (const structure of partialStructures) {
+                const result = this.findPartialMeldCombination(cards, melds, structure);
+                if (result) {
+                    const meldedCount = result.melds.reduce((sum, m) => sum + m.length, 0);
+                    if (meldedCount > bestMeldedCount) {
+                        bestMeldedCount = meldedCount;
+                        bestArrangement = result;
+                    }
+                }
+            }
+
+            if (bestArrangement) {
+                // Rearrange hand: valid melds first, then unmelded cards
+                const newHand = [...bestArrangement.melds.flat(), ...bestArrangement.unmelded];
+                if (this.hand.length > 10) {
+                    newHand.push(this.hand[10]); // Keep 11th card for discard
+                }
+                this.hand = newHand;
+            }
+        }
+
+        // Find partial meld combination (allows 0-size slots for unmelded cards)
+        findPartialMeldCombination(cards, melds, sizes) {
+            const validMelds = [];
+            let remainingCards = [...cards];
+
+            for (const size of sizes) {
+                if (size === 0) continue;
+
+                // Find a valid meld of this size from remaining cards
+                const availableMelds = DiGuRules.findPossibleMelds(remainingCards);
+                const matchingMeld = availableMelds.find(m => m.cards.length === size);
+
+                if (matchingMeld) {
+                    validMelds.push(matchingMeld.cards);
+                    const usedSet = new Set(matchingMeld.cards.map(c => `${c.suit}-${c.rank}`));
+                    remainingCards = remainingCards.filter(c => !usedSet.has(`${c.suit}-${c.rank}`));
+                } else {
+                    // Can't find a meld of required size, try next structure
+                    return null;
+                }
+            }
+
+            return {
+                melds: validMelds,
+                unmelded: remainingCards
+            };
+        }
+
+        // Find a valid combination of melds with specified sizes (for winning hands)
         findMeldCombination(cards, melds, sizes) {
             const [size1, size2, size3] = sizes;
 
@@ -3438,12 +3981,21 @@
 
             // Play vs AI button
             document.getElementById('play-ai-btn').addEventListener('click', () => {
-                this.startSinglePlayerGame();
+                if (this.selectedGame === 'digu') {
+                    // Show Digu player count modal for single player
+                    document.getElementById('digu-player-count-modal').classList.remove('hidden');
+                } else {
+                    this.startSinglePlayerGame();
+                }
             });
 
             // Quick Match button
             document.getElementById('quick-match-btn').addEventListener('click', () => {
-                this.handleQuickMatch();
+                if (this.selectedGame === 'digu') {
+                    this.handleDiguQuickMatch();
+                } else {
+                    this.handleQuickMatch();
+                }
             });
 
             // Cancel Queue button
@@ -3451,20 +4003,40 @@
                 this.cancelMatchmaking();
             });
 
+            // Digu Cancel Queue button
+            const diguCancelQueueBtn = document.getElementById('digu-cancel-queue-btn');
+            if (diguCancelQueueBtn) {
+                diguCancelQueueBtn.addEventListener('click', () => {
+                    this.cancelDiguMatchmaking();
+                });
+            }
+
             // Create Room button
             document.getElementById('create-room-btn').addEventListener('click', () => {
-                this.handleCreateRoom();
+                if (this.selectedGame === 'digu') {
+                    this.handleDiguCreateRoom();
+                } else {
+                    this.handleCreateRoom();
+                }
             });
 
             // Join Room button
             document.getElementById('join-room-btn').addEventListener('click', () => {
-                this.handleJoinRoom();
+                if (this.selectedGame === 'digu') {
+                    this.handleDiguJoinRoom();
+                } else {
+                    this.handleJoinRoom();
+                }
             });
 
             // Room code input - handle Enter key
             document.getElementById('room-code-input').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    this.handleJoinRoom();
+                    if (this.selectedGame === 'digu') {
+                        this.handleDiguJoinRoom();
+                    } else {
+                        this.handleJoinRoom();
+                    }
                 }
             });
 
@@ -3518,6 +4090,35 @@
                     }
                 });
             });
+
+            // Digu waiting room buttons
+            const diguCopyCodeBtn = document.getElementById('digu-copy-code-btn');
+            if (diguCopyCodeBtn) {
+                diguCopyCodeBtn.addEventListener('click', () => {
+                    this.copyDiguRoomCode();
+                });
+            }
+
+            const diguReadyBtn = document.getElementById('digu-ready-btn');
+            if (diguReadyBtn) {
+                diguReadyBtn.addEventListener('click', () => {
+                    this.toggleDiguReady();
+                });
+            }
+
+            const diguStartGameBtn = document.getElementById('digu-start-game-btn');
+            if (diguStartGameBtn) {
+                diguStartGameBtn.addEventListener('click', () => {
+                    this.startDiguMultiplayerGame();
+                });
+            }
+
+            const diguLeaveRoomBtn = document.getElementById('digu-leave-room-btn');
+            if (diguLeaveRoomBtn) {
+                diguLeaveRoomBtn.addEventListener('click', () => {
+                    this.leaveDiguRoom();
+                });
+            }
 
             // Sponsor click handlers - show "cloud time" message
             const drinkSponsor = document.getElementById('drink-sponsor');
@@ -4017,13 +4618,29 @@
         }
 
         handleDiguDraw(source) {
-            if (!this.diguGame || !this.diguGame.isHumanTurn()) return;
+            if (!this.diguGame) return;
+
+            // In multiplayer, check if it's our turn
+            if (this.isDiguMultiplayer) {
+                const localPos = this.diguGame.localPlayerPosition;
+                if (this.diguGame.currentPlayerIndex !== localPos) return;
+            } else {
+                if (!this.diguGame.isHumanTurn()) return;
+            }
+
             if (this.diguGame.gamePhase !== 'draw') return;
 
+            let drawnCard = null;
             if (source === 'stock') {
-                this.diguGame.drawFromStock();
+                drawnCard = this.diguGame.drawFromStock();
             } else {
-                this.diguGame.drawFromDiscard();
+                drawnCard = this.diguGame.drawFromDiscard();
+            }
+
+            // Broadcast to multiplayer
+            if (this.isDiguMultiplayer && this.diguSyncManager) {
+                const position = this.diguGame.localPlayerPosition;
+                this.diguSyncManager.broadcastCardDraw(source, drawnCard, position);
             }
 
             this.updateDiguDisplay();
@@ -4103,15 +4720,32 @@
 
         // Handle discard - drag card to discard pile
         handleDiguDiscard(card) {
-            if (!this.diguGame || !this.diguGame.isHumanTurn()) return;
+            if (!this.diguGame) return;
+
+            // In multiplayer, check if it's our turn
+            let currentPlayerIndex;
+            if (this.isDiguMultiplayer) {
+                currentPlayerIndex = this.diguGame.localPlayerPosition;
+                if (this.diguGame.currentPlayerIndex !== currentPlayerIndex) return;
+            } else {
+                if (!this.diguGame.isHumanTurn()) return;
+                currentPlayerIndex = 0;
+            }
+
             if (this.diguGame.gamePhase !== 'meld') return;
 
-            const player = this.diguGame.players[0];
+            const player = this.diguGame.players[currentPlayerIndex];
             if (player.hand.length !== 11) return;
 
             // Discard this card
             this.diguGame.discardCard(card);
             this.diguSelectedCards = [];
+
+            // Broadcast to multiplayer
+            if (this.isDiguMultiplayer && this.diguSyncManager) {
+                this.diguSyncManager.broadcastCardDiscard(card, currentPlayerIndex);
+            }
+
             this.updateDiguDisplay();
 
             // Continue with AI turns
@@ -4164,12 +4798,30 @@
         }
 
         handleDiguDeclare() {
-            if (!this.diguGame || !this.diguGame.isHumanTurn()) return;
+            if (!this.diguGame) return;
+
+            // In multiplayer, check if it's our turn
+            let playerIndex;
+            if (this.isDiguMultiplayer) {
+                playerIndex = this.diguGame.localPlayerPosition;
+                if (this.diguGame.currentPlayerIndex !== playerIndex) return;
+            } else {
+                if (!this.diguGame.isHumanTurn()) return;
+                playerIndex = 0;
+            }
 
             const result = this.diguGame.declareDigu();
 
             if (!result.success) {
                 this.renderer.flashMessage(result.message, 2000);
+                return;
+            }
+
+            // Broadcast to multiplayer
+            if (this.isDiguMultiplayer && this.diguSyncManager) {
+                const player = this.diguGame.players[playerIndex];
+                const melds = player.arrangedMelds;
+                this.diguSyncManager.broadcastDeclare(melds, result.valid, playerIndex);
             }
         }
 
@@ -4572,7 +5224,11 @@
 
                 for (const meld of meldDetails) {
                     const meldGroup = document.createElement('div');
-                    meldGroup.className = `meld-group ${meld.valid ? `valid-${meld.type}` : 'invalid'}`;
+                    const meldTypeClass = meld.valid ? `valid-${meld.type}` : 'invalid';
+                    meldGroup.className = `meld-group ${meldTypeClass}`;
+
+                    // Add card count as data attribute for CSS display
+                    meldGroup.dataset.count = meld.cards.length;
 
                     // Calculate meld value
                     const meldValue = meld.cards.reduce((sum, c) => sum + DiGuRules.getCardValue(c), 0);
@@ -4602,8 +5258,8 @@
                 const scoreSummary = document.createElement('div');
                 scoreSummary.className = 'player-score-summary';
                 scoreSummary.innerHTML = `
-                    <span class="valid-score">Valid: +${validMeldScore}</span>
-                    <span class="invalid-score">Invalid: -${invalidMeldScore}</span>
+                    <span class="valid-score">Melded: +${validMeldScore}</span>
+                    <span class="invalid-score">Unmelded: -${invalidMeldScore}</span>
                 `;
                 playerRow.appendChild(scoreSummary);
 
@@ -5675,6 +6331,602 @@
             document.getElementById('room-code-input').value = '';
         }
 
+        // ===========================================
+        // DIGU MULTIPLAYER METHODS
+        // ===========================================
+
+        async handleDiguQuickMatch() {
+            if (!this.playerName) {
+                this.showNameInput((name) => this.joinDiguMatchmakingQueue(name));
+                return;
+            }
+            await this.joinDiguMatchmakingQueue(this.playerName);
+        }
+
+        async joinDiguMatchmakingQueue(playerName) {
+            try {
+                if (!isMultiplayerAvailable()) {
+                    if (!initializeMultiplayer()) {
+                        this.showError('Could not connect to server');
+                        return;
+                    }
+                    await new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => reject(new Error('Connection timeout')), 5000);
+                        const checkConnection = () => {
+                            if (isMultiplayerAvailable()) {
+                                clearTimeout(timeout);
+                                resolve();
+                            } else {
+                                setTimeout(checkConnection, 100);
+                            }
+                        };
+                        checkConnection();
+                    });
+                }
+
+                this.showDiguMatchmakingScreen();
+                this.setupDiguMatchmakingListeners();
+                socket.emit('join_digu_queue', { playerName });
+
+            } catch (error) {
+                console.error('Error joining Digu matchmaking:', error);
+                this.showError(error.message || 'Failed to join matchmaking');
+                this.hideDiguMatchmakingScreen();
+            }
+        }
+
+        setupDiguMatchmakingListeners() {
+            if (!socket) return;
+
+            socket.on('digu_queue_joined', (data) => {
+                console.log('Joined Digu queue:', data);
+                this.updateDiguQueueCount(data.playersInQueue);
+            });
+
+            socket.on('digu_queue_update', (data) => {
+                console.log('Digu queue update:', data);
+                this.updateDiguQueueCount(data.playersInQueue);
+            });
+
+            socket.on('digu_match_found', (data) => {
+                console.log('Digu match found!', data);
+                this.onDiguMatchFound(data);
+            });
+
+            socket.on('digu_queue_left', () => {
+                console.log('Left Digu queue');
+            });
+        }
+
+        cleanupDiguMatchmakingListeners() {
+            if (!socket) return;
+            socket.off('digu_queue_joined');
+            socket.off('digu_queue_update');
+            socket.off('digu_match_found');
+            socket.off('digu_queue_left');
+        }
+
+        showDiguMatchmakingScreen() {
+            this.lobbyMenu.classList.add('hidden');
+            this.waitingRoom.classList.add('hidden');
+            document.getElementById('digu-waiting-room').classList.add('hidden');
+            document.getElementById('matchmaking-screen').classList.add('hidden');
+            document.getElementById('digu-matchmaking-screen').classList.remove('hidden');
+            this.updateDiguQueueCount(1);
+        }
+
+        hideDiguMatchmakingScreen() {
+            document.getElementById('digu-matchmaking-screen').classList.add('hidden');
+            this.lobbyMenu.classList.remove('hidden');
+        }
+
+        updateDiguQueueCount(count) {
+            const countEl = document.getElementById('digu-queue-count');
+            if (countEl) {
+                countEl.textContent = count;
+            }
+        }
+
+        cancelDiguMatchmaking() {
+            if (socket) {
+                socket.emit('leave_digu_queue');
+            }
+            this.cleanupDiguMatchmakingListeners();
+            this.hideDiguMatchmakingScreen();
+        }
+
+        async onDiguMatchFound(data) {
+            console.log('onDiguMatchFound called:', data);
+            this.cleanupDiguMatchmakingListeners();
+
+            // Update UI
+            document.getElementById('digu-queue-count').textContent = '4';
+
+            // Create Digu lobby manager
+            this.diguLobbyManager = new DiGuLobbyManager();
+            this.diguLobbyManager.currentRoomId = data.roomId;
+            this.diguLobbyManager.currentPosition = data.position;
+
+            this.diguLobbyManager.onPlayersChanged = (players) => {
+                this.updateDiguPlayerSlots(players);
+            };
+
+            this.diguLobbyManager.onGameStart = (gameData) => {
+                this.onDiguMultiplayerGameStart(gameData);
+            };
+
+            this.diguLobbyManager.setupSocketListeners();
+
+            // Show waiting room briefly then auto-start
+            this.showDiguWaitingRoom(data.roomId);
+            this.updateDiguPlayerSlots(data.players);
+
+            // Quick match auto-starts
+            if (this.diguLobbyManager.isHost()) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                this.startDiguMultiplayerGame();
+            }
+        }
+
+        async handleDiguCreateRoom() {
+            if (!this.playerName) {
+                this.showNameInput((name) => this.createDiguRoom(name));
+                return;
+            }
+            await this.createDiguRoom(this.playerName);
+        }
+
+        async createDiguRoom(playerName) {
+            try {
+                if (!isMultiplayerAvailable()) {
+                    if (!initializeMultiplayer()) {
+                        this.showError('Could not connect to server');
+                        return;
+                    }
+                    await new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => reject(new Error('Connection timeout')), 5000);
+                        const checkConnection = () => {
+                            if (isMultiplayerAvailable()) {
+                                clearTimeout(timeout);
+                                resolve();
+                            } else {
+                                setTimeout(checkConnection, 100);
+                            }
+                        };
+                        checkConnection();
+                    });
+                }
+
+                this.diguLobbyManager = new DiGuLobbyManager();
+
+                this.diguLobbyManager.onPlayersChanged = (players) => {
+                    this.updateDiguPlayerSlots(players);
+                };
+
+                this.diguLobbyManager.onGameStart = (data) => {
+                    this.onDiguMultiplayerGameStart(data);
+                };
+
+                const { roomId, position, maxPlayers } = await this.diguLobbyManager.createRoom(playerName, 4);
+                this.showDiguWaitingRoom(roomId);
+
+            } catch (error) {
+                console.error('Error creating Digu room:', error);
+                this.showError(error.message || 'Failed to create room');
+            }
+        }
+
+        async handleDiguJoinRoom() {
+            const roomCode = document.getElementById('room-code-input').value.trim().toUpperCase();
+
+            if (!roomCode || roomCode.length !== 6) {
+                this.showError('Please enter a valid 6-character room code');
+                return;
+            }
+
+            if (!this.playerName) {
+                this.showNameInput((name) => this.joinDiguRoom(roomCode, name));
+                return;
+            }
+
+            await this.joinDiguRoom(roomCode, this.playerName);
+        }
+
+        async joinDiguRoom(roomCode, playerName) {
+            try {
+                if (!isMultiplayerAvailable()) {
+                    if (!initializeMultiplayer()) {
+                        this.showError('Could not connect to server');
+                        return;
+                    }
+                    await new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => reject(new Error('Connection timeout')), 5000);
+                        const checkConnection = () => {
+                            if (isMultiplayerAvailable()) {
+                                clearTimeout(timeout);
+                                resolve();
+                            } else {
+                                setTimeout(checkConnection, 100);
+                            }
+                        };
+                        checkConnection();
+                    });
+                }
+
+                this.diguLobbyManager = new DiGuLobbyManager();
+
+                this.diguLobbyManager.onPlayersChanged = (players) => {
+                    this.updateDiguPlayerSlots(players);
+                };
+
+                this.diguLobbyManager.onGameStart = (data) => {
+                    this.onDiguMultiplayerGameStart(data);
+                };
+
+                const result = await this.diguLobbyManager.joinRoom(roomCode, playerName);
+                this.showDiguWaitingRoom(result.roomId);
+
+            } catch (error) {
+                console.error('Error joining Digu room:', error);
+                this.showError(error.message || 'Failed to join room');
+            }
+        }
+
+        showDiguWaitingRoom(roomId) {
+            this.lobbyMenu.classList.add('hidden');
+            this.waitingRoom.classList.add('hidden');
+            document.getElementById('matchmaking-screen').classList.add('hidden');
+            document.getElementById('digu-matchmaking-screen').classList.add('hidden');
+            document.getElementById('digu-waiting-room').classList.remove('hidden');
+            document.getElementById('digu-room-code-display').textContent = roomId;
+
+            // Show start button for host
+            const startBtn = document.getElementById('digu-start-game-btn');
+            if (startBtn) {
+                if (this.diguLobbyManager && this.diguLobbyManager.isHost()) {
+                    startBtn.classList.remove('hidden');
+                } else {
+                    startBtn.classList.add('hidden');
+                }
+            }
+
+            // Reset ready button
+            const readyBtn = document.getElementById('digu-ready-btn');
+            if (readyBtn) {
+                readyBtn.textContent = 'Ready';
+                readyBtn.classList.remove('ready');
+            }
+            this.isDiguReady = false;
+        }
+
+        hideDiguWaitingRoom() {
+            document.getElementById('digu-waiting-room').classList.add('hidden');
+            this.lobbyMenu.classList.remove('hidden');
+        }
+
+        copyDiguRoomCode() {
+            const roomCode = document.getElementById('digu-room-code-display').textContent;
+            navigator.clipboard.writeText(roomCode).then(() => {
+                const btn = document.getElementById('digu-copy-code-btn');
+                if (btn) {
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => btn.textContent = 'Copy', 2000);
+                }
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+
+        toggleDiguReady() {
+            if (!this.diguLobbyManager) return;
+
+            this.isDiguReady = !this.isDiguReady;
+            this.diguLobbyManager.setReady(this.isDiguReady);
+
+            const readyBtn = document.getElementById('digu-ready-btn');
+            if (readyBtn) {
+                if (this.isDiguReady) {
+                    readyBtn.textContent = 'Not Ready';
+                    readyBtn.classList.add('ready');
+                } else {
+                    readyBtn.textContent = 'Ready';
+                    readyBtn.classList.remove('ready');
+                }
+            }
+        }
+
+        updateDiguPlayerSlots(players) {
+            const slots = document.querySelectorAll('.digu-player-slot');
+
+            slots.forEach(slot => {
+                const position = parseInt(slot.dataset.position);
+                const player = players[position];
+
+                const statusEl = slot.querySelector('.slot-status');
+                const nameEl = slot.querySelector('.slot-name');
+                const readyEl = slot.querySelector('.slot-ready');
+
+                if (player) {
+                    slot.classList.add('filled');
+                    slot.classList.toggle('ready', player.ready);
+                    if (statusEl) statusEl.textContent = '';
+                    if (nameEl) nameEl.textContent = player.name;
+                    if (readyEl) readyEl.textContent = player.ready ? 'Ready' : '';
+                } else {
+                    slot.classList.remove('filled', 'ready');
+                    if (statusEl) statusEl.textContent = 'Waiting...';
+                    if (nameEl) nameEl.textContent = '';
+                    if (readyEl) readyEl.textContent = '';
+                }
+            });
+
+            // Update start button state for host
+            if (this.diguLobbyManager && this.diguLobbyManager.isHost()) {
+                const playerCount = Object.keys(players).length;
+                const allReady = Object.values(players).every(p => p.ready);
+                const startBtn = document.getElementById('digu-start-game-btn');
+                if (startBtn) {
+                    startBtn.disabled = playerCount < 2 || !allReady;
+                }
+            }
+        }
+
+        async leaveDiguRoom() {
+            if (this.diguLobbyManager) {
+                await this.diguLobbyManager.leaveRoom();
+                this.diguLobbyManager = null;
+            }
+
+            this.hideDiguWaitingRoom();
+            document.getElementById('room-code-input').value = '';
+        }
+
+        async startDiguMultiplayerGame() {
+            if (!this.diguLobbyManager || !this.diguLobbyManager.isHost()) {
+                console.log('Not host, cannot start game');
+                return;
+            }
+
+            const numPlayers = Object.keys(this.diguLobbyManager.gameStartData?.players || {}).length || 4;
+
+            // Create deck and deal cards
+            const deck = [];
+            Card.SUITS.forEach(suit => {
+                Card.RANKS.forEach(rank => {
+                    deck.push(new Card(suit, rank));
+                });
+            });
+            shuffle(deck);
+
+            // Deal 10 cards to each player
+            const hands = {};
+            for (let i = 0; i < numPlayers; i++) {
+                hands[i] = [];
+                for (let j = 0; j < 10; j++) {
+                    hands[i].push({
+                        suit: deck[i * 10 + j].suit,
+                        rank: deck[i * 10 + j].rank
+                    });
+                }
+            }
+
+            // Stock pile (remaining cards)
+            const stockCards = deck.slice(numPlayers * 10).map(c => ({ suit: c.suit, rank: c.rank }));
+
+            const gameState = {
+                currentPlayerIndex: 0,
+                phase: 'draw',
+                stockPile: stockCards,
+                discardPile: [],
+                numPlayers: numPlayers
+            };
+
+            try {
+                await this.diguLobbyManager.startGame(gameState, hands);
+            } catch (error) {
+                console.error('Error starting Digu game:', error);
+                this.showError(error.message || 'Failed to start game');
+            }
+        }
+
+        onDiguMultiplayerGameStart(data) {
+            console.log('onDiguMultiplayerGameStart:', data);
+
+            const position = this.diguLobbyManager ? this.diguLobbyManager.getPosition() : 0;
+            const numPlayers = Object.keys(data.players || {}).length || 4;
+
+            // Hide lobby
+            this.lobbyOverlay.classList.add('hidden');
+
+            // Set multiplayer mode
+            this.isMultiplayerMode = true;
+            this.isDiguMultiplayer = true;
+
+            // Show multiplayer status
+            const roomId = this.diguLobbyManager ? this.diguLobbyManager.getRoomId() : '';
+            this.showMultiplayerStatus(roomId);
+
+            // Create sync manager
+            this.diguSyncManager = new DiGuSyncManager(
+                roomId,
+                currentUserId,
+                position
+            );
+
+            // Set up sync listeners
+            this.setupDiguSyncListeners();
+
+            // Get player names from data
+            const playerNames = [];
+            for (let i = 0; i < numPlayers; i++) {
+                if (data.players[i]) {
+                    playerNames.push(data.players[i].name);
+                } else {
+                    playerNames.push(`Player ${i + 1}`);
+                }
+            }
+
+            // Start Digu game with multiplayer setup
+            this.startDiguGameWithMultiplayer(numPlayers, position, data.hands, data.gameState, playerNames);
+        }
+
+        setupDiguSyncListeners() {
+            if (!this.diguSyncManager) return;
+
+            this.diguSyncManager.onRemoteCardDrawn = (source, card, position) => {
+                this.handleRemoteDiguDraw(source, card, position);
+            };
+
+            this.diguSyncManager.onRemoteCardDiscarded = (card, position) => {
+                this.handleRemoteDiguDiscard(card, position);
+            };
+
+            this.diguSyncManager.onRemoteDeclare = (position, melds, isValid) => {
+                this.handleRemoteDiguDeclare(position, melds, isValid);
+            };
+
+            this.diguSyncManager.onRemoteGameOver = (results, declaredBy) => {
+                this.handleRemoteDiguGameOver(results, declaredBy);
+            };
+
+            this.diguSyncManager.onMatchStarted = (gameState, hands) => {
+                this.handleDiguNewMatch(gameState, hands);
+            };
+
+            this.diguSyncManager.startListening();
+        }
+
+        startDiguGameWithMultiplayer(numPlayers, localPosition, handsData, gameState, playerNames) {
+            // Initialize Digu game for multiplayer
+            this.diguGame = new DiGuGame(numPlayers);
+            this.diguGame.isMultiplayer = true;
+            this.diguGame.localPlayerPosition = localPosition;
+            this.diguGame.syncManager = this.diguSyncManager;
+
+            // Set player names
+            for (let i = 0; i < numPlayers; i++) {
+                if (this.diguGame.players[i]) {
+                    this.diguGame.players[i].name = playerNames[i] || `Player ${i + 1}`;
+                    this.diguGame.players[i].isHuman = (i === localPosition);
+                }
+            }
+
+            // Set hands from server data
+            for (let i = 0; i < numPlayers; i++) {
+                if (handsData[i]) {
+                    const cards = handsData[i].map(c => new Card(c.suit, c.rank));
+                    this.diguGame.players[i].setHand(cards);
+                }
+            }
+
+            // Set stock pile from server
+            if (gameState.stockPile) {
+                this.diguGame.stockPile = gameState.stockPile.map(c => new Card(c.suit, c.rank));
+            }
+
+            // Set discard pile from server
+            if (gameState.discardPile && gameState.discardPile.length > 0) {
+                this.diguGame.discardPile = gameState.discardPile.map(c => new Card(c.suit, c.rank));
+            }
+
+            this.diguGame.currentPlayerIndex = gameState.currentPlayerIndex || 0;
+            this.diguGame.phase = gameState.phase || 'draw';
+
+            // Show Digu game board
+            this.showDiguGameBoard(numPlayers);
+
+            // Update display
+            this.updateDiguDisplay();
+        }
+
+        handleRemoteDiguDraw(source, cardData, position) {
+            if (!this.diguGame) return;
+
+            // Remote player drew a card
+            if (source === 'stock') {
+                const card = this.diguGame.stockPile.pop();
+                if (card && this.diguGame.players[position]) {
+                    this.diguGame.players[position].addCard(card);
+                }
+            } else if (source === 'discard' && cardData) {
+                const card = new Card(cardData.suit, cardData.rank);
+                // Remove from discard
+                this.diguGame.discardPile = this.diguGame.discardPile.filter(
+                    c => !(c.suit === card.suit && c.rank === card.rank)
+                );
+                if (this.diguGame.players[position]) {
+                    this.diguGame.players[position].addCard(card);
+                }
+            }
+
+            this.diguGame.phase = 'discard';
+            this.updateDiguDisplay();
+        }
+
+        handleRemoteDiguDiscard(cardData, position) {
+            if (!this.diguGame) return;
+
+            const card = new Card(cardData.suit, cardData.rank);
+
+            // Remote player discarded
+            if (this.diguGame.players[position]) {
+                this.diguGame.players[position].removeCard(card);
+            }
+            this.diguGame.discardPile.push(card);
+
+            // Move to next player
+            this.diguGame.currentPlayerIndex = (position + 1) % this.diguGame.numPlayers;
+            this.diguGame.phase = 'draw';
+
+            this.updateDiguDisplay();
+        }
+
+        handleRemoteDiguDeclare(position, meldsData, isValid) {
+            if (!this.diguGame) return;
+
+            // Remote player declared Digu
+            console.log(`Player ${position} declared Digu, valid: ${isValid}`);
+
+            // Reconstruct melds
+            const melds = meldsData.map(meld =>
+                meld.map(c => new Card(c.suit, c.rank))
+            );
+
+            // Show end game modal
+            this.showDiguResultModal(position, isValid, melds);
+        }
+
+        handleRemoteDiguGameOver(results, declaredBy) {
+            if (!this.diguGame) return;
+            // Handle remote game over
+            console.log('Remote game over', results);
+        }
+
+        handleDiguNewMatch(gameState, handsData) {
+            if (!this.diguGame) return;
+
+            // Reset game state
+            this.diguGame.stockPile = gameState.stockPile.map(c => new Card(c.suit, c.rank));
+            this.diguGame.discardPile = [];
+            this.diguGame.currentPlayerIndex = gameState.currentPlayerIndex || 0;
+            this.diguGame.phase = 'draw';
+
+            // Set new hands
+            for (let i = 0; i < this.diguGame.numPlayers; i++) {
+                if (handsData[i]) {
+                    const cards = handsData[i].map(c => new Card(c.suit, c.rank));
+                    this.diguGame.players[i].setHand(cards);
+                    this.diguGame.players[i].arrangedMelds = [[], [], []];
+                }
+            }
+
+            // Hide result modal
+            const modal = document.getElementById('digu-result-modal');
+            if (modal) modal.classList.add('hidden');
+
+            this.updateDiguDisplay();
+        }
+
         // Confirm leaving multiplayer game
         async confirmLeaveMultiplayer() {
             if (confirm('Are you sure you want to leave the game?')) {
@@ -5706,8 +6958,22 @@
                 this.lobbyManager = null;
             }
 
+            // Cleanup Digu multiplayer
+            if (this.diguSyncManager) {
+                this.diguSyncManager.cleanup();
+                this.diguSyncManager = null;
+            }
+
+            if (this.diguLobbyManager) {
+                await this.diguLobbyManager.leaveRoom();
+                this.diguLobbyManager = null;
+            }
+
             this.isMultiplayerMode = false;
-            this.game.resetToSinglePlayer();
+            this.isDiguMultiplayer = false;
+            if (this.game) {
+                this.game.resetToSinglePlayer();
+            }
             this.hideMultiplayerStatus();
         }
 
@@ -5724,6 +6990,8 @@
             this.waitingRoom.classList.add('hidden');
             this.nameInputModal.classList.add('hidden');
             document.getElementById('matchmaking-screen').classList.add('hidden');
+            document.getElementById('digu-waiting-room').classList.add('hidden');
+            document.getElementById('digu-matchmaking-screen').classList.add('hidden');
             this.hideError();
         }
 
@@ -5759,8 +7027,21 @@
                 if (selectedGameTitle) selectedGameTitle.textContent = 'Digu';
                 if (currentGameName) currentGameName.textContent = 'Digu';
 
-                // Digu is always 4 players in teams - start directly
-                this.startDiguGame(4);
+                // Show game lobby with menu for Digu as well
+                if (gameSelection) gameSelection.classList.add('hidden');
+                if (gameLobby) gameLobby.classList.remove('hidden');
+                this.lobbyMenu.classList.remove('hidden');
+                this.waitingRoom.classList.add('hidden');
+                document.getElementById('matchmaking-screen').classList.add('hidden');
+                document.getElementById('digu-waiting-room').classList.add('hidden');
+                document.getElementById('digu-matchmaking-screen').classList.add('hidden');
+
+                // Check if this is first load and prompt for name
+                if (!this.playerName) {
+                    this.showNameInput((name) => {
+                        // Name saved, continue showing lobby
+                    });
+                }
             }
         }
 

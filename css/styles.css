@@ -1895,6 +1895,98 @@ body {
     margin-bottom: calc(1.5 * var(--scale));
 }
 
+/* Digu Waiting Room */
+#digu-waiting-room {
+    display: none;
+}
+
+#digu-waiting-room:not(.hidden) {
+    display: block;
+}
+
+#digu-room-code-display {
+    font-size: clamp(28px, calc(3.6 * var(--scale)), 48px);
+    font-weight: bold;
+    color: var(--sunset-gold);
+    letter-spacing: calc(0.4 * var(--scale));
+    margin: calc(0.5 * var(--scale)) 0;
+}
+
+#digu-player-slots {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(1 * var(--scale));
+    margin-bottom: calc(1.5 * var(--scale));
+}
+
+.digu-slot-row {
+    display: flex;
+    justify-content: center;
+    gap: calc(1.5 * var(--scale));
+}
+
+.digu-player-slot {
+    padding: calc(0.8 * var(--scale)) calc(1.2 * var(--scale));
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(64, 224, 208, 0.3);
+    border-radius: calc(0.5 * var(--scale));
+    min-width: calc(12 * var(--scale));
+    display: flex;
+    align-items: center;
+    gap: calc(0.5 * var(--scale));
+}
+
+.digu-player-slot.filled {
+    border-color: var(--ocean-turquoise);
+    background: rgba(64, 224, 208, 0.1);
+}
+
+.digu-player-slot.ready {
+    border-color: var(--palm-green);
+    background: rgba(34, 139, 34, 0.2);
+}
+
+.digu-player-slot .slot-number {
+    width: calc(2 * var(--scale));
+    height: calc(2 * var(--scale));
+    background: rgba(64, 224, 208, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: var(--ocean-turquoise);
+    font-size: clamp(14px, calc(1.6 * var(--scale)), 20px);
+}
+
+.digu-room-hint {
+    font-size: clamp(14px, calc(1.6 * var(--scale)), 22px);
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: calc(1 * var(--scale));
+}
+
+#digu-waiting-room-actions {
+    display: flex;
+    justify-content: center;
+    gap: calc(1 * var(--scale));
+    margin-top: calc(1.5 * var(--scale));
+}
+
+#digu-connection-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(0.5 * var(--scale));
+    margin-top: calc(1.5 * var(--scale));
+    font-size: clamp(13px, calc(1.5 * var(--scale)), 20px);
+}
+
+/* Digu Matchmaking Screen */
+#digu-matchmaking-screen:not(.hidden) {
+    display: block;
+}
+
 /* Lobby Sponsor Area */
 .lobby-sponsor {
     margin-top: calc(2 * var(--scale));
@@ -2586,6 +2678,133 @@ body {
     #flash-message {
         padding: calc(0.8 * var(--scale)) calc(1.5 * var(--scale));
         font-size: clamp(12px, calc(1.4 * var(--scale)), 18px);
+    }
+
+    /* ===== DIGU RESULT MODAL - MOBILE LANDSCAPE ===== */
+    #digu-result-modal {
+        padding: calc(1 * var(--scale));
+    }
+
+    .digu-result-content {
+        padding: calc(1 * var(--scale));
+        max-width: 95vw;
+        max-height: 95vh;
+        width: 95vw;
+    }
+
+    .digu-result-content h2 {
+        font-size: clamp(14px, calc(1.8 * var(--scale)), 22px);
+        margin-bottom: calc(0.5 * var(--scale));
+    }
+
+    /* Match Stats - horizontal compact layout */
+    .digu-match-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: calc(0.3 * var(--scale)) calc(1 * var(--scale));
+        justify-content: center;
+        margin-bottom: calc(0.5 * var(--scale));
+        padding: calc(0.4 * var(--scale));
+    }
+
+    .match-stats-row {
+        font-size: clamp(9px, calc(0.9 * var(--scale)), 11px);
+        padding: calc(0.2 * var(--scale)) calc(0.4 * var(--scale));
+    }
+
+    .match-stats-row.total {
+        font-size: clamp(10px, calc(1 * var(--scale)), 12px);
+    }
+
+    /* Game Score - compact */
+    .digu-game-score {
+        padding: calc(0.4 * var(--scale));
+        margin-bottom: calc(0.5 * var(--scale));
+    }
+
+    .digu-game-score h3 {
+        font-size: clamp(10px, calc(1.1 * var(--scale)), 13px);
+        margin-bottom: calc(0.3 * var(--scale));
+    }
+
+    .game-score-row {
+        font-size: clamp(9px, calc(0.9 * var(--scale)), 11px);
+        padding: calc(0.2 * var(--scale)) 0;
+    }
+
+    /* Players Grid - 2x2 compact */
+    #digu-result-players {
+        grid-template-columns: repeat(2, 1fr);
+        gap: calc(0.5 * var(--scale));
+        max-height: 40vh;
+        margin-bottom: calc(0.5 * var(--scale));
+    }
+
+    .result-player-row {
+        padding: calc(0.4 * var(--scale));
+    }
+
+    .result-player-header {
+        margin-bottom: calc(0.3 * var(--scale));
+    }
+
+    .result-player-name {
+        font-size: clamp(9px, calc(1 * var(--scale)), 12px);
+    }
+
+    .result-player-team {
+        font-size: clamp(8px, calc(0.8 * var(--scale)), 10px);
+    }
+
+    .result-player-score {
+        font-size: clamp(9px, calc(0.9 * var(--scale)), 11px);
+    }
+
+    /* Cards - smaller for mobile */
+    .result-player-cards .card {
+        width: calc(2.8 * var(--scale)) !important;
+        height: calc(4 * var(--scale)) !important;
+        font-size: calc(1 * var(--scale)) !important;
+    }
+
+    .result-player-cards .meld-group {
+        gap: calc(0.1 * var(--scale));
+        margin-right: calc(0.4 * var(--scale));
+        margin-bottom: calc(0.2 * var(--scale));
+        padding: calc(0.15 * var(--scale));
+    }
+
+    .result-player-cards .meld-group::after {
+        font-size: clamp(7px, calc(0.7 * var(--scale)), 9px);
+        top: calc(-0.6 * var(--scale));
+        right: calc(-0.2 * var(--scale));
+        padding: calc(0.05 * var(--scale)) calc(0.2 * var(--scale));
+    }
+
+    .meld-value-label {
+        min-width: calc(1.5 * var(--scale));
+        font-size: clamp(8px, calc(0.8 * var(--scale)), 10px);
+        padding: 0 calc(0.15 * var(--scale));
+    }
+
+    .player-score-summary {
+        font-size: clamp(8px, calc(0.8 * var(--scale)), 10px);
+        gap: calc(0.5 * var(--scale));
+        margin-top: calc(0.2 * var(--scale));
+    }
+
+    /* Buttons - compact row */
+    .digu-result-buttons {
+        gap: calc(0.5 * var(--scale));
+        padding-top: calc(0.5 * var(--scale));
+        flex-wrap: nowrap;
+    }
+
+    .digu-result-btn {
+        padding: calc(0.5 * var(--scale)) calc(0.8 * var(--scale));
+        font-size: clamp(10px, calc(1.1 * var(--scale)), 13px);
+        flex: 1;
+        min-width: 0;
     }
 }
 
@@ -3758,17 +3977,20 @@ html, body {
 #digu-result-players {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: calc(1 * var(--scale));
-    margin-bottom: calc(1.5 * var(--scale));
+    gap: calc(0.8 * var(--scale));
+    margin-bottom: calc(1 * var(--scale));
     overflow-y: auto;
     flex: 1;
     min-height: 0;
+    max-height: 45vh;
 }
 
 .result-player-row {
     background: rgba(0, 0, 0, 0.3);
-    border-radius: calc(0.8 * var(--scale));
-    padding: calc(0.8 * var(--scale));
+    border-radius: calc(0.6 * var(--scale));
+    padding: calc(0.5 * var(--scale));
+    display: flex;
+    flex-direction: column;
 }
 
 .result-player-row.winner {
@@ -3784,11 +4006,13 @@ html, body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: calc(0.6 * var(--scale));
+    margin-bottom: calc(0.4 * var(--scale));
+    flex-wrap: wrap;
+    gap: calc(0.3 * var(--scale));
 }
 
 .result-player-name {
-    font-size: clamp(12px, calc(1.4 * var(--scale)), 18px);
+    font-size: clamp(11px, calc(1.2 * var(--scale)), 16px);
     color: var(--text-light);
     font-weight: 600;
 }
@@ -3798,13 +4022,13 @@ html, body {
 }
 
 .result-player-team {
-    font-size: clamp(10px, calc(1.1 * var(--scale)), 14px);
+    font-size: clamp(9px, calc(1 * var(--scale)), 12px);
     color: rgba(255, 255, 255, 0.6);
-    margin-left: calc(0.5 * var(--scale));
+    margin-left: calc(0.3 * var(--scale));
 }
 
 .result-player-score {
-    font-size: clamp(12px, calc(1.3 * var(--scale)), 16px);
+    font-size: clamp(10px, calc(1.1 * var(--scale)), 14px);
     font-weight: 600;
 }
 
@@ -3826,35 +4050,66 @@ html, body {
     flex-wrap: wrap;
     gap: calc(0.3 * var(--scale));
     justify-content: flex-start;
+    align-items: flex-start;
 }
 
 .result-player-cards .card {
-    width: calc(4.5 * var(--scale)) !important;
-    height: calc(6.5 * var(--scale)) !important;
-    font-size: calc(1.5 * var(--scale)) !important;
+    width: calc(3.5 * var(--scale)) !important;
+    height: calc(5 * var(--scale)) !important;
+    font-size: calc(1.2 * var(--scale)) !important;
+    flex-shrink: 0;
 }
 
 .result-player-cards .meld-group {
     display: flex;
-    gap: calc(0.2 * var(--scale));
-    margin-right: calc(0.8 * var(--scale));
+    gap: calc(0.15 * var(--scale));
+    margin-right: calc(0.5 * var(--scale));
+    margin-bottom: calc(0.3 * var(--scale));
     padding: calc(0.2 * var(--scale));
     border-radius: calc(0.3 * var(--scale));
+    position: relative;
+}
+
+/* Meld group label showing card count */
+.result-player-cards .meld-group::after {
+    content: attr(data-count);
+    position: absolute;
+    top: calc(-0.8 * var(--scale));
+    right: calc(-0.3 * var(--scale));
+    font-size: clamp(8px, calc(0.9 * var(--scale)), 11px);
+    padding: calc(0.1 * var(--scale)) calc(0.3 * var(--scale));
+    border-radius: calc(0.3 * var(--scale));
+    font-weight: bold;
 }
 
 .result-player-cards .meld-group.valid-set {
     background: rgba(255, 215, 0, 0.15);
-    border: 1px solid rgba(255, 215, 0, 0.4);
+    border: 1px solid rgba(255, 215, 0, 0.5);
+}
+
+.result-player-cards .meld-group.valid-set::after {
+    background: rgba(255, 215, 0, 0.8);
+    color: #000;
 }
 
 .result-player-cards .meld-group.valid-run {
     background: rgba(64, 224, 208, 0.15);
-    border: 1px solid rgba(64, 224, 208, 0.4);
+    border: 1px solid rgba(64, 224, 208, 0.5);
+}
+
+.result-player-cards .meld-group.valid-run::after {
+    background: rgba(64, 224, 208, 0.8);
+    color: #000;
 }
 
 .result-player-cards .meld-group.invalid {
     background: rgba(255, 107, 107, 0.15);
-    border: 1px solid rgba(255, 107, 107, 0.4);
+    border: 1px solid rgba(255, 107, 107, 0.5);
+}
+
+.result-player-cards .meld-group.invalid::after {
+    background: rgba(255, 107, 107, 0.8);
+    color: #fff;
 }
 
 /* Meld value labels */
@@ -3862,9 +4117,9 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: calc(2.5 * var(--scale));
-    padding: 0 calc(0.3 * var(--scale));
-    font-size: clamp(10px, calc(1.1 * var(--scale)), 14px);
+    min-width: calc(2 * var(--scale));
+    padding: 0 calc(0.2 * var(--scale));
+    font-size: clamp(9px, calc(1 * var(--scale)), 12px);
     font-weight: bold;
     border-radius: calc(0.3 * var(--scale));
 }
@@ -3882,9 +4137,10 @@ html, body {
 /* Player score summary */
 .player-score-summary {
     display: flex;
-    gap: calc(1 * var(--scale));
-    font-size: clamp(10px, calc(1.1 * var(--scale)), 14px);
+    gap: calc(0.8 * var(--scale));
+    font-size: clamp(9px, calc(1 * var(--scale)), 12px);
     margin-top: calc(0.3 * var(--scale));
+    flex-wrap: wrap;
 }
 
 .player-score-summary .valid-score {
