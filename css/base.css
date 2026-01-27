@@ -363,17 +363,21 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    height: -webkit-fill-available;
     background: linear-gradient(180deg, var(--night-blue) 0%, var(--ocean-deep) 100%);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    overflow: auto;
 }
 
 #lobby-overlay.hidden {
-    display: none;
+    display: none !important;
 }
 
 #lobby-content {
