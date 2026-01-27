@@ -151,7 +151,7 @@ body {
 #superior-suit-display {
     position: absolute;
     top: calc(19 * var(--scale));
-    left: calc(8 * var(--scale));
+    left: calc(24 * var(--scale));
     padding: calc(0.8 * var(--scale)) calc(1.5 * var(--scale));
     background: linear-gradient(145deg, rgba(10, 20, 30, 0.95) 0%, rgba(20, 40, 60, 0.9) 100%);
     border: calc(0.25 * var(--scale)) solid var(--ocean-turquoise);
@@ -272,7 +272,7 @@ body {
 #score-panel {
     position: absolute;
     top: calc(1.5 * var(--scale));
-    left: calc(8 * var(--scale));
+    left: calc(24 * var(--scale));
     display: flex;
     flex-direction: row;
     gap: calc(1.5 * var(--scale));
@@ -2842,11 +2842,11 @@ body {
 
     /* Adjust fixed positioned elements for safe areas */
     #score-panel {
-        left: max(100px, calc(100px + env(safe-area-inset-left)));
+        left: max(calc(24 * var(--scale)), calc(24 * var(--scale) + env(safe-area-inset-left)));
     }
 
     #superior-suit-display {
-        left: max(100px, calc(100px + env(safe-area-inset-left)));
+        left: max(calc(24 * var(--scale)), calc(24 * var(--scale) + env(safe-area-inset-left)));
     }
 
     #match-points-panel {
