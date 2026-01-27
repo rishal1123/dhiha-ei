@@ -25,6 +25,8 @@
         document.addEventListener('touchmove', function(e) {
             // Allow scrolling within scrollable elements
             if (e.target.closest('.digu-player-hand')) return;
+            // Allow touches on sponsor elements
+            if (e.target.closest('.sponsor-area, .center-sponsor, #drink-sponsor, #food-sponsor, .lobby-sponsor')) return;
             e.preventDefault();
         }, { passive: false });
 
