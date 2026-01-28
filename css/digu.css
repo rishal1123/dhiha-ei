@@ -432,6 +432,18 @@
     transform: translateY(-50%);
 }
 
+/* When inside wrapper divs, use relative positioning */
+div:has(.sponsor-column) > .digu-player.left,
+div:has(.sponsor-column) > .digu-player.right,
+div:has(.sponsor-column) > .digu-player.bottom {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    transform: none;
+}
+
 .digu-player-label {
     padding: calc(0.6 * var(--scale)) calc(1.4 * var(--scale));
     background: linear-gradient(135deg, rgba(27, 40, 56, 0.8) 0%, rgba(0, 105, 148, 0.7) 100%);
@@ -1530,35 +1542,123 @@
     min-height: 48px;
 }
 
-/* Drink and Food sponsors - positioned on sides */
-#digu-game-board #drink-sponsor,
-#digu-game-board #food-sponsor {
+/* Wrapper divs for players with sponsors */
+
+/* Bottom player (player 0) wrapper */
+#digu-game-board > div:has(#digu-player-0) {
     position: absolute;
-    pointer-events: auto;
-    cursor: pointer;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: calc(2 * var(--scale));
+    z-index: 100;
+}
+
+#digu-game-board > div:has(#digu-player-0) #digu-player-0 {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    padding-bottom: calc(1 * var(--scale));
+}
+
+/* Ensure player 0 label stays at the top of the hand area */
+#digu-game-board > div:has(#digu-player-0) .digu-player-label {
+    order: -1;
+}
+
+/* Sponsor column next to player 0 - align to bottom */
+#digu-game-board > div:has(#digu-player-0) .sponsor-column {
+    align-self: flex-end;
+    margin-bottom: calc(3 * var(--scale));
+}
+
+/* Left player (player 1) wrapper */
+#digu-game-board > div:has(#digu-player-1) {
+    position: absolute;
+    left: calc(2 * var(--scale));
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(1.5 * var(--scale));
+    z-index: 5;
+}
+
+/* Right player (player 3) wrapper */
+#digu-game-board > div:has(#digu-player-3) {
+    position: absolute;
+    right: calc(2 * var(--scale));
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(1.5 * var(--scale));
+    z-index: 5;
+}
+
+/* Override absolute positioning for players inside wrapper */
+#digu-game-board > div:has(#digu-player-0) #digu-player-0,
+#digu-game-board > div:has(#digu-player-1) #digu-player-1,
+#digu-game-board > div:has(#digu-player-3) #digu-player-3 {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    transform: none;
+}
+
+/* Sponsor column styling */
+.sponsor-column {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: calc(8 * var(--scale));
-    height: calc(8 * var(--scale));
-    min-width: 60px;
-    min-height: 60px;
-    background: transparent;
-    border: none;
-    z-index: 3;
+    pointer-events: auto;
+    cursor: pointer;
 }
 
-#digu-game-board #drink-sponsor {
-    left: calc(5 * var(--scale));
-    top: 50%;
-    transform: translateY(-50%);
+/* Drink and Food item containers */
+.drink-item,
+.food-item {
+    width: calc(7 * var(--scale));
+    height: calc(7 * var(--scale));
+    min-width: 50px;
+    min-height: 50px;
+    background: rgba(255, 255, 255, 0.1);
+    border: calc(0.2 * var(--scale)) dashed rgba(255, 255, 255, 0.3);
+    border-radius: calc(1 * var(--scale));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
 }
 
-#digu-game-board #food-sponsor {
-    right: calc(5 * var(--scale));
-    top: 50%;
-    transform: translateY(-50%);
+.drink-item:hover,
+.food-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--ocean-turquoise);
+}
+
+/* Sponsor images inside drink/food items */
+.drink-item img,
+.food-item img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border-radius: calc(0.5 * var(--scale));
+}
+
+/* Sponsor callouts for drink/food */
+#drink-callout,
+#food-callout {
+    margin-top: calc(0.5 * var(--scale));
 }
 
 /* Sponsor callouts */
