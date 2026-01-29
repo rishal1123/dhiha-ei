@@ -331,13 +331,20 @@
 .digu-player.bottom .digu-player-hand .card.meld-end { margin-right: 8px; }
 .digu-player.bottom .digu-player-hand .card.dragging { opacity: 0.4; }
 
-/* Mobile: reduce player 0 cards by 0.1 (90% size) */
+/* Mobile: reduce sizes by 0.1 (90% size) */
 @media screen and (max-width: 768px), (max-height: 500px) {
+    /* Player 0 cards */
     #digu-game-board .digu-player.bottom .digu-player-hand .card,
     .digu-player.bottom .digu-player-hand .card.card-svg {
         width: clamp(40px, 7.2vw, 72px) !important;
         height: clamp(57px, 10vw, 101px) !important;
         margin-left: -18px;
+    }
+
+    /* Stock and discard piles */
+    .digu-pile {
+        width: clamp(54px, 7.2vw, 81px);
+        height: clamp(76px, 10vw, 113px);
     }
 }
 
