@@ -208,7 +208,7 @@
         cards.forEach(function(card, index) {
             // Negative margin for card overlap (except first card)
             if (index > 0) {
-                card.style.marginLeft = '-12px';
+                card.style.marginLeft = '-20px';
             } else {
                 card.style.marginLeft = '0';
             }

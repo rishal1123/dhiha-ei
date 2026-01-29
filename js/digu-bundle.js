@@ -3972,9 +3972,13 @@
             // Update table sponsor (center)
             const tableSponsor = document.getElementById('table-sponsor');
             if (tableSponsor && this.sponsorsData.table) {
-                if (this.sponsorsData.table.enabled && this.sponsorsData.table.logo) {
+                if (this.sponsorsData.table.enabled) {
                     const size = sponsorSizes.table;
-                    tableSponsor.innerHTML = `<img src="${this.sponsorsData.table.logo}" alt="${this.sponsorsData.table.name}" style="width:${size.width}px;height:${size.height}px;object-fit:contain;">`;
+                    if (this.sponsorsData.table.logo) {
+                        tableSponsor.innerHTML = `<img src="${this.sponsorsData.table.logo}" alt="${this.sponsorsData.table.name}" style="width:${size.width}px;height:${size.height}px;object-fit:contain;">`;
+                    } else {
+                        tableSponsor.innerHTML = `<div class="sponsor-name-placeholder" style="width:${size.width}px;height:${size.height}px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.1);border:1px dashed rgba(255,255,255,0.3);border-radius:8px;color:var(--text-light);font-size:14px;text-align:center;">${this.sponsorsData.table.name}</div>`;
+                    }
                     tableSponsor.classList.add('sponsor-active');
                 } else {
                     // Restore original placeholder
@@ -3987,9 +3991,13 @@
             // Update drink sponsor (left)
             const drinkSponsor = document.getElementById('drink-sponsor');
             if (drinkSponsor && this.sponsorsData.drink) {
-                if (this.sponsorsData.drink.enabled && this.sponsorsData.drink.logo) {
+                if (this.sponsorsData.drink.enabled) {
                     const size = sponsorSizes.drink;
-                    drinkSponsor.innerHTML = `<img src="${this.sponsorsData.drink.logo}" alt="${this.sponsorsData.drink.name}" style="max-width:${size.width}px;max-height:${size.height}px;object-fit:contain;">`;
+                    if (this.sponsorsData.drink.logo) {
+                        drinkSponsor.innerHTML = `<span class="sponsor-label">Drink</span><img src="${this.sponsorsData.drink.logo}" alt="${this.sponsorsData.drink.name}" style="max-width:${size.width}px;max-height:${size.height}px;object-fit:contain;">`;
+                    } else {
+                        drinkSponsor.innerHTML = `<span class="sponsor-label">Drink</span><div class="sponsor-name-placeholder" style="max-width:${size.width}px;max-height:${size.height}px;min-width:80px;min-height:80px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.1);border:1px dashed rgba(255,255,255,0.3);border-radius:8px;color:var(--text-light);font-size:12px;text-align:center;padding:8px;">${this.sponsorsData.drink.name}</div>`;
+                    }
                     drinkSponsor.classList.add('sponsor-active');
                 } else {
                     // Restore original placeholder
@@ -4002,9 +4010,13 @@
             // Update food sponsor (right)
             const foodSponsor = document.getElementById('food-sponsor');
             if (foodSponsor && this.sponsorsData.food) {
-                if (this.sponsorsData.food.enabled && this.sponsorsData.food.logo) {
+                if (this.sponsorsData.food.enabled) {
                     const size = sponsorSizes.food;
-                    foodSponsor.innerHTML = `<img src="${this.sponsorsData.food.logo}" alt="${this.sponsorsData.food.name}" style="max-width:${size.width}px;max-height:${size.height}px;object-fit:contain;">`;
+                    if (this.sponsorsData.food.logo) {
+                        foodSponsor.innerHTML = `<span class="sponsor-label">Food</span><img src="${this.sponsorsData.food.logo}" alt="${this.sponsorsData.food.name}" style="max-width:${size.width}px;max-height:${size.height}px;object-fit:contain;">`;
+                    } else {
+                        foodSponsor.innerHTML = `<span class="sponsor-label">Food</span><div class="sponsor-name-placeholder" style="max-width:${size.width}px;max-height:${size.height}px;min-width:80px;min-height:80px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.1);border:1px dashed rgba(255,255,255,0.3);border-radius:8px;color:var(--text-light);font-size:12px;text-align:center;padding:8px;">${this.sponsorsData.food.name}</div>`;
+                    }
                     foodSponsor.classList.add('sponsor-active');
                 } else {
                     // Restore original placeholder
