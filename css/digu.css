@@ -26,50 +26,97 @@
         font-size: clamp(10px, 2vw, 14px);
     }
 
-    /* Adjust row heights for mobile */
-    #digu-game-board > .row:first-child {
+    /* Hide outer spacer rows on mobile */
+    #digu-game-board > .row.h-5 {
+        height: 2% !important;
+        min-height: 5px;
+    }
+
+    /* Main content row takes more space */
+    #digu-game-board > .row.h-90 {
+        height: 96% !important;
+    }
+
+    /* Adjust inner row heights for mobile */
+    #digu-game-board > .row.h-90 > .col > .row:first-child {
         height: 12% !important;
     }
 
-    #digu-game-board > .row:nth-child(2) {
-        height: 58% !important;
+    #digu-game-board > .row.h-90 > .col > .row:nth-child(2) {
+        height: 53% !important;
     }
 
-    #digu-game-board > .row:last-of-type {
-        height: 30% !important;
+    #digu-game-board > .row.h-90 > .col > .row:nth-child(3) {
+        height: 35% !important;
+    }
+
+    /* Narrower side columns on mobile */
+    #digu-game-board > .row.h-90 > .col-1 {
+        flex: 0 0 auto;
+        width: 2%;
+    }
+
+    /* Side sponsor/player columns narrower on mobile */
+    #digu-game-board .col-2 {
+        flex: 0 0 auto;
+        width: 12%;
     }
 
     /* Smaller avatars on mobile */
     .digu-avatar-icon {
-        width: 30px;
-        height: 30px;
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+
+    /* Hide sponsor labels on mobile */
+    .sponsor-label {
+        display: none;
     }
 
     /* Smaller sponsor columns on mobile */
+    .sponsor-column {
+        min-width: 40px;
+        min-height: 40px;
+    }
+
     .drink-item, .food-item {
-        width: clamp(25px, 80%, 40px);
-        height: clamp(60px, 50%, 100px);
+        width: clamp(30px, 90%, 50px);
+        height: clamp(40px, 50%, 70px);
     }
 
     /* Smaller piles on mobile */
     .digu-pile {
-        width: clamp(50px, 7vw, 70px);
-        height: clamp(70px, 9.8vw, 98px);
+        width: clamp(45px, 8vw, 60px);
+        height: clamp(63px, 11.2vw, 84px);
     }
 
     /* Smaller table sponsor on mobile */
+    #table-sponsor img,
     #table-sponsor svg {
-        width: 100px;
-        height: 40px;
+        max-width: 80px;
+        max-height: 32px;
     }
 
-    /* Bottom row compact styling */
-    #digu-game-board > .row:last-of-type .digu-player-label {
-        padding: 2px 8px;
+    /* Compact phase indicator */
+    #digu-phase {
+        padding: 3px 8px;
         font-size: 10px;
     }
 
-    #digu-game-board > .row:last-of-type .digu-shuffle-count {
+    /* Compact scores panel */
+    #digu-scores {
+        padding: 4px 6px;
+        font-size: 8px;
+    }
+
+    /* Bottom row compact styling */
+    .digu-player.bottom .digu-player-label {
+        padding: 2px 6px;
+        font-size: 9px;
+    }
+
+    .digu-player.bottom .digu-shuffle-count {
         font-size: 8px;
         padding: 1px 4px;
     }
@@ -77,26 +124,34 @@
     /* Compact inline buttons on mobile */
     #new-game-btn-inline,
     #menu-btn-inline {
-        padding: 3px 6px;
-        font-size: 9px;
+        padding: 2px 4px;
+        font-size: 8px;
     }
 
     /* Compact side player info on mobile */
     .digu-player.left .digu-player-label,
     .digu-player.right .digu-player-label {
-        padding: 2px 6px;
-        font-size: 9px;
+        padding: 2px 4px;
+        font-size: 8px;
     }
 
     .digu-player.left .digu-team-label,
     .digu-player.right .digu-team-label {
-        font-size: 7px;
-        padding: 1px 3px;
+        font-size: 6px;
+        padding: 1px 2px;
     }
 
     .digu-player.left .digu-shuffle-count,
     .digu-player.right .digu-shuffle-count {
-        font-size: 7px;
+        font-size: 6px;
+    }
+
+    /* Cards smaller on mobile */
+    #digu-game-board .digu-player.bottom .digu-player-hand .card,
+    .digu-player.bottom .digu-player-hand .card.card-svg {
+        width: clamp(35px, 7vw, 55px) !important;
+        height: clamp(49px, 9.8vw, 77px) !important;
+        margin-left: -12px;
     }
 }
 
@@ -778,46 +833,98 @@ html.ios-standalone #digu-game-board {
 
 /* Landscape mobile adjustments */
 @media screen and (orientation: landscape) and (max-height: 500px) {
+    /* Minimize outer spacers */
+    #digu-game-board > .row.h-5 {
+        height: 1% !important;
+        min-height: 2px;
+    }
+
+    #digu-game-board > .row.h-90 {
+        height: 98% !important;
+    }
+
+    /* Adjust inner row heights for landscape mobile */
+    #digu-game-board > .row.h-90 > .col > .row:first-child {
+        height: 10% !important;
+    }
+
+    #digu-game-board > .row.h-90 > .col > .row:nth-child(2) {
+        height: 50% !important;
+    }
+
+    #digu-game-board > .row.h-90 > .col > .row:nth-child(3) {
+        height: 40% !important;
+    }
+
     /* Compact player info */
     .digu-player-label {
-        padding: 2px 8px;
-        font-size: 11px;
+        padding: 2px 6px;
+        font-size: 10px;
     }
 
     .digu-team-label {
+        font-size: 7px;
+        padding: 1px 3px;
+    }
+
+    .digu-shuffle-count {
         font-size: 8px;
         padding: 1px 4px;
     }
 
-    .digu-shuffle-count {
-        font-size: 9px;
-        padding: 1px 6px;
-    }
-
     /* Compact scores panel */
     #digu-scores {
-        padding: 4px 8px;
-        font-size: 9px;
+        padding: 3px 6px;
+        font-size: 8px;
     }
 
     /* Compact phase indicator */
     #digu-phase {
-        padding: 4px 10px;
-        font-size: 11px;
+        padding: 3px 8px;
+        font-size: 10px;
     }
 
-    /* Smaller cards on landscape mobile */
+    /* Smaller table sponsor */
+    #table-sponsor img,
+    #table-sponsor svg {
+        max-width: 70px;
+        max-height: 28px;
+    }
+
+    /* Smaller piles */
+    .digu-pile {
+        width: clamp(40px, 6vw, 55px);
+        height: clamp(56px, 8.4vw, 77px);
+    }
+
+    /* Smaller cards on landscape mobile - more cards visible */
+    #digu-game-board .digu-player.bottom .digu-player-hand .card,
     .digu-player.bottom .digu-player-hand .card {
-        width: clamp(40px, 7vw, 60px);
-        height: clamp(56px, 9.8vw, 84px);
-        margin-left: -16px;
+        width: clamp(32px, 6vw, 50px) !important;
+        height: clamp(45px, 8.4vw, 70px) !important;
+        margin-left: -10px;
+    }
+
+    /* Ensure hand container uses full width */
+    .digu-player-hand {
+        min-height: 50px;
     }
 
     /* Compact buttons */
     #new-game-btn-inline,
     #menu-btn-inline {
-        padding: 4px 8px;
-        font-size: 10px;
+        padding: 2px 4px;
+        font-size: 8px;
+    }
+
+    /* Hide avatars on very small landscape */
+    .digu-avatar {
+        display: none;
+    }
+
+    /* Hide team labels */
+    .digu-team-label {
+        display: none;
     }
 }
 
