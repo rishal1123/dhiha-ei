@@ -20,6 +20,14 @@
 
 #digu-game-board.hidden { display: none !important; }
 
+/* Mobile: scale down by 0.1 (90% size) */
+@media screen and (max-width: 768px), (max-height: 500px) {
+    #digu-game-board {
+        transform: scale(0.9);
+        transform-origin: center center;
+    }
+}
+
 /* Oval Table - centered on play area (Row 2: starts at 15%, height 55%, center at 42.5%) */
 #digu-game-board::before {
     content: '';
