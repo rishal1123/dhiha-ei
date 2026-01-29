@@ -4017,7 +4017,7 @@
             if (drinkSponsor && this.sponsorsData.drink) {
                 if (this.sponsorsData.drink.enabled && this.sponsorsData.drink.logo) {
                     const size = sponsorSizes.drink;
-                    drinkSponsor.innerHTML = `<img src="${this.sponsorsData.drink.logo}" alt="${this.sponsorsData.drink.name}" style="width:${size.width}px;height:${size.height}px;object-fit:contain;">`;
+                    drinkSponsor.innerHTML = `<img src="${this.sponsorsData.drink.logo}" alt="${this.sponsorsData.drink.name}" style="max-width:${size.width}px;max-height:${size.height}px;object-fit:contain;">`;
                     drinkSponsor.classList.add('sponsor-active');
                 } else {
                     // Restore original placeholder
@@ -4032,7 +4032,7 @@
             if (foodSponsor && this.sponsorsData.food) {
                 if (this.sponsorsData.food.enabled && this.sponsorsData.food.logo) {
                     const size = sponsorSizes.food;
-                    foodSponsor.innerHTML = `<img src="${this.sponsorsData.food.logo}" alt="${this.sponsorsData.food.name}" style="width:${size.width}px;height:${size.height}px;object-fit:contain;">`;
+                    foodSponsor.innerHTML = `<img src="${this.sponsorsData.food.logo}" alt="${this.sponsorsData.food.name}" style="max-width:${size.width}px;max-height:${size.height}px;object-fit:contain;">`;
                     foodSponsor.classList.add('sponsor-active');
                 } else {
                     // Restore original placeholder

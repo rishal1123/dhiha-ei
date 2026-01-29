@@ -515,9 +515,10 @@
 }
 
 .drink-item, .food-item {
-    width: clamp(30px, 100%, 50px);
+    width: 100%;
     height: clamp(80px, 60%, 150px);
-    max-height: 100%;
+    max-width: 130px;
+    max-height: 130px;
     background: rgba(255, 255, 255, 0.1);
     border: 1px dashed rgba(255, 255, 255, 0.3);
     border-radius: 6px;
