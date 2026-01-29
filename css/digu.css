@@ -515,9 +515,19 @@
     min-width: 80px;
     min-height: 80px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     overflow: visible;
+}
+
+.sponsor-label {
+    display: block;
+    font-size: clamp(9px, 1vw, 12px);
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
 }
 
 /* Style for dynamically inserted sponsor images */
