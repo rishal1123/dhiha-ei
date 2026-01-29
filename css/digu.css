@@ -59,6 +59,42 @@
         width: 100px;
         height: 40px;
     }
+
+    /* Bottom row compact styling */
+    #digu-game-board > .row:last-of-type .digu-player-label {
+        padding: 2px 8px;
+        font-size: 10px;
+    }
+
+    #digu-game-board > .row:last-of-type .digu-shuffle-count {
+        font-size: 8px;
+        padding: 1px 4px;
+    }
+
+    /* Compact inline buttons on mobile */
+    #new-game-btn-inline,
+    #menu-btn-inline {
+        padding: 3px 6px;
+        font-size: 9px;
+    }
+
+    /* Compact side player info on mobile */
+    .digu-player.left .digu-player-label,
+    .digu-player.right .digu-player-label {
+        padding: 2px 6px;
+        font-size: 9px;
+    }
+
+    .digu-player.left .digu-team-label,
+    .digu-player.right .digu-team-label {
+        font-size: 7px;
+        padding: 1px 3px;
+    }
+
+    .digu-player.left .digu-shuffle-count,
+    .digu-player.right .digu-shuffle-count {
+        font-size: 7px;
+    }
 }
 
 /* Oval Table - centered on play area (Row 2: starts at 15%, height 55%, center at 42.5%) */
