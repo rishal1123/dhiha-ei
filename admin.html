@@ -45,6 +45,9 @@
                     <p class="text-muted mb-0">Manage customers, campaigns and sponsors</p>
                 </div>
                 <div>
+                    <button class="btn btn-success me-2" onclick="exportSponsorsJson()">
+                        <i class="bi bi-download me-1"></i>Export sponsors.json
+                    </button>
                     <button class="btn btn-gold me-2" onclick="showLivePreview()">
                         <i class="bi bi-eye me-1"></i>Live Preview
                     </button>
@@ -474,6 +477,13 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // =====================================================
+        // LOCAL STORAGE BASED ADMIN PORTAL (No Backend Required)
+        // =====================================================
+
+        const STORAGE_KEY = 'thaasbai_admin_data';
+        const ADMIN_PASSWORD = 'thaasbai2026'; // Simple password for local demo
+
         let adminPassword = '';
         let customersData = {};
         let campaignsData = {};
@@ -495,28 +505,68 @@
             'waiting_room': '300x120px'
         };
 
+        // Generate unique ID
+        function generateId() {
+            return Math.random().toString(16).slice(2, 10);
+        }
+
+        // Save data to localStorage
+        function saveToStorage() {
+            const data = {
+                customers: customersData,
+                campaigns: campaignsData,
+                active_sponsors: activeSponsors,
+                lastUpdated: new Date().toISOString()
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        // Load data from localStorage or campaigns.json
+        async function loadFromStorage() {
+            // Check localStorage first
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    customersData = data.customers || {};
+                    campaignsData = data.campaigns || {};
+                    activeSponsors = data.active_sponsors || {};
+                    return true;
+                } catch (e) {
+                    console.error('Error parsing stored data:', e);
+                }
+            }
+
+            // Fall back to campaigns.json
+            try {
+                const response = await fetch('/campaigns.json');
+                if (response.ok) {
+                    const data = await response.json();
+                    customersData = data.customers || {};
+                    campaignsData = data.campaigns || {};
+                    activeSponsors = data.active_sponsors || {};
+                    saveToStorage(); // Save to localStorage for future use
+                    return true;
+                }
+            } catch (e) {
+                console.error('Error loading campaigns.json:', e);
+            }
+
+            // Initialize empty data
+            customersData = {};
+            campaignsData = {};
+            activeSponsors = { table: null, drink: null, food: null, matchmaking: null, waiting_room: null };
+            return true;
+        }
+
         // Check for stored session on page load
         async function checkStoredSession() {
             const storedPassword = sessionStorage.getItem('adminPassword');
-            if (storedPassword) {
-                try {
-                    const response = await fetch('/api/admin/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ password: storedPassword })
-                    });
-                    const data = await response.json();
-                    if (data.success) {
-                        adminPassword = storedPassword;
-                        document.getElementById('login-section').classList.add('d-none');
-                        document.getElementById('admin-section').classList.remove('d-none');
-                        loadAllData();
-                        return;
-                    }
-                } catch (err) {
-                    // Session invalid, clear it
-                }
-                sessionStorage.removeItem('adminPassword');
+            if (storedPassword === ADMIN_PASSWORD) {
+                adminPassword = storedPassword;
+                document.getElementById('login-section').classList.add('d-none');
+                document.getElementById('admin-section').classList.remove('d-none');
+                loadAllData();
             }
         }
 
@@ -528,53 +578,32 @@
             e.preventDefault();
             const password = document.getElementById('password').value;
 
-            try {
-                const response = await fetch('/api/admin/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    adminPassword = password;
-                    sessionStorage.setItem('adminPassword', password);
-                    document.getElementById('login-section').classList.add('d-none');
-                    document.getElementById('admin-section').classList.remove('d-none');
-                    loadAllData();
-                } else {
-                    showMessage('login-message', 'Invalid password', 'danger');
-                }
-            } catch (err) {
-                showMessage('login-message', 'Connection error', 'danger');
+            if (password === ADMIN_PASSWORD) {
+                adminPassword = password;
+                sessionStorage.setItem('adminPassword', password);
+                document.getElementById('login-section').classList.add('d-none');
+                document.getElementById('admin-section').classList.remove('d-none');
+                loadAllData();
+            } else {
+                showMessage('login-message', 'Invalid password. Use: thaasbai2026', 'danger');
             }
         });
 
         async function loadAllData() {
-            await Promise.all([loadCustomers(), loadCampaigns()]);
+            await loadFromStorage();
+            renderCustomersTable();
+            updateCustomerDropdown();
+            renderCampaignsTable();
             renderActiveSponsors();
         }
 
         async function loadCustomers() {
-            try {
-                const response = await fetch(`/api/admin/customers?password=${adminPassword}`);
-                customersData = await response.json();
-                renderCustomersTable();
-                updateCustomerDropdown();
-            } catch (err) {
-                showMessage('admin-message', 'Failed to load customers', 'danger');
-            }
+            renderCustomersTable();
+            updateCustomerDropdown();
         }
 
         async function loadCampaigns() {
-            try {
-                const response = await fetch(`/api/admin/campaigns?password=${adminPassword}`);
-                campaignsData = await response.json();
-                renderCampaignsTable();
-            } catch (err) {
-                showMessage('admin-message', 'Failed to load campaigns', 'danger');
-            }
+            renderCampaignsTable();
         }
 
         function renderCustomersTable() {
@@ -745,30 +774,23 @@
             const email = document.getElementById('customer-email').value;
             const customerPassword = document.getElementById('customer-password').value;
 
-            try {
-                const response = await fetch('/api/admin/customers', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        password: adminPassword,
-                        name,
-                        email,
-                        customerPassword
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    bootstrap.Modal.getInstance(document.getElementById('addCustomerModal')).hide();
-                    showMessage('admin-message', 'Customer created successfully', 'success');
-                    loadCustomers();
-                } else {
-                    alert(data.error || 'Failed to create customer');
-                }
-            } catch (err) {
-                alert('Failed to create customer');
+            if (!name || !email || !customerPassword) {
+                alert('Please fill in all fields');
+                return;
             }
+
+            const customerId = generateId();
+            customersData[customerId] = {
+                name,
+                email,
+                password: customerPassword, // In real app, this should be hashed
+                created_at: new Date().toISOString()
+            };
+
+            saveToStorage();
+            bootstrap.Modal.getInstance(document.getElementById('addCustomerModal')).hide();
+            showMessage('admin-message', 'Customer created successfully', 'success');
+            loadCustomers();
         }
 
         async function addCampaign() {
@@ -786,102 +808,90 @@
                 return;
             }
 
-            try {
-                const response = await fetch('/api/admin/campaigns', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        password: adminPassword,
-                        customerId,
-                        name,
-                        sponsorSlot: slot,
-                        logo,
-                        url,
-                        callout,
-                        startDate,
-                        endDate
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    bootstrap.Modal.getInstance(document.getElementById('addCampaignModal')).hide();
-                    showMessage('admin-message', 'Campaign created successfully', 'success');
-                    loadCampaigns();
-                } else {
-                    alert(data.error || 'Failed to create campaign');
-                }
-            } catch (err) {
-                alert('Failed to create campaign');
+            if (!name) {
+                alert('Please enter a campaign name');
+                return;
             }
+
+            const campaignId = generateId();
+            campaignsData[campaignId] = {
+                customer_id: customerId,
+                name,
+                sponsor_slot: slot,
+                logo,
+                url,
+                callout,
+                start_date: startDate,
+                end_date: endDate,
+                active: false,
+                stats: { impressions: 0, clicks: 0 },
+                created_at: new Date().toISOString()
+            };
+
+            saveToStorage();
+            bootstrap.Modal.getInstance(document.getElementById('addCampaignModal')).hide();
+            showMessage('admin-message', 'Campaign created successfully', 'success');
+            loadCampaigns();
+            renderActiveSponsors();
         }
 
         async function deleteCustomer(customerId) {
             if (!confirm('Delete this customer and all their campaigns?')) return;
 
-            try {
-                const response = await fetch(`/api/admin/customers/${customerId}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: adminPassword })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showMessage('admin-message', 'Customer deleted', 'success');
-                    loadAllData();
-                } else {
-                    alert(data.error || 'Failed to delete customer');
+            // Delete all campaigns for this customer
+            for (const [campaignId, campaign] of Object.entries(campaignsData)) {
+                if (campaign.customer_id === customerId) {
+                    // Deactivate if active
+                    if (campaign.active && activeSponsors[campaign.sponsor_slot] === campaignId) {
+                        activeSponsors[campaign.sponsor_slot] = null;
+                    }
+                    delete campaignsData[campaignId];
                 }
-            } catch (err) {
-                alert('Failed to delete customer');
             }
+
+            // Delete the customer
+            delete customersData[customerId];
+
+            saveToStorage();
+            showMessage('admin-message', 'Customer deleted', 'success');
+            loadAllData();
         }
 
         async function deleteCampaign(campaignId) {
             if (!confirm('Delete this campaign?')) return;
 
-            try {
-                const response = await fetch(`/api/admin/campaigns/${campaignId}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: adminPassword })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showMessage('admin-message', 'Campaign deleted', 'success');
-                    loadAllData();
-                } else {
-                    alert(data.error || 'Failed to delete campaign');
+            const campaign = campaignsData[campaignId];
+            if (campaign) {
+                // Deactivate if active
+                if (campaign.active && activeSponsors[campaign.sponsor_slot] === campaignId) {
+                    activeSponsors[campaign.sponsor_slot] = null;
                 }
-            } catch (err) {
-                alert('Failed to delete campaign');
+                delete campaignsData[campaignId];
             }
+
+            saveToStorage();
+            showMessage('admin-message', 'Campaign deleted', 'success');
+            loadAllData();
         }
 
         async function activateCampaign(campaignId) {
-            try {
-                const response = await fetch(`/api/admin/campaigns/${campaignId}/activate`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: adminPassword })
-                });
+            const campaign = campaignsData[campaignId];
+            if (!campaign) return;
 
-                const data = await response.json();
-
-                if (data.success) {
-                    showMessage('admin-message', 'Campaign activated', 'success');
-                    loadAllData();
-                } else {
-                    alert(data.error || 'Failed to activate campaign');
+            // Deactivate any other campaign in the same slot
+            for (const [id, c] of Object.entries(campaignsData)) {
+                if (c.sponsor_slot === campaign.sponsor_slot && c.active) {
+                    c.active = false;
                 }
-            } catch (err) {
-                alert('Failed to activate campaign');
             }
+
+            // Activate this campaign
+            campaign.active = true;
+            activeSponsors[campaign.sponsor_slot] = campaignId;
+
+            saveToStorage();
+            showMessage('admin-message', 'Campaign activated', 'success');
+            loadAllData();
         }
 
         function showEditCustomerModal(customerId) {
@@ -902,35 +912,21 @@
             const email = document.getElementById('edit-customer-email').value;
             const newPassword = document.getElementById('edit-customer-password').value;
 
-            try {
-                const body = {
-                    password: adminPassword,
-                    name,
-                    email
-                };
-
-                if (newPassword) {
-                    body.customerPassword = newPassword;
-                }
-
-                const response = await fetch(`/api/admin/customers/${customerId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    bootstrap.Modal.getInstance(document.getElementById('editCustomerModal')).hide();
-                    showMessage('admin-message', 'Customer updated successfully', 'success');
-                    loadCustomers();
-                } else {
-                    alert(data.error || 'Failed to update customer');
-                }
-            } catch (err) {
-                alert('Failed to update customer');
+            if (!customersData[customerId]) {
+                alert('Customer not found');
+                return;
             }
+
+            customersData[customerId].name = name;
+            customersData[customerId].email = email;
+            if (newPassword) {
+                customersData[customerId].password = newPassword;
+            }
+
+            saveToStorage();
+            bootstrap.Modal.getInstance(document.getElementById('editCustomerModal')).hide();
+            showMessage('admin-message', 'Customer updated successfully', 'success');
+            loadCustomers();
         }
 
         function showEditCampaignModal(campaignId) {
@@ -978,36 +974,62 @@
                 return;
             }
 
-            try {
-                const response = await fetch(`/api/admin/campaigns/${campaignId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        password: adminPassword,
-                        customerId,
-                        name,
-                        sponsorSlot: slot,
-                        logo,
-                        url,
-                        callout,
-                        startDate,
-                        endDate,
-                        active
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    bootstrap.Modal.getInstance(document.getElementById('editCampaignModal')).hide();
-                    showMessage('admin-message', 'Campaign updated successfully', 'success');
-                    loadAllData();
-                } else {
-                    alert(data.error || 'Failed to update campaign');
-                }
-            } catch (err) {
-                alert('Failed to update campaign');
+            if (!campaignsData[campaignId]) {
+                alert('Campaign not found');
+                return;
             }
+
+            const campaign = campaignsData[campaignId];
+            const oldSlot = campaign.sponsor_slot;
+            const wasActive = campaign.active;
+
+            // If deactivating, clear from active sponsors
+            if (wasActive && !active) {
+                if (activeSponsors[oldSlot] === campaignId) {
+                    activeSponsors[oldSlot] = null;
+                }
+            }
+
+            // If activating, deactivate others in same slot
+            if (active && !wasActive) {
+                for (const [id, c] of Object.entries(campaignsData)) {
+                    if (c.sponsor_slot === slot && c.active && id !== campaignId) {
+                        c.active = false;
+                    }
+                }
+                activeSponsors[slot] = campaignId;
+            }
+
+            // If slot changed while active, update active_sponsors
+            if (active && oldSlot !== slot) {
+                // Clear old slot
+                if (activeSponsors[oldSlot] === campaignId) {
+                    activeSponsors[oldSlot] = null;
+                }
+                // Deactivate others in new slot
+                for (const [id, c] of Object.entries(campaignsData)) {
+                    if (c.sponsor_slot === slot && c.active && id !== campaignId) {
+                        c.active = false;
+                    }
+                }
+                activeSponsors[slot] = campaignId;
+            }
+
+            // Update campaign
+            campaign.customer_id = customerId;
+            campaign.name = name;
+            campaign.sponsor_slot = slot;
+            campaign.logo = logo;
+            campaign.url = url;
+            campaign.callout = callout;
+            campaign.start_date = startDate;
+            campaign.end_date = endDate;
+            campaign.active = active;
+
+            saveToStorage();
+            bootstrap.Modal.getInstance(document.getElementById('editCampaignModal')).hide();
+            showMessage('admin-message', 'Campaign updated successfully', 'success');
+            loadAllData();
         }
 
         function showMessage(elementId, text, type) {
@@ -1168,34 +1190,30 @@
             const file = fileInput.files[0];
             const isLottie = file.name.endsWith('.json') || file.name.endsWith('.lottie');
             const isPng = file.type === 'image/png' || file.name.endsWith('.png');
+            const isJpeg = file.type === 'image/jpeg' || file.name.endsWith('.jpg') || file.name.endsWith('.jpeg');
+            const isSvg = file.type === 'image/svg+xml' || file.name.endsWith('.svg');
 
-            if (!isLottie && !isPng) {
-                alert('Please upload a PNG image or Lottie JSON file');
+            if (!isLottie && !isPng && !isJpeg && !isSvg) {
+                alert('Please upload a PNG, JPEG, SVG image or Lottie JSON file');
                 return;
             }
 
-            const formData = new FormData();
-            formData.append('image', file);
-            formData.append('password', adminPassword);
+            // Use FileReader to convert to base64 data URL
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dataUrl = e.target.result;
+                logoInput.value = dataUrl;
+                updateLogoPreview(prefix, dataUrl, isLottie);
+                showMessage('admin-message', 'Logo loaded successfully (stored as data URL)', 'success');
+            };
+            reader.onerror = function() {
+                alert('Failed to read file');
+            };
 
-            try {
-                const response = await fetch('/api/admin/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    logoInput.value = data.url;
-                    updateLogoPreview(prefix, data.url, isLottie);
-                    showMessage('admin-message', 'Logo uploaded successfully', 'success');
-                } else {
-                    alert(data.error || 'Failed to upload file');
-                }
-            } catch (err) {
-                alert('Failed to upload file');
-                console.error(err);
+            if (isLottie) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsDataURL(file);
             }
         }
 
@@ -1240,12 +1258,82 @@
             document.getElementById('password').value = '';
         }
 
-        // Auto-refresh data every 30 seconds when logged in
-        setInterval(() => {
-            if (adminPassword) {
-                loadAllData();
+        // Export sponsors.json for deployment
+        function exportSponsorsJson() {
+            // Build sponsors.json from active campaigns
+            const sponsors = {
+                table: { enabled: false, name: '', logo: '', url: '', callout: '' },
+                drink: { enabled: false, name: '', logo: '', url: '', callout: '' },
+                food: { enabled: false, name: '', logo: '', url: '', callout: '' },
+                matchmaking: { enabled: false, name: '', logo: '', url: '', callout: '' },
+                waiting_room: { enabled: false, name: '', logo: '', url: '', callout: '' }
+            };
+
+            // Find active campaigns for each slot
+            for (const [id, campaign] of Object.entries(campaignsData)) {
+                if (campaign.active && sponsors[campaign.sponsor_slot]) {
+                    sponsors[campaign.sponsor_slot] = {
+                        enabled: true,
+                        name: campaign.name,
+                        logo: campaign.logo || '',
+                        url: campaign.url || '',
+                        callout: campaign.callout || ''
+                    };
+                }
             }
-        }, 30000);
+
+            // Create and download the file
+            const jsonStr = JSON.stringify(sponsors, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sponsors.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showMessage('admin-message', 'sponsors.json downloaded. Replace the file in your project root to update sponsors.', 'success');
+        }
+
+        // Export all data (campaigns.json) for backup
+        function exportCampaignsJson() {
+            const data = {
+                customers: customersData,
+                campaigns: campaignsData,
+                active_sponsors: activeSponsors
+            };
+
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'campaigns.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showMessage('admin-message', 'campaigns.json backup downloaded', 'success');
+        }
+
+        // Clear all data (reset)
+        function clearAllData() {
+            if (!confirm('Are you sure you want to clear ALL data? This cannot be undone.')) return;
+            if (!confirm('Really delete everything?')) return;
+
+            localStorage.removeItem(STORAGE_KEY);
+            customersData = {};
+            campaignsData = {};
+            activeSponsors = { table: null, drink: null, food: null, matchmaking: null, waiting_room: null };
+
+            showMessage('admin-message', 'All data cleared', 'warning');
+            loadAllData();
+        }
+
+        // Auto-refresh removed for localStorage version (no need to poll)
     </script>
 </body>
 </html>

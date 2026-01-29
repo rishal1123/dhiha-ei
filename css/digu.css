@@ -387,7 +387,7 @@
     border-radius: 6px !important;
     border: 1px solid rgba(0,0,0,0.2) !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    margin-left: -12px;
+    margin-left: -20px;
     display: inline-block !important;
     position: relative !important;
     flex-shrink: 0 !important;
@@ -483,8 +483,8 @@
     border-radius: 8px;
     color: var(--text-light);
     font-size: clamp(9px, 1vw, 12px);
-    float: right;
-    margin-right: 10px;
+    float: left;
+    margin-left: 10px;
 }
 
 .digu-scores-title {
@@ -562,8 +562,8 @@
 
 .drink-item img, .food-item img { max-width: 90%; max-height: 90%; object-fit: contain; }
 
-#table-sponsor { opacity: 0.8; z-index: 10; }
-#table-sponsor:hover { opacity: 1; }
+#table-sponsor { z-index: 10; }
+
 
 #table-sponsor img {
     max-width: 200px;
@@ -810,7 +810,7 @@ html.ios-standalone #digu-game-board {
     .digu-player.bottom .digu-player-hand .card {
         width: clamp(40px, 7vw, 60px);
         height: clamp(56px, 9.8vw, 84px);
-        margin-left: -10px;
+        margin-left: -16px;
     }
 
     /* Compact buttons */

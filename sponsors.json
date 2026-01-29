@@ -1,24 +1,24 @@
 {
   "table": {
     "enabled": true,
-    "name": "Ooredoo Maldives",
-    "logo": "icons/ooredoo-sponsor.svg",
-    "url": "https://ooredoo.mv",
-    "callout": "Powered by Ooredoo"
+    "name": "Dhiraagu",
+    "logo": "/icons/sponsors/cf3f21ec-e499-4ddb-8e7d-19791c48867d.png",
+    "url": "",
+    "callout": ""
   },
   "drink": {
     "enabled": true,
-    "name": "Ooredoo",
-    "logo": "icons/ooredoo-logo.svg",
-    "url": "https://ooredoo.mv",
-    "callout": "Sponsored by Ooredoo"
+    "name": "Dhiraagu lavazza",
+    "logo": "/icons/sponsors/d5051f4a-a23f-4f84-9af6-22b43ff41e65.png",
+    "url": "",
+    "callout": "Aadhey Coffee ah"
   },
   "food": {
     "enabled": true,
-    "name": "Ooredoo",
-    "logo": "icons/ooredoo-logo.svg",
-    "url": "https://ooredoo.mv",
-    "callout": "Sponsored by Ooredoo"
+    "name": "Dhiraagu Banana",
+    "logo": "/icons/sponsors/34c89900-889a-404f-b729-b26caa8dd5ae.png",
+    "url": "",
+    "callout": "Banana Chips Meeru"
   },
   "matchmaking": {
     "enabled": true,

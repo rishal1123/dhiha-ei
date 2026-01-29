@@ -92,10 +92,18 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // =====================================================
+        // LOCAL STORAGE BASED CUSTOMER PORTAL (No Backend Required)
+        // =====================================================
+
+        const STORAGE_KEY = 'thaasbai_admin_data';
+
         let customerId = '';
         let customerPassword = '';
         let customerData = {};
         let campaignsData = {};
+        let allCustomers = {};
+        let allCampaigns = {};
 
         const slotLabels = {
             'table': 'Table (Center)',
@@ -105,30 +113,70 @@
             'waiting_room': 'Waiting Room'
         };
 
+        // Load data from localStorage or campaigns.json
+        async function loadAllData() {
+            // Check localStorage first
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    allCustomers = data.customers || {};
+                    allCampaigns = data.campaigns || {};
+                    return true;
+                } catch (e) {
+                    console.error('Error parsing stored data:', e);
+                }
+            }
+
+            // Fall back to campaigns.json
+            try {
+                const response = await fetch('/campaigns.json');
+                if (response.ok) {
+                    const data = await response.json();
+                    allCustomers = data.customers || {};
+                    allCampaigns = data.campaigns || {};
+                    return true;
+                }
+            } catch (e) {
+                console.error('Error loading campaigns.json:', e);
+            }
+
+            allCustomers = {};
+            allCampaigns = {};
+            return false;
+        }
+
+        // Find customer by email and verify password
+        function verifyLogin(email, password) {
+            for (const [id, customer] of Object.entries(allCustomers)) {
+                if (customer.email.toLowerCase() === email.toLowerCase()) {
+                    // Check password (plain text comparison for local demo)
+                    if (customer.password === password) {
+                        return { success: true, customerId: id, name: customer.name };
+                    }
+                    return { success: false, error: 'Invalid password' };
+                }
+            }
+            return { success: false, error: 'Email not found' };
+        }
+
         // Check for stored session on page load
         async function checkStoredSession() {
+            await loadAllData();
+
             const storedEmail = sessionStorage.getItem('customerEmail');
             const storedPassword = sessionStorage.getItem('customerPassword');
             if (storedEmail && storedPassword) {
-                try {
-                    const response = await fetch('/api/customer/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: storedEmail, password: storedPassword })
-                    });
-                    const data = await response.json();
-                    if (data.success) {
-                        customerId = data.customerId;
-                        customerPassword = storedPassword;
-                        customerData = data;
-                        document.getElementById('customer-name').textContent = data.name;
-                        document.getElementById('login-section').classList.add('d-none');
-                        document.getElementById('portal-section').classList.remove('d-none');
-                        loadDashboard();
-                        return;
-                    }
-                } catch (err) {
-                    // Session invalid, clear it
+                const result = verifyLogin(storedEmail, storedPassword);
+                if (result.success) {
+                    customerId = result.customerId;
+                    customerPassword = storedPassword;
+                    customerData = result;
+                    document.getElementById('customer-name').textContent = result.name;
+                    document.getElementById('login-section').classList.add('d-none');
+                    document.getElementById('portal-section').classList.remove('d-none');
+                    loadDashboard();
+                    return;
                 }
                 sessionStorage.removeItem('customerEmail');
                 sessionStorage.removeItem('customerPassword');
@@ -144,59 +192,70 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
-            try {
-                const response = await fetch('/api/customer/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
+            // Make sure data is loaded
+            await loadAllData();
 
-                const data = await response.json();
+            const result = verifyLogin(email, password);
 
-                if (data.success) {
-                    customerId = data.customerId;
-                    customerPassword = password;
-                    customerData = data;
-                    sessionStorage.setItem('customerEmail', email);
-                    sessionStorage.setItem('customerPassword', password);
-                    document.getElementById('customer-name').textContent = data.name;
-                    document.getElementById('login-section').classList.add('d-none');
-                    document.getElementById('portal-section').classList.remove('d-none');
-                    loadDashboard();
-                } else {
-                    showMessage('login-message', data.error || 'Invalid credentials', 'danger');
-                }
-            } catch (err) {
-                showMessage('login-message', 'Connection error', 'danger');
+            if (result.success) {
+                customerId = result.customerId;
+                customerPassword = password;
+                customerData = result;
+                sessionStorage.setItem('customerEmail', email);
+                sessionStorage.setItem('customerPassword', password);
+                document.getElementById('customer-name').textContent = result.name;
+                document.getElementById('login-section').classList.add('d-none');
+                document.getElementById('portal-section').classList.remove('d-none');
+                loadDashboard();
+            } else {
+                showMessage('login-message', result.error || 'Invalid credentials', 'danger');
             }
         });
 
         async function loadDashboard() {
-            await Promise.all([loadTotalStats(), loadCampaigns()]);
+            loadTotalStats();
+            loadCampaigns();
         }
 
-        async function loadTotalStats() {
-            try {
-                const response = await fetch(`/api/customer/${customerId}/stats?password=${customerPassword}`);
-                const data = await response.json();
+        function loadTotalStats() {
+            // Calculate stats from campaigns
+            let totalImpressions = 0;
+            let totalClicks = 0;
+            let activeCampaigns = 0;
 
-                document.getElementById('total-impressions').textContent = data.totalImpressions.toLocaleString();
-                document.getElementById('total-clicks').textContent = data.totalClicks.toLocaleString();
-                document.getElementById('total-ctr').textContent = data.totalCTR + '%';
-                document.getElementById('active-campaigns').textContent = data.activeCampaigns;
-            } catch (err) {
-                console.error('Failed to load stats:', err);
+            for (const [id, campaign] of Object.entries(allCampaigns)) {
+                if (campaign.customer_id === customerId) {
+                    const stats = campaign.stats || { impressions: 0, clicks: 0 };
+                    totalImpressions += stats.impressions;
+                    totalClicks += stats.clicks;
+                    if (campaign.active) activeCampaigns++;
+                }
             }
+
+            const totalCTR = totalImpressions > 0
+                ? ((totalClicks / totalImpressions) * 100).toFixed(2)
+                : 0;
+
+            document.getElementById('total-impressions').textContent = totalImpressions.toLocaleString();
+            document.getElementById('total-clicks').textContent = totalClicks.toLocaleString();
+            document.getElementById('total-ctr').textContent = totalCTR + '%';
+            document.getElementById('active-campaigns').textContent = activeCampaigns;
         }
 
-        async function loadCampaigns() {
-            try {
-                const response = await fetch(`/api/customer/${customerId}/campaigns?password=${customerPassword}`);
-                campaignsData = await response.json();
-                renderCampaigns();
-            } catch (err) {
-                console.error('Failed to load campaigns:', err);
+        function loadCampaigns() {
+            // Filter campaigns for this customer
+            campaignsData = {};
+            for (const [id, campaign] of Object.entries(allCampaigns)) {
+                if (campaign.customer_id === customerId) {
+                    // Calculate CTR for each campaign
+                    const stats = campaign.stats || { impressions: 0, clicks: 0 };
+                    const ctr = stats.impressions > 0
+                        ? ((stats.clicks / stats.impressions) * 100).toFixed(2)
+                        : 0;
+                    campaignsData[id] = { ...campaign, ctr };
+                }
             }
+            renderCampaigns();
         }
 
         function renderCampaigns() {
