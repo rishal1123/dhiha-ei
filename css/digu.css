@@ -331,9 +331,9 @@
 .digu-player.bottom .digu-player-hand .card.meld-end { margin-right: 8px; }
 .digu-player.bottom .digu-player-hand .card.dragging { opacity: 0.4; }
 
-/* Mobile: reduce sizes by 0.1 (90% size) */
+/* Mobile: reduce sizes */
 @media screen and (max-width: 768px), (max-height: 500px) {
-    /* Player 0 cards */
+    /* Player 0 cards - 90% */
     #digu-game-board .digu-player.bottom .digu-player-hand .card,
     .digu-player.bottom .digu-player-hand .card.card-svg {
         width: clamp(40px, 7.2vw, 72px) !important;
@@ -341,10 +341,28 @@
         margin-left: -18px;
     }
 
-    /* Stock and discard piles */
+    /* Stock and discard piles - 90% */
     .digu-pile {
         width: clamp(54px, 7.2vw, 81px);
         height: clamp(76px, 10vw, 113px);
+    }
+
+    /* Food and drink sponsors - 80% */
+    .sponsor-column {
+        min-width: 64px;
+        min-height: 64px;
+    }
+
+    .sponsor-column > img,
+    #drink-sponsor > img,
+    #food-sponsor > img {
+        max-width: 104px;
+        max-height: 104px;
+    }
+
+    .drink-item, .food-item {
+        max-width: 104px;
+        max-height: 104px;
     }
 }
 
