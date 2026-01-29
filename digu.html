@@ -164,8 +164,6 @@
     <!-- Full-screen background that fills viewport regardless of game scale -->
     <div id="game-background"></div>
 
-    <div id="viewport-wrapper">
-        <div id="game-container">
             <header id="game-header">
                 <h1>Thaasbai</h1>
                 <div id="current-game-name">Digu</div>
@@ -173,196 +171,203 @@
             </header>
 
             <!-- Digu Game Board - Bootstrap Grid -->
-            <main id="digu-game-board" class="container-fluid p-0">
-                <div class="row">
-                    <div class="col-12">f</div>
-                </div>
+            <main id="digu-game-board" class="container-fluid p-0 game-background">
                 <div class="row h-100">
+                    <div class="col-1"></div>
                     <div class="col">
-
                         <!-- Row 1: Future use | Partner | Match Stats -->
                         <div class="row" style="height: 15%;">
-                            <div class="col">
-                                <div id="future-use"></div>
-                            </div>
-                            <div class="col text-center">
-                                <div id="digu-player-2"
-                                    class="digu-player top team-a d-flex flex-column align-items-center">
-                                    <div class="digu-avatar">
-                                        <div class="digu-avatar-icon"></div>
+                                    <div class="col">
+                                        <div id="future-use"></div>
                                     </div>
-                                    <div class="digu-team-label">Partner</div>
-                                    <div class="digu-player-label">Player 3</div>
-                                    <div class="digu-shuffle-count" id="digu-shuffle-count-2">Shuffle: 0</div>
-                                </div>
-                            </div>
-                            <div class="col text-end">
-                                <div id="digu-scores">
-                                    <div class="digu-scores-title">Match Stats</div>
-                                    <div class="digu-match-info">Games: <span id="digu-games-count">0</span></div>
-                                    <div class="digu-team-scores">
-                                        <div class="digu-team-score team-a d-flex justify-content-between">
-                                            <span class="team-name">Your Team</span>
-                                            <span class="team-wins-value" id="team-a-wins">0</span>
-                                            <span class="team-score-value" id="team-a-score">0</span>
-                                        </div>
-                                        <div class="digu-team-score team-b d-flex justify-content-between">
-                                            <span class="team-name">Opponents</span>
-                                            <span class="team-wins-value" id="team-b-wins">0</span>
-                                            <span class="team-score-value" id="team-b-score">0</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 2: Left Player | Drink Sponsor | Stock | Center | Discard | Food Sponsor | Right Player -->
-                        <div class="row" style="height: 55%;">
-                            <div class="col-2 ">
-                                <div class="row h-100">
-                                    <div class="col-6 col-md-12 d-flex justify-content-center align-items-center">
-                                        <div class="sponsor-column" id="drink-sponsor">
-                                            <div class="drink-item"></div>
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-12 d-flex justify-content-center align-items-center">
-                                        <div id="digu-player-1"
-                                            class="digu-player left team-b d-flex flex-column align-items-center">
+                                    <div class="col text-center">
+                                        <div id="digu-player-2"
+                                            class="digu-player top team-a d-flex flex-column align-items-center">
                                             <div class="digu-avatar">
                                                 <div class="digu-avatar-icon"></div>
                                             </div>
-                                            <div class="digu-team-label">Opponent</div>
-                                            <div class="digu-player-label">Player 2</div>
-                                            <div class="digu-shuffle-count" id="digu-shuffle-count-1">Shuffle: 0</div>
+                                            <div class="digu-team-label">Partner</div>
+                                            <div class="digu-player-label">Player 3</div>
+                                            <div class="digu-shuffle-count" id="digu-shuffle-count-2">Shuffle: 0</div>
                                         </div>
                                     </div>
-
-                                </div>
-                            </div>
-
-                            <div class="col d-flex align-items-center justify-content-end">
-                                <div id="digu-stock" class="digu-pile clickable" title="Draw from deck"></div>
-                            </div>
-                            <div class="col d-flex flex-column align-items-center justify-content-center">
-                                <div id="digu-phase">Draw a card</div>
-                                <div id="table-sponsor" class="my-2">
-                                    <div class="sponsor-logo ooredoo">
-                                        <img src="icons/ooredoo-sponsor.svg" width="150" height="60"
-                                            alt="Ooredoo Maldives">
-                                    </div>
-                                </div>
-                                <div id="digu-draw-notification" class="digu-draw-notification"></div>
-                                <button id="digu-btn" class="btn btn-warning fw-bold text-uppercase hidden"
-                                    disabled>DIGU!</button>
-                            </div>
-                            <div class="col d-flex align-items-center justify-content-start">
-                                <div id="digu-discard" class="digu-pile clickable" title="Draw from discard">
-                                    <div class="discard-card" id="digu-discard-top"></div>
-                                </div>
-                            </div>
-                            <div class="col-2 ">
-                                <div class="row h-100">
-                                    <div class="col-6 col-md-12 d-flex justify-content-center align-items-center">
-                                        <div class="sponsor-column" id="food-sponsor">
-                                            <div class="food-item"></div>
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-12 d-flex justify-content-center align-items-center">
-                                        <div id="digu-player-3"
-                                            class="digu-player right team-b d-flex flex-column align-items-center">
-                                            <div class="digu-avatar">
-                                                <div class="digu-avatar-icon"></div>
+                                    <div class="col text-end">
+                                        <div id="digu-scores">
+                                            <div class="digu-scores-title">Match Stats</div>
+                                            <div class="digu-match-info">Games: <span id="digu-games-count">0</span>
                                             </div>
-                                            <div class="digu-team-label">Opponent</div>
-                                            <div class="digu-player-label">Player 4</div>
-                                            <div class="digu-shuffle-count" id="digu-shuffle-count-3">Shuffle: 0</div>
+                                            <div class="digu-team-scores">
+                                                <div class="digu-team-score team-a d-flex justify-content-between">
+                                                    <span class="team-name">Your Team</span>
+                                                    <span class="team-wins-value" id="team-a-wins">0</span>
+                                                    <span class="team-score-value" id="team-a-score">0</span>
+                                                </div>
+                                                <div class="digu-team-score team-b d-flex justify-content-between">
+                                                    <span class="team-name">Opponents</span>
+                                                    <span class="team-wins-value" id="team-b-wins">0</span>
+                                                    <span class="team-score-value" id="team-b-score">0</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <!-- Row 3: You/Shuffle | Player Hand | Buttons -->
-                        <div class="row" style="height: 30%;">
-                            <div class="col-auto d-flex flex-column align-items-center justify-content-center px-2">
-                                <div style="margin: 10px;">
-                                                                    <span class="digu-player-label">You</span>
-                                <span class="digu-shuffle-count" id="digu-shuffle-count-0">Shuffle: 0</span>
-                                </div>
+                                <!-- Row 2: Left Player | Drink Sponsor | Stock | Center | Discard | Food Sponsor | Right Player -->
+                                <div class="row" style="height: 55%;">
+                                    <div class="col-2 ">
+                                        <div class="row h-100">
+                                            <div
+                                                class="col-6 col-md-12 d-flex justify-content-center align-items-center">
+                                                <div class="sponsor-column" id="drink-sponsor">
+                                                    <div class="drink-item"></div>
+                                                </div>
+                                            </div>
+                                            <div
+                                                class="col-6 col-md-12 d-flex justify-content-center align-items-center">
+                                                <div id="digu-player-1"
+                                                    class="digu-player left team-b d-flex flex-column align-items-center">
+                                                    <div class="digu-avatar">
+                                                        <div class="digu-avatar-icon"></div>
+                                                    </div>
+                                                    <div class="digu-team-label">Opponent</div>
+                                                    <div class="digu-player-label">Player 2</div>
+                                                    <div class="digu-shuffle-count" id="digu-shuffle-count-1">Shuffle: 0
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                            </div>
-                            <div class="col d-flex align-items-center justify-content-center">
-                                <div id="digu-player-0" class="digu-player bottom team-a">
-                                    <div class="digu-player-hand d-flex"></div>
-                                </div>
-                            </div>
-                            <div class="col-auto d-flex flex-column align-items-center justify-content-center gap-1">
-                                <div style="margin:10px;">
-                                <button id="new-game-btn-inline" class="btn btn-sm btn-outline-light">New Game</button>
-                                <button id="menu-btn-inline" class="btn btn-sm btn-outline-light">Menu</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Turn Indicator -->
-                        <div id="digu-turn-indicator"></div>
-
-                        <!-- End Game Result Modal -->
-                        <div id="digu-result-modal" class="hidden">
-                            <div class="digu-result-content">
-                                <h2 id="digu-result-title">Game Over</h2>
-
-                                <!-- Match Stats Summary -->
-                                <div class="digu-match-stats">
-                                    <div class="match-stats-row">
-                                        <span class="match-stat-label">Matches Played:</span>
-                                        <span id="digu-matches-played">0</span>
+                                        </div>
                                     </div>
-                                    <div class="match-stats-row">
-                                        <span class="match-stat-label">Your Team Wins:</span>
-                                        <span id="digu-team-a-wins">0</span>
+
+                                    <div class="col d-flex align-items-center justify-content-end">
+                                        <div id="digu-stock" class="digu-pile clickable" title="Draw from deck"></div>
                                     </div>
-                                    <div class="match-stats-row">
-                                        <span class="match-stat-label">Opponents Wins:</span>
-                                        <span id="digu-team-b-wins">0</span>
+                                    <div class="col d-flex flex-column align-items-center justify-content-center">
+                                        <div id="digu-phase">Draw a card</div>
+                                        <div id="table-sponsor" class="my-2">
+                                            <div class="sponsor-logo ooredoo">
+                                                <img src="icons/ooredoo-sponsor.svg" width="150" height="60"
+                                                    alt="Ooredoo Maldives">
+                                            </div>
+                                        </div>
+                                        <div id="digu-draw-notification" class="digu-draw-notification"></div>
+                                        <button id="digu-btn" class="btn btn-warning fw-bold text-uppercase hidden"
+                                            disabled>DIGU!</button>
                                     </div>
-                                    <div class="match-stats-row total">
-                                        <span class="match-stat-label">Total Points - Your Team:</span>
-                                        <span id="digu-total-points-a">0</span>
+                                    <div class="col d-flex align-items-center justify-content-start">
+                                        <div id="digu-discard" class="digu-pile clickable" title="Draw from discard">
+                                            <div class="discard-card" id="digu-discard-top"></div>
+                                        </div>
                                     </div>
-                                    <div class="match-stats-row total">
-                                        <span class="match-stat-label">Total Points - Opponents:</span>
-                                        <span id="digu-total-points-b">0</span>
+                                    <div class="col-2 ">
+                                        <div class="row h-100">
+                                            <div
+                                                class="col-6 col-md-12 d-flex justify-content-center align-items-center">
+                                                <div class="sponsor-column" id="food-sponsor">
+                                                    <div class="food-item"></div>
+                                                </div>
+                                            </div>
+                                            <div
+                                                class="col-6 col-md-12 d-flex justify-content-center align-items-center">
+                                                <div id="digu-player-3"
+                                                    class="digu-player right team-b d-flex flex-column align-items-center">
+                                                    <div class="digu-avatar">
+                                                        <div class="digu-avatar-icon"></div>
+                                                    </div>
+                                                    <div class="digu-team-label">Opponent</div>
+                                                    <div class="digu-player-label">Player 4</div>
+                                                    <div class="digu-shuffle-count" id="digu-shuffle-count-3">Shuffle: 0
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- This Game Score -->
-                                <div class="digu-game-score">
-                                    <h3>This Game</h3>
-                                    <div class="game-score-row winner">
-                                        <span>Winning Team Bonus:</span>
-                                        <span>+100</span>
+                                <!-- Row 3: You/Shuffle | Player Hand | Buttons -->
+                                <div class="row" style="height: 30%;">
+                                    <div
+                                        class="col-auto d-flex flex-column align-items-center justify-content-center px-2">
+                                        <div style="margin: 10px;">
+                                            <span class="digu-player-label">You</span>
+                                            <span class="digu-shuffle-count" id="digu-shuffle-count-0">Shuffle: 0</span>
+                                        </div>
+
+                                    </div>
+                                    <div class="col d-flex align-items-center justify-content-center">
+                                        <div id="digu-player-0" class="digu-player bottom team-a">
+                                            <div class="digu-player-hand d-flex"></div>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="col-auto d-flex flex-column align-items-center justify-content-center gap-1">
+                                        <div style="margin:10px;">
+                                            <button id="new-game-btn-inline" class="btn btn-sm btn-outline-light">New
+                                                Game</button>
+                                            <button id="menu-btn-inline"
+                                                class="btn btn-sm btn-outline-light">Menu</button>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- All Players Cards Display -->
-                                <div id="digu-result-players">
-                                    <!-- Player cards will be inserted here dynamically -->
-                                </div>
+                                <!-- Turn Indicator -->
+                                <div id="digu-turn-indicator"></div>
 
-                                <!-- Action Buttons -->
-                                <div class="digu-result-buttons">
-                                    <button id="digu-next-game-btn" class="digu-result-btn primary">Next Game</button>
-                                    <button id="digu-new-match-btn" class="digu-result-btn">New Match</button>
-                                    <button id="digu-exit-btn" class="digu-result-btn">Exit to Lobby</button>
+                                <!-- End Game Result Modal -->
+                                <div id="digu-result-modal" class="hidden">
+                                    <div class="digu-result-content">
+                                        <h2 id="digu-result-title">Game Over</h2>
+
+                                        <!-- Match Stats Summary -->
+                                        <div class="digu-match-stats">
+                                            <div class="match-stats-row">
+                                                <span class="match-stat-label">Matches Played:</span>
+                                                <span id="digu-matches-played">0</span>
+                                            </div>
+                                            <div class="match-stats-row">
+                                                <span class="match-stat-label">Your Team Wins:</span>
+                                                <span id="digu-team-a-wins">0</span>
+                                            </div>
+                                            <div class="match-stats-row">
+                                                <span class="match-stat-label">Opponents Wins:</span>
+                                                <span id="digu-team-b-wins">0</span>
+                                            </div>
+                                            <div class="match-stats-row total">
+                                                <span class="match-stat-label">Total Points - Your Team:</span>
+                                                <span id="digu-total-points-a">0</span>
+                                            </div>
+                                            <div class="match-stats-row total">
+                                                <span class="match-stat-label">Total Points - Opponents:</span>
+                                                <span id="digu-total-points-b">0</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- This Game Score -->
+                                        <div class="digu-game-score">
+                                            <h3>This Game</h3>
+                                            <div class="game-score-row winner">
+                                                <span>Winning Team Bonus:</span>
+                                                <span>+100</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- All Players Cards Display -->
+                                        <div id="digu-result-players">
+                                            <!-- Player cards will be inserted here dynamically -->
+                                        </div>
+
+                                        <!-- Action Buttons -->
+                                        <div class="digu-result-buttons">
+                                            <button id="digu-next-game-btn" class="digu-result-btn primary">Next
+                                                Game</button>
+                                            <button id="digu-new-match-btn" class="digu-result-btn">New Match</button>
+                                            <button id="digu-exit-btn" class="digu-result-btn">Exit to Lobby</button>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
 
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">f</div>
+                    <div class="col-1"></div>
                 </div>
             </main>
 
@@ -580,7 +585,7 @@
                 if (prompt) prompt.classList.add('hidden');
             }
         </script>
-    </div><!-- end viewport-wrapper -->
+
 </body>
 
 </html>
