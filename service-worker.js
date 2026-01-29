@@ -4,7 +4,7 @@
  */
 
 // IMPORTANT: Increment this version to trigger update
-const CACHE_VERSION = 150;
+const CACHE_VERSION = 151;
 const CACHE_NAME = `thaasbai-v${CACHE_VERSION}`;
 const OFFLINE_URL = '/';
 
@@ -18,8 +18,14 @@ const ASSETS_TO_CACHE = [
   '/css/dhiha-ei.css',
   '/css/digu.css',
   '/js/bundle.js',
+  '/js/digu-bundle.js',
+  '/js/dhiha-ei-bundle.js',
+  '/js/digu.js',
+  '/sponsors.json',
   '/manifest.json',
   '/icons/icon.svg',
+  '/icons/ooredoo-logo.svg',
+  '/icons/ooredoo-sponsor.svg',
   // Critical PWA icons
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
