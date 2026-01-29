@@ -4714,6 +4714,17 @@
 
                 // Update turn indicator
                 playerEl.classList.toggle('current-turn', i === state.currentPlayerIndex);
+
+                // Also highlight the "You" label for player 0
+                if (i === 0) {
+                    const shuffleCount = document.getElementById('digu-shuffle-count-0');
+                    if (shuffleCount) {
+                        const youLabel = shuffleCount.parentElement?.querySelector('.digu-player-label');
+                        if (youLabel) {
+                            youLabel.classList.toggle('current-turn', i === state.currentPlayerIndex);
+                        }
+                    }
+                }
             }
 
             // Hide unused player slots
@@ -4793,6 +4804,15 @@
                 const playerEl = document.getElementById(`digu-player-${i}`);
                 if (playerEl) {
                     playerEl.classList.toggle('current-turn', i === playerIndex);
+                }
+            }
+
+            // Also highlight the "You" label for player 0
+            const shuffleCount = document.getElementById('digu-shuffle-count-0');
+            if (shuffleCount) {
+                const youLabel = shuffleCount.parentElement?.querySelector('.digu-player-label');
+                if (youLabel) {
+                    youLabel.classList.toggle('current-turn', playerIndex === 0);
                 }
             }
 

@@ -271,8 +271,10 @@
     color: var(--night-blue);
 }
 
-.digu-player.current-turn .digu-player-label {
+.digu-player.current-turn .digu-player-label,
+.digu-player-label.current-turn {
     box-shadow: 0 0 10px var(--sunset-gold);
+    border-color: var(--sunset-gold);
     animation: turnPulse 1.5s ease-in-out infinite;
 }
 
