@@ -331,6 +331,16 @@
 .digu-player.bottom .digu-player-hand .card.meld-end { margin-right: 8px; }
 .digu-player.bottom .digu-player-hand .card.dragging { opacity: 0.4; }
 
+/* Mobile: reduce player 0 cards by 0.1 (90% size) */
+@media screen and (max-width: 768px), (max-height: 500px) {
+    #digu-game-board .digu-player.bottom .digu-player-hand .card,
+    .digu-player.bottom .digu-player-hand .card.card-svg {
+        width: clamp(40px, 7.2vw, 72px) !important;
+        height: clamp(57px, 10vw, 101px) !important;
+        margin-left: -18px;
+    }
+}
+
 /* Piles */
 .digu-pile {
     width: clamp(60px, 8vw, 90px);
