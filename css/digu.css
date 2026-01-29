@@ -322,6 +322,7 @@
     color: var(--text-light);
     font-size: clamp(9px, 1vw, 12px);
     float: right;
+    margin-right: 10px;
 }
 
 .digu-scores-title {
