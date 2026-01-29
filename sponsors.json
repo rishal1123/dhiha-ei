@@ -1,37 +1,37 @@
 {
-    "table": {
-        "enabled": true,
-        "name": "Table Sponsor",
-        "logo": "",
-        "url": "",
-        "callout": ""
-    },
-    "drink": {
-        "enabled": true,
-        "name": "Drink Sponsor",
-        "logo": "",
-        "url": "",
-        "callout": ""
-    },
-    "food": {
-        "enabled": true,
-        "name": "Food Sponsor",
-        "logo": "",
-        "url": "",
-        "callout": ""
-    },
-    "matchmaking": {
-        "enabled": true,
-        "name": "Matchmaking Sponsor",
-        "logo": "",
-        "url": "",
-        "callout": ""
-    },
-    "waiting_room": {
-        "enabled": true,
-        "name": "Waiting Room Sponsor",
-        "logo": "",
-        "url": "",
-        "callout": ""
-    }
+  "table": {
+    "enabled": true,
+    "name": "Ooredoo Maldives",
+    "logo": "icons/ooredoo-sponsor.svg",
+    "url": "https://ooredoo.mv",
+    "callout": "Powered by Ooredoo"
+  },
+  "drink": {
+    "enabled": true,
+    "name": "Ooredoo",
+    "logo": "icons/ooredoo-logo.svg",
+    "url": "https://ooredoo.mv",
+    "callout": "Sponsored by Ooredoo"
+  },
+  "food": {
+    "enabled": true,
+    "name": "Ooredoo",
+    "logo": "icons/ooredoo-logo.svg",
+    "url": "https://ooredoo.mv",
+    "callout": "Sponsored by Ooredoo"
+  },
+  "matchmaking": {
+    "enabled": true,
+    "name": "Ooredoo",
+    "logo": "icons/ooredoo-logo.svg",
+    "url": "https://ooredoo.mv",
+    "callout": "Sponsored by Ooredoo"
+  },
+  "waiting_room": {
+    "enabled": true,
+    "name": "Ooredoo",
+    "logo": "icons/ooredoo-logo.svg",
+    "url": "https://ooredoo.mv",
+    "callout": "Sponsored by Ooredoo"
+  }
 }

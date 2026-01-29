@@ -1,18 +1,21 @@
 /* Thaasbai - Digu Game Styles (Bootstrap Simplified) */
 
-/* Game Board */
+/* Game Board - Full viewport */
 #digu-game-board {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     background: radial-gradient(ellipse at center bottom, var(--lagoon) 0%, var(--ocean-turquoise) 30%, var(--ocean-deep) 70%, var(--night-blue) 100%);
     overflow: hidden;
-    /* Fix for Bootstrap container in scaled game container */
+    /* Fix for Bootstrap container */
     max-width: none !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
+    /* Flexbox for row layout */
+    display: flex;
+    flex-direction: column;
 }
 
 #digu-game-board.hidden { display: none !important; }
@@ -138,6 +141,117 @@
     z-index: 5;
 }
 
+/* Placeholder rows (h-5) */
+#digu-game-board > .row.h-5 {
+    height: 5% !important;
+    min-height: 20px;
+    flex: 0 0 auto;
+}
+
+/* Main content row takes remaining height (h-90 or h-100) */
+#digu-game-board > .row.h-90 {
+    height: 90% !important;
+    flex: 1 1 auto;
+}
+
+#digu-game-board > .row.h-100 {
+    height: 100% !important;
+    flex: 1 1 auto;
+}
+
+/* Main content column must have full height for nested row percentages to work */
+#digu-game-board > .row.h-90 > .col,
+#digu-game-board > .row.h-100 > .col {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Side columns (col-1) */
+#digu-game-board > .row.h-90 > .col-1,
+#digu-game-board > .row.h-100 > .col-1 {
+    height: 100%;
+}
+
+/* Side columns (col-2) in Row 2 - sponsor and player areas */
+#digu-game-board > .row.h-90 > .col > .row .col-2,
+#digu-game-board > .row.h-100 > .col > .row .col-2 {
+    height: 100%;
+}
+
+/* Nested rows within side columns - full height */
+#digu-game-board > .row.h-90 > .col > .row .col-2 > .row,
+#digu-game-board > .row.h-100 > .col > .row .col-2 > .row {
+    height: 100%;
+}
+
+/* Side player and sponsor columns within col-2 */
+#digu-game-board .col-2 > .row > .col-6,
+#digu-game-board .col-2 > .row > .col-md-12 {
+    height: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Row 1 (15% height) - partner and scores */
+#digu-game-board > .row.h-90 > .col > .row:first-child {
+    height: 15%;
+}
+
+/* Row 2 (55% height) - center columns for piles and phase */
+#digu-game-board > .row.h-90 > .col > .row:nth-child(2) {
+    height: 55%;
+}
+
+#digu-game-board > .row.h-90 > .col > .row:nth-child(2) > .col {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Row 3 (30% height) - player hand */
+#digu-game-board > .row.h-90 > .col > .row:nth-child(3) {
+    height: 30%;
+}
+
+#digu-game-board > .row.h-90 > .col > .row:nth-child(3) > .col {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#digu-game-board > .row.h-90 > .col > .row:nth-child(3) > .col-auto {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Nested rows within main content - ensure proper display */
+#digu-game-board > .row.h-90 > .col > .row,
+#digu-game-board > .row.h-100 > .col > .row {
+    position: relative;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+/* Row 3 - Player hand row (30% height) - ensure cards are visible */
+#digu-game-board > .row.h-90 > .col > .row:last-of-type,
+#digu-game-board > .row.h-100 > .col > .row:last-of-type {
+    overflow: visible !important;
+    z-index: 50;
+    min-height: 100px;
+}
+
+/* Ensure the column containing player hand allows overflow */
+#digu-game-board > .row.h-90 > .col > .row:last-of-type > .col,
+#digu-game-board > .row.h-100 > .col > .row:last-of-type > .col {
+    overflow: visible !important;
+}
+
 /* Player Areas */
 .digu-player { z-index: 5; }
 
@@ -175,6 +289,14 @@
     border: 2px solid var(--ocean-turquoise);
     border-radius: 50%;
     margin-bottom: 5px;
+    /* Center the character text inside the avatar */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-light);
+    text-transform: uppercase;
 }
 
 .digu-player.current-turn .digu-avatar-icon {
@@ -221,27 +343,65 @@
     border-color: rgba(255, 215, 0, 0.8);
 }
 
-/* Player Hand */
+/* Player Hand Container */
 .digu-player-hand {
-    gap: -8px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-wrap: nowrap !important;
     min-height: 80px;
     z-index: 100;
+    position: relative;
+    overflow: visible !important;
 }
 
-.digu-player.bottom .digu-player-hand .card {
-    width: clamp(45px, 8vw, 80px);
-    height: clamp(63px, 11.2vw, 112px);
+/* Player container for bottom player */
+#digu-player-0.digu-player.bottom {
+    position: relative;
+    z-index: 50;
+    overflow: visible !important;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Bottom player hand - full width */
+#digu-player-0.digu-player.bottom .digu-player-hand {
+    width: 100%;
+    height: 100%;
+    min-height: 100px;
+}
+
+/* Card styling with higher specificity - override base.css */
+#digu-game-board .digu-player.bottom .digu-player-hand .card,
+.digu-player.bottom .digu-player-hand .card.card-svg {
+    width: clamp(45px, 8vw, 80px) !important;
+    height: clamp(63px, 11.2vw, 112px) !important;
     cursor: pointer;
     transition: transform 0.2s;
-    background: white;
-    border-radius: 6px;
-    border: 1px solid rgba(0,0,0,0.2);
+    background: white !important;
+    border-radius: 6px !important;
+    border: 1px solid rgba(0,0,0,0.2) !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     margin-left: -12px;
+    display: inline-block !important;
+    position: relative !important;
+    flex-shrink: 0 !important;
 }
 
-.digu-player.bottom .digu-player-hand .card:first-child { margin-left: 0; }
-.digu-player.bottom .digu-player-hand .card img { width: 100%; height: 100%; object-fit: contain; }
+#digu-game-board .digu-player.bottom .digu-player-hand .card:first-child,
+.digu-player.bottom .digu-player-hand .card.card-svg:first-child { margin-left: 0; }
+
+#digu-game-board .digu-player.bottom .digu-player-hand .card img,
+.digu-player.bottom .digu-player-hand .card.card-svg img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    display: block !important;
+}
+
 .digu-player.bottom .digu-player-hand .card:hover { transform: translateY(-8px); z-index: 10; }
 .digu-player.bottom .digu-player-hand .card.selected { transform: translateY(-12px); box-shadow: 0 0 8px var(--sunset-gold); }
 .digu-player.bottom .digu-player-hand .card.meld-set { box-shadow: 0 0 6px rgba(255, 215, 0, 0.7); border-color: rgba(255, 215, 0, 0.8); }
@@ -350,11 +510,23 @@
 .sponsor-column {
     cursor: pointer;
     width: 100%;
-    height: 100%;
+    min-width: 80px;
+    min-height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    overflow: visible;
+}
+
+/* Style for dynamically inserted sponsor images */
+.sponsor-column > img,
+#drink-sponsor > img,
+#food-sponsor > img {
+    max-width: 130px;
+    max-height: 130px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
 }
 
 .drink-item, .food-item {
@@ -380,6 +552,18 @@
 
 #table-sponsor { opacity: 0.8; z-index: 10; }
 #table-sponsor:hover { opacity: 1; }
+
+#table-sponsor img {
+    max-width: 200px;
+    max-height: 80px;
+    object-fit: contain;
+}
+
+#table-sponsor .sponsor-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
 
 /* Turn Indicator */
 #digu-turn-indicator {
@@ -526,6 +710,45 @@
 
 /* Touch Drag */
 .touch-drag-clone { position: fixed !important; z-index: 10000 !important; pointer-events: none !important; opacity: 0.9 !important; }
+
+/* Lobby Sponsor */
+.lobby-sponsor {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.lobby-sponsor:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.lobby-sponsor-label {
+    display: block;
+    font-size: clamp(11px, 1.2vw, 16px);
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.lobby-sponsor-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 40px;
+}
+
+.lobby-sponsor-logo img {
+    max-width: 100%;
+    max-height: 80px;
+    object-fit: contain;
+}
 
 /* ==========================================================================
    PWA & Mobile Optimizations
