@@ -7,7 +7,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(ellipse at center bottom, var(--lagoon) 0%, var(--ocean-turquoise) 30%, var(--ocean-deep) 70%, var(--night-blue) 100%);
+    background: radial-gradient(ellipse at center bottom, rgba(53, 168, 160, 0.2) 0%, rgba(44, 181, 168, 0.1) 30%, var(--ocean-deep) 60%, var(--night-blue) 100%);
     overflow: hidden;
     /* Fix for Bootstrap container in scaled game container */
     max-width: none !important;
@@ -36,10 +36,33 @@
         height: 30% !important;
     }
 
-    /* Smaller avatars on mobile */
+    /* Player details - 70% */
     .player-avatar {
-        width: 30px;
-        height: 30px;
+        width: 28px;
+        height: 28px;
+    }
+
+    .avatar-icon {
+        font-size: clamp(11px, 1.4vw, 17px);
+    }
+
+    .avatar-cards {
+        width: 13px;
+        height: 13px;
+    }
+
+    .card-count {
+        font-size: 7px;
+    }
+
+    .player-label {
+        padding: 3px 8px;
+        font-size: clamp(8px, 0.84vw, 11px);
+    }
+
+    .shuffle-count {
+        padding: 2px 6px;
+        font-size: clamp(7px, 0.84vw, 10px);
     }
 
     /* Smaller sponsor columns on mobile */
@@ -48,46 +71,23 @@
         height: clamp(60px, 50%, 100px);
     }
 
-    /* Compact score panels on mobile */
+    /* Compact score panels on mobile - 70% */
     .team-score {
         padding: 4px 8px;
         min-width: auto;
     }
 
     .team-label {
-        font-size: 10px;
+        font-size: clamp(8px, 0.98vw, 11px);
     }
 
     .tens-count span:last-child,
     .tricks-count span:last-child {
-        font-size: 16px;
+        font-size: clamp(13px, 1.54vw, 20px);
     }
 
     #match-points-panel {
         padding: 6px 10px;
-    }
-
-    /* Compact side player info on mobile */
-    #player-left .player-label,
-    #player-right .player-label {
-        padding: 2px 6px;
-        font-size: 9px;
-    }
-
-    #player-left .shuffle-count,
-    #player-right .shuffle-count {
-        font-size: 7px;
-    }
-
-    /* Compact bottom row styling */
-    #game-board > .row:last-of-type .human-label {
-        padding: 2px 8px;
-        font-size: 10px;
-    }
-
-    #game-board > .row:last-of-type .shuffle-count {
-        font-size: 8px;
-        padding: 1px 4px;
     }
 
     /* Compact inline buttons on mobile */
@@ -95,6 +95,52 @@
     #menu-btn {
         padding: 3px 6px;
         font-size: 9px;
+    }
+
+    /* Food and drink sponsors - 70% */
+    .sponsor-column {
+        min-width: 56px;
+        min-height: 56px;
+    }
+
+    .sponsor-column > img,
+    #drink-sponsor > img,
+    #food-sponsor > img {
+        max-width: 91px;
+        max-height: 91px;
+    }
+
+    /* Message overlay - landscape phone optimization */
+    #message-overlay {
+        padding: 8px;
+    }
+
+    #message-content {
+        padding: 12px 16px;
+        max-height: 95vh;
+        font-size: 12px;
+    }
+
+    #message-content h2,
+    #message-title {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+
+    #message-text {
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+
+    #message-buttons {
+        gap: 8px;
+    }
+
+    #message-buttons .btn,
+    #message-button,
+    #message-button-secondary {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.8rem !important;
     }
 }
 
@@ -109,10 +155,10 @@
     height: 50%;
     max-width: calc(65 * var(--scale));
     max-height: calc(47 * var(--scale));
-    background: linear-gradient(180deg, #5D4037 0%, #4E342E 15%, #3E2723 30%, #4E342E 50%, #5D4037 70%, #4E342E 85%, #3E2723 100%);
+    background: linear-gradient(180deg, #3d2a24 0%, #32221c 15%, #261a15 30%, #32221c 50%, #3d2a24 70%, #32221c 85%, #261a15 100%);
     border-radius: 50%;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-    border: 3px solid #2D1B14;
+    box-shadow: inset 0 0 25px rgba(0,0,0,0.7);
+    border: 3px solid #1a100c;
     pointer-events: none;
     z-index: 0;
 }
@@ -127,7 +173,7 @@
     height: 44%;
     max-width: calc(58 * var(--scale));
     max-height: calc(40 * var(--scale));
-    background: radial-gradient(ellipse at 50% 40%, #1a3a4a 0%, #152d3a 40%, #0f2433 70%, #0a1a26 100%);
+    background: radial-gradient(ellipse at 50% 40%, #0f2630 0%, #0a1e28 40%, #071620 70%, #040e14 100%);
     border-radius: 50%;
     pointer-events: none;
     z-index: 1;
@@ -573,7 +619,7 @@
 #message-overlay.hidden { display: none; }
 
 #message-content {
-    background: linear-gradient(145deg, var(--night-blue), var(--ocean-deep));
+    background: linear-gradient(145deg, rgba(6, 12, 18, 0.98), rgba(10, 20, 32, 0.98));
     padding: 24px 32px;
     border-radius: 12px;
     text-align: center;

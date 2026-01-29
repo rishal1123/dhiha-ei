@@ -83,8 +83,8 @@
     <title>Dhiha Ei - Thaasbai</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/base.css?v=8">
-    <link rel="stylesheet" href="css/dhiha-ei.css?v=6">
+    <link rel="stylesheet" href="css/base.css?v=11">
+    <link rel="stylesheet" href="css/dhiha-ei.css?v=9">
 
     <!-- Socket.IO for multiplayer -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
@@ -309,9 +309,9 @@
                 <div id="message-content">
                     <h2 id="message-title"></h2>
                     <p id="message-text"></p>
-                    <div id="message-buttons">
-                        <button id="message-button">Continue</button>
-                        <button id="message-button-secondary" class="hidden">End Game</button>
+                    <div id="message-buttons" class="d-flex gap-2 justify-content-center">
+                        <button id="message-button" class="btn btn-warning">Continue</button>
+                        <button id="message-button-secondary" class="btn btn-secondary hidden">End Game</button>
                     </div>
                 </div>
             </div>
@@ -328,17 +328,19 @@
                     <p class="lobby-subtitle">Maldivian Card Game</p>
 
                     <!-- Main Menu -->
-                    <div id="lobby-menu">
-                        <button id="play-ai-btn" class="lobby-btn primary">Play vs AI</button>
+                    <div id="lobby-menu" class="d-flex flex-column gap-2">
+                        <button id="play-ai-btn" class="btn btn-warning btn-lg fw-bold w-100">Play vs AI</button>
                         <div class="lobby-divider"><span>or play online</span></div>
-                        <button id="quick-match-btn" class="lobby-btn primary">Quick Match</button>
-                        <button id="create-room-btn" class="lobby-btn">Create Private Room</button>
-                        <div class="join-section">
-                            <input type="text" id="room-code-input" placeholder="Room Code" maxlength="6"
-                                autocomplete="off">
-                            <button id="join-room-btn" class="lobby-btn">Join</button>
+                        <div class="online-buttons d-flex gap-2 flex-wrap">
+                            <button id="quick-match-btn" class="btn btn-warning flex-fill">Quick Match</button>
+                            <button id="create-room-btn" class="btn btn-outline-light flex-fill">Create Room</button>
                         </div>
-                        <button id="back-to-games" class="lobby-btn secondary"
+                        <div class="join-section d-flex gap-2">
+                            <input type="text" id="room-code-input" class="form-control flex-fill" placeholder="Room Code" maxlength="6"
+                                autocomplete="off">
+                            <button id="join-room-btn" class="btn btn-outline-light">Join</button>
+                        </div>
+                        <button id="back-to-games" class="btn btn-secondary w-100"
                             onclick="window.location.href='index.html'">&#8592; Back</button>
                     </div>
                 </div>
@@ -352,7 +354,7 @@
                             <span id="queue-count">0</span> / 4 players
                         </div>
                         <p class="matchmaking-hint">Game will start automatically when 4 players join</p>
-                        <button id="cancel-queue-btn" class="lobby-btn secondary">Cancel</button>
+                        <button id="cancel-queue-btn" class="btn btn-secondary">Cancel</button>
 
                         <!-- Sponsor Area -->
                         <div id="matchmaking-sponsor" class="lobby-sponsor"
@@ -370,7 +372,7 @@
                     <div class="room-header">
                         <h3>Room Code</h3>
                         <div id="room-code-display"></div>
-                        <button id="copy-code-btn" class="copy-btn" title="Copy code">Copy</button>
+                        <button id="copy-code-btn" class="btn btn-sm btn-outline-light" title="Copy code">Copy</button>
                     </div>
 
                     <div id="player-slots">
@@ -409,10 +411,10 @@
                     <p id="host-team-hint" class="host-hint hidden">As host, click arrows to move players between teams
                     </p>
 
-                    <div id="waiting-room-actions">
-                        <button id="ready-btn" class="lobby-btn">Ready</button>
-                        <button id="start-game-btn" class="lobby-btn primary hidden">Start Game</button>
-                        <button id="leave-room-btn" class="lobby-btn secondary">Leave Room</button>
+                    <div id="waiting-room-actions" class="d-flex flex-column gap-2">
+                        <button id="ready-btn" class="btn btn-outline-light w-100">Ready</button>
+                        <button id="start-game-btn" class="btn btn-warning w-100 hidden">Start Game</button>
+                        <button id="leave-room-btn" class="btn btn-secondary w-100">Leave Room</button>
                     </div>
 
                     <div id="connection-status">
@@ -433,10 +435,10 @@
                 <!-- Name Input Modal -->
                 <div id="name-input-modal" class="hidden">
                     <h3>Enter Your Name</h3>
-                    <input type="text" id="player-name-input" placeholder="Your name" maxlength="10" autocomplete="off">
-                    <div class="modal-actions">
-                        <button id="name-cancel-btn" class="lobby-btn secondary">Cancel</button>
-                        <button id="name-confirm-btn" class="lobby-btn primary">Confirm</button>
+                    <input type="text" id="player-name-input" class="form-control" placeholder="Your name" maxlength="10" autocomplete="off">
+                    <div class="modal-actions d-flex gap-2 mt-3">
+                        <button id="name-cancel-btn" class="btn btn-secondary flex-fill">Cancel</button>
+                        <button id="name-confirm-btn" class="btn btn-warning flex-fill">Confirm</button>
                     </div>
                 </div>
 
@@ -474,8 +476,8 @@
             </div>
         </div>
 
-        <!-- Single bundled script (no modules) -->
-        <script src="js/bundle.js?v=80"></script>
+        <!-- Dhiha Ei game bundle (self-contained) -->
+        <script src="js/dhiha-ei-bundle.js?v=1"></script>
 
         <!-- PWA Install Handler -->
         <script>
