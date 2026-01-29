@@ -154,12 +154,12 @@
         font-size: 6px;
     }
 
-    /* Cards smaller on mobile */
+    /* Cards on mobile - 1.2x larger */
     #digu-game-board .digu-player.bottom .digu-player-hand .card,
     .digu-player.bottom .digu-player-hand .card.card-svg {
-        width: clamp(35px, 7vw, 55px) !important;
-        height: clamp(49px, 9.8vw, 77px) !important;
-        margin-left: -12px;
+        width: clamp(42px, 8.4vw, 66px) !important;
+        height: clamp(59px, 11.8vw, 92px) !important;
+        margin-left: -14px;
     }
 }
 
@@ -922,12 +922,12 @@ html.ios-standalone #digu-game-board {
         height: clamp(56px, 8.4vw, 77px);
     }
 
-    /* Smaller cards on landscape mobile - more cards visible */
+    /* Cards on landscape mobile - 1.2x larger */
     #digu-game-board .digu-player.bottom .digu-player-hand .card,
     .digu-player.bottom .digu-player-hand .card {
-        width: clamp(32px, 6vw, 50px) !important;
-        height: clamp(45px, 8.4vw, 70px) !important;
-        margin-left: -10px;
+        width: clamp(38px, 7.2vw, 60px) !important;
+        height: clamp(54px, 10vw, 84px) !important;
+        margin-left: -12px;
     }
 
     /* Ensure hand container uses full width */
