@@ -24,6 +24,15 @@
 @media screen and (max-width: 768px), (max-height: 500px) {
     #digu-game-board {
         font-size: clamp(10px, 2vw, 14px);
+        /* Add 30px spacing on left and right */
+        padding-left: 30px !important;
+        padding-right: 30px !important;
+    }
+
+    /* Center the oval table on mobile */
+    #digu-game-board::before,
+    #digu-game-board::after {
+        left: 50%;
     }
 
     /* Hide outer spacer rows on mobile */
@@ -50,10 +59,9 @@
         height: 35% !important;
     }
 
-    /* Narrower side columns on mobile */
+    /* Hide outer side columns on mobile - not needed with padding */
     #digu-game-board > .row.h-90 > .col-1 {
-        flex: 0 0 auto;
-        width: 2%;
+        display: none !important;
     }
 
     /* Side sponsor/player columns narrower on mobile */
@@ -833,6 +841,18 @@ html.ios-standalone #digu-game-board {
 
 /* Landscape mobile adjustments */
 @media screen and (orientation: landscape) and (max-height: 500px) {
+    /* Add 30px spacing on left and right */
+    #digu-game-board {
+        padding-left: 30px !important;
+        padding-right: 30px !important;
+    }
+
+    /* Center the oval table on landscape mobile */
+    #digu-game-board::before,
+    #digu-game-board::after {
+        left: 50%;
+    }
+
     /* Minimize outer spacers */
     #digu-game-board > .row.h-5 {
         height: 1% !important;
@@ -841,6 +861,11 @@ html.ios-standalone #digu-game-board {
 
     #digu-game-board > .row.h-90 {
         height: 98% !important;
+    }
+
+    /* Hide outer side columns on landscape mobile */
+    #digu-game-board > .row.h-90 > .col-1 {
+        display: none !important;
     }
 
     /* Adjust inner row heights for landscape mobile */
