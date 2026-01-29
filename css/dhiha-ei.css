@@ -17,6 +17,47 @@
 
 #game-board.hidden { display: none !important; }
 
+/* Rectangular Table - centered on play area */
+#game-board::before {
+    content: '';
+    position: absolute;
+    top: 42.5%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    height: 55%;
+    max-width: calc(70 * var(--scale));
+    max-height: calc(50 * var(--scale));
+    background: linear-gradient(180deg, #3d2a24 0%, #32221c 15%, #261a15 30%, #32221c 50%, #3d2a24 70%, #32221c 85%, #261a15 100%);
+    border-radius: 16px;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.7), 0 4px 20px rgba(0,0,0,0.5);
+    border: 4px solid #1a100c;
+    pointer-events: none;
+    z-index: 0;
+}
+
+#game-board::after {
+    content: '';
+    position: absolute;
+    top: 42.5%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 66%;
+    height: 50%;
+    max-width: calc(66 * var(--scale));
+    max-height: calc(46 * var(--scale));
+    background: radial-gradient(ellipse at 50% 40%, #0f2630 0%, #0a1e28 40%, #071620 70%, #040e14 100%);
+    border-radius: 12px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Ensure Bootstrap rows are above the table background */
+#game-board > .row {
+    position: relative;
+    z-index: 5;
+}
+
 /* Mobile/PWA specific adjustments */
 @media screen and (max-width: 768px), (max-height: 500px) {
     #game-board {

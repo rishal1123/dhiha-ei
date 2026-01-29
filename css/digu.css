@@ -20,21 +20,21 @@
 
 #digu-game-board.hidden { display: none !important; }
 
-/* Oval Table - centered on play area (Row 2: starts at 15%, height 55%, center at 42.5%) */
+/* Rectangular Table - centered on play area (Row 2: starts at 15%, height 55%, center at 42.5%) */
 #digu-game-board::before {
     content: '';
     position: absolute;
     top: 42.5%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 65%;
-    height: 50%;
-    max-width: calc(65 * var(--scale));
-    max-height: calc(47 * var(--scale));
+    width: 70%;
+    height: 55%;
+    max-width: calc(70 * var(--scale));
+    max-height: calc(50 * var(--scale));
     background: linear-gradient(180deg, #3d2a24 0%, #32221c 15%, #261a15 30%, #32221c 50%, #3d2a24 70%, #32221c 85%, #261a15 100%);
-    border-radius: 50%;
-    box-shadow: inset 0 0 25px rgba(0,0,0,0.7);
-    border: 3px solid #1a100c;
+    border-radius: 16px;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.7), 0 4px 20px rgba(0,0,0,0.5);
+    border: 4px solid #1a100c;
     pointer-events: none;
     z-index: 0;
 }
@@ -45,12 +45,12 @@
     top: 42.5%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 58%;
-    height: 44%;
-    max-width: calc(58 * var(--scale));
-    max-height: calc(40 * var(--scale));
+    width: 66%;
+    height: 50%;
+    max-width: calc(66 * var(--scale));
+    max-height: calc(46 * var(--scale));
     background: radial-gradient(ellipse at 50% 40%, #0f2630 0%, #0a1e28 40%, #071620 70%, #040e14 100%);
-    border-radius: 50%;
+    border-radius: 12px;
     pointer-events: none;
     z-index: 1;
 }
