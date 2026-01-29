@@ -1,715 +1,112 @@
-/* Thaasbai - Digu Game Styles */
+/* Thaasbai - Digu Game Styles (Bootstrap Simplified) */
 
-/* Digu Game Board */
+/* Game Board */
 #digu-game-board {
-    /* Fills parent game-container (2020x1080) */
-    width: 100%;
-    height: 100%;
     position: absolute;
     top: 0;
     left: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background:
-        radial-gradient(ellipse at center bottom, var(--lagoon) 0%, var(--ocean-turquoise) 30%, var(--ocean-deep) 70%, var(--night-blue) 100%);
-    /* Inherits transform from parent #game-container */
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center bottom, var(--lagoon) 0%, var(--ocean-turquoise) 30%, var(--ocean-deep) 70%, var(--night-blue) 100%);
+    overflow: hidden;
 }
 
-#digu-game-board.hidden {
-    display: none !important;
-}
+#digu-game-board.hidden { display: none !important; }
 
-/* ============================================
-   CSS GRID LAYOUT FOR DIGU
-   ============================================ */
-
-#digu-game-board.grid-layout {
-    display: grid;
-    grid-template-columns: calc(12 * var(--scale)) 1fr calc(50 * var(--scale)) 1fr calc(12 * var(--scale));
-    grid-template-rows: calc(12 * var(--scale)) 1fr calc(25 * var(--scale));
-    grid-template-areas:
-        "left   top     top     top     scores"
-        "left   center  center  center  right"
-        "bottom bottom  bottom  bottom  bottom";
-    gap: calc(1 * var(--scale));
-    padding: calc(1 * var(--scale));
-}
-
-/* Grid Area: Top Player */
-.grid-area-top {
-    grid-area: top;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    z-index: 5;
-}
-
-/* Grid Area: Left Player + Sponsor */
-.grid-area-left {
-    grid-area: left;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: calc(1.5 * var(--scale));
-    z-index: 5;
-}
-
-/* Grid Area: Right Player + Sponsor */
-.grid-area-right {
-    grid-area: right;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: calc(1.5 * var(--scale));
-    z-index: 5;
-}
-
-/* Grid Area: Center Table */
-.grid-area-center {
-    grid-area: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: calc(4 * var(--scale));
-    position: relative;
-    z-index: 2;
-}
-
-/* Grid Area: Bottom Player */
-.grid-area-bottom {
-    grid-area: bottom;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    z-index: 100;
-    padding-bottom: calc(0.5 * var(--scale));
-}
-
-/* Grid Area: Scores Panel */
-.grid-area-scores {
-    grid-area: scores;
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-start;
-    z-index: 15;
-}
-
-/* Override positioning for grid layout */
-#digu-game-board.grid-layout .digu-player {
-    position: relative;
-    left: auto;
-    right: auto;
-    top: auto;
-    bottom: auto;
-    transform: none;
-}
-
-#digu-game-board.grid-layout #digu-stock,
-#digu-game-board.grid-layout #digu-discard {
-    position: relative;
-    left: auto;
-    right: auto;
-    top: auto;
-    transform: none;
-}
-
-#digu-game-board.grid-layout #digu-center-area {
-    position: relative;
-    top: auto;
-    left: auto;
-    transform: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: calc(1 * var(--scale));
-}
-
-#digu-game-board.grid-layout #digu-scores {
-    position: relative;
-    top: auto;
-    right: auto;
-}
-
-#digu-game-board.grid-layout #table-sponsor {
-    position: relative;
-    top: auto;
-    left: auto;
-    transform: none;
-    margin-top: calc(1 * var(--scale));
-}
-
-#digu-game-board.grid-layout #meld-hint {
-    position: absolute;
-    bottom: calc(-3 * var(--scale));
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-/* Grid layout player adjustments */
-#digu-game-board.grid-layout .grid-area-top .digu-player {
-    flex-direction: column;
-}
-
-#digu-game-board.grid-layout .grid-area-left .digu-player,
-#digu-game-board.grid-layout .grid-area-right .digu-player {
-    flex-direction: column;
-}
-
-#digu-game-board.grid-layout .grid-area-bottom .digu-player {
-    flex-direction: column;
-    align-items: center;
-}
-
-/* Oval Table for Digu */
+/* Oval Table - centered on play area (Row 2: starts at 15%, height 55%, center at 42.5%) */
 #digu-game-board::before {
     content: '';
     position: absolute;
-    top: 50%;
+    top: 42.5%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: calc(65 * var(--scale));
-    height: calc(47 * var(--scale));
-    background:
-        repeating-linear-gradient(
-            90deg,
-            rgba(139, 90, 43, 0.1) 0px,
-            rgba(139, 90, 43, 0.1) 2px,
-            transparent 2px,
-            transparent 6px
-        ),
-        linear-gradient(180deg,
-            #5D4037 0%,
-            #4E342E 15%,
-            #3E2723 30%,
-            #4E342E 50%,
-            #5D4037 70%,
-            #4E342E 85%,
-            #3E2723 100%
-        );
+    width: 65%;
+    height: 50%;
+    max-width: calc(65 * var(--scale));
+    max-height: calc(47 * var(--scale));
+    background: linear-gradient(180deg, #5D4037 0%, #4E342E 15%, #3E2723 30%, #4E342E 50%, #5D4037 70%, #4E342E 85%, #3E2723 100%);
     border-radius: 50%;
-    box-shadow:
-        inset 0 0 calc(3 * var(--scale)) rgba(0, 0, 0, 0.5),
-        0 calc(0.8 * var(--scale)) calc(3 * var(--scale)) rgba(0, 0, 0, 0.6);
-    border: calc(0.3 * var(--scale)) solid #2D1B14;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    border: 3px solid #2D1B14;
     pointer-events: none;
     z-index: 0;
 }
 
-/* Felt Center Surface for Digu */
 #digu-game-board::after {
     content: '';
     position: absolute;
-    top: 50%;
+    top: 42.5%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: calc(58 * var(--scale));
-    height: calc(40 * var(--scale));
-    background:
-        radial-gradient(ellipse at 50% 40%,
-            #1a3a4a 0%,
-            #152d3a 40%,
-            #0f2433 70%,
-            #0a1a26 100%
-        );
+    width: 58%;
+    height: 44%;
+    max-width: calc(58 * var(--scale));
+    max-height: calc(40 * var(--scale));
+    background: radial-gradient(ellipse at 50% 40%, #1a3a4a 0%, #152d3a 40%, #0f2433 70%, #0a1a26 100%);
     border-radius: 50%;
-    box-shadow:
-        inset 0 0 calc(6 * var(--scale)) rgba(0, 0, 0, 0.4);
     pointer-events: none;
     z-index: 1;
 }
 
-/* Digu Center Area - Phase & Button above table sponsor */
-#digu-center-area {
-    position: absolute;
-    top: calc(50% - 12 * var(--scale));
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: calc(1.5 * var(--scale));
-    z-index: 10;
-}
-
-/* Digu Pile (Stock/Discard) - 1.3x larger */
-.digu-pile {
-    width: calc(13 * var(--scale));
-    height: calc(18.2 * var(--scale));
-    border-radius: calc(1.3 * var(--scale));
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+/* Ensure Bootstrap rows are above the table background */
+#digu-game-board > .row {
     position: relative;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.digu-pile:hover {
-    transform: scale(1.05);
-}
-
-.digu-pile.clickable:hover {
-    box-shadow: 0 0 calc(1.5 * var(--scale)) rgba(64, 224, 208, 0.8);
-}
-
-/* Stock Pile - Left of Table Sponsor */
-#digu-stock {
-    position: absolute;
-    top: 50%;
-    left: calc(50% - 18 * var(--scale));
-    transform: translate(-100%, -50%);
-    width: calc(12.4 * var(--scale));
-    height: calc(17.6 * var(--scale));
-    border-radius: calc(1.2 * var(--scale));
-    background: linear-gradient(145deg, #1a365d, #0d1b2a);
-    border: calc(0.3 * var(--scale)) solid var(--ocean-turquoise);
-    box-shadow:
-        inset 0 0 calc(1 * var(--scale)) rgba(0,0,0,0.5),
-        0 calc(0.5 * var(--scale)) calc(1 * var(--scale)) rgba(0,0,0,0.3);
-    z-index: 15;
-}
-
-#digu-stock::before {
-    content: '';
-    position: absolute;
-    top: calc(0.5 * var(--scale));
-    left: calc(0.5 * var(--scale));
-    right: calc(0.5 * var(--scale));
-    bottom: calc(0.5 * var(--scale));
-    background:
-        repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 3px,
-            rgba(64, 224, 208, 0.1) 3px,
-            rgba(64, 224, 208, 0.1) 6px
-        );
-    border-radius: calc(0.8 * var(--scale));
-}
-
-/* Discard Pile - Right of Table Sponsor */
-#digu-discard {
-    position: absolute;
-    top: 50%;
-    left: calc(50% + 18 * var(--scale));
-    transform: translate(0%, -50%);
-    width: calc(12.4 * var(--scale));
-    height: calc(17.6 * var(--scale));
-    border-radius: calc(1.2 * var(--scale));
-    background: linear-gradient(145deg, rgba(50, 50, 50, 0.9), rgba(30, 30, 30, 0.9));
-    border: calc(0.3 * var(--scale)) dashed rgba(255, 255, 255, 0.4);
-    z-index: 15;
-}
-
-#digu-discard.drag-over {
-    border-color: var(--sunset-gold);
-    border-style: solid;
-    background: linear-gradient(145deg, rgba(255, 215, 0, 0.3), rgba(218, 165, 32, 0.2));
-    box-shadow: 0 0 calc(2 * var(--scale)) var(--sunset-gold);
-    transform: translate(0%, -50%) scale(1.08);
-}
-
-.discard-card {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.discard-card .card {
-    width: 100% !important;
-    height: 100% !important;
-    border-radius: calc(1.2 * var(--scale));
-}
-
-.discard-card .card img {
-    width: 100%;
-    height: 100%;
-    object-fit: fill;
-}
-
-/* Pile Label */
-.pile-label {
-    position: absolute;
-    top: calc(-2.5 * var(--scale));
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: clamp(10px, calc(1.3 * var(--scale)), 16px);
-    color: var(--ocean-turquoise);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    white-space: nowrap;
-}
-
-/* Pile Count */
-.pile-count {
-    font-size: clamp(20px, calc(2.5 * var(--scale)), 32px);
-    color: var(--text-light);
-    font-weight: bold;
-    z-index: 1;
-}
-
-/* Phase Indicator */
-#digu-phase {
-    padding: calc(0.8 * var(--scale)) calc(2 * var(--scale));
-    background: linear-gradient(145deg, rgba(10, 20, 30, 0.95) 0%, rgba(20, 40, 60, 0.9) 100%);
-    border: calc(0.2 * var(--scale)) solid var(--ocean-turquoise);
-    border-radius: calc(0.8 * var(--scale));
-    color: var(--ocean-turquoise);
-    font-size: clamp(14px, calc(1.8 * var(--scale)), 22px);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-}
-
-#digu-phase.draw-phase {
-    border-color: var(--sunset-gold);
-    color: var(--sunset-gold);
-}
-
-#digu-phase.meld-phase {
-    border-color: var(--palm-green);
-    color: var(--palm-green);
-}
-
-#digu-phase.discard-phase {
-    border-color: var(--coral-pink);
-    color: var(--coral-pink);
-}
-
-/* DIGU Button */
-#digu-btn {
-    padding: calc(1 * var(--scale)) calc(3 * var(--scale));
-    background: linear-gradient(145deg, #b8860b, #daa520, #ffd700);
-    border: calc(0.3 * var(--scale)) solid #ffd700;
-    border-radius: calc(1 * var(--scale));
-    color: var(--night-blue);
-    font-size: clamp(18px, calc(2.5 * var(--scale)), 32px);
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow:
-        0 calc(0.5 * var(--scale)) calc(1.5 * var(--scale)) rgba(0, 0, 0, 0.4),
-        inset 0 calc(0.2 * var(--scale)) calc(0.5 * var(--scale)) rgba(255, 255, 255, 0.4);
-}
-
-#digu-btn:not(:disabled):hover {
-    transform: scale(1.05);
-    box-shadow:
-        0 calc(0.8 * var(--scale)) calc(2 * var(--scale)) rgba(255, 215, 0, 0.5),
-        inset 0 calc(0.2 * var(--scale)) calc(0.5 * var(--scale)) rgba(255, 255, 255, 0.4);
-}
-
-#digu-btn:disabled {
-    background: linear-gradient(145deg, #555, #444, #333);
-    border-color: #666;
-    color: #888;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-/* Meld Zone */
-#meld-zone {
-    position: absolute;
-    bottom: calc(18 * var(--scale));
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: calc(1.5 * var(--scale));
-    align-items: flex-end;
     z-index: 5;
 }
 
-/* Meld Slot */
-.meld-slot {
-    min-width: calc(12 * var(--scale));
-    min-height: calc(12 * var(--scale));
-    padding: calc(0.8 * var(--scale));
-    background: rgba(0, 0, 0, 0.3);
-    border: calc(0.25 * var(--scale)) dashed rgba(255, 255, 255, 0.4);
-    border-radius: calc(1 * var(--scale));
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: calc(0.5 * var(--scale));
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.meld-slot:hover {
-    background: rgba(64, 224, 208, 0.1);
-    border-color: var(--ocean-turquoise);
-}
-
-.meld-slot.valid {
-    border-style: solid;
-}
-
-/* Valid Set - Gold/Yellow glow */
-.meld-slot.valid-set {
-    background: rgba(255, 215, 0, 0.25);
-    border-color: #ffd700;
-    box-shadow:
-        0 0 calc(1.5 * var(--scale)) rgba(255, 215, 0, 0.6),
-        inset 0 0 calc(1 * var(--scale)) rgba(255, 215, 0, 0.3);
-    animation: setGlow 2s ease-in-out infinite;
-}
-
-@keyframes setGlow {
-    0%, 100% { box-shadow: 0 0 calc(1 * var(--scale)) rgba(255, 215, 0, 0.5); }
-    50% { box-shadow: 0 0 calc(2 * var(--scale)) rgba(255, 215, 0, 0.8); }
-}
-
-/* Valid Run - Cyan/Blue glow */
-.meld-slot.valid-run {
-    background: rgba(64, 224, 208, 0.25);
-    border-color: var(--ocean-turquoise);
-    box-shadow:
-        0 0 calc(1.5 * var(--scale)) rgba(64, 224, 208, 0.6),
-        inset 0 0 calc(1 * var(--scale)) rgba(64, 224, 208, 0.3);
-    animation: runGlow 2s ease-in-out infinite;
-}
-
-@keyframes runGlow {
-    0%, 100% { box-shadow: 0 0 calc(1 * var(--scale)) rgba(64, 224, 208, 0.5); }
-    50% { box-shadow: 0 0 calc(2 * var(--scale)) rgba(64, 224, 208, 0.8); }
-}
-
-.meld-slot.invalid {
-    background: rgba(227, 93, 93, 0.2);
-    border-color: var(--coral-red);
-    border-style: solid;
-}
-
-.meld-slot.active {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: #fff;
-    border-style: solid;
-}
-
-.meld-label {
-    font-size: clamp(10px, calc(1.2 * var(--scale)), 14px);
-    color: rgba(255, 255, 255, 0.7);
-    text-transform: uppercase;
-}
-
-.meld-cards {
-    display: flex;
-    gap: calc(-1.5 * var(--scale));
-}
-
-.meld-cards .card {
-    width: calc(7 * var(--scale));
-    height: calc(10 * var(--scale));
-    font-size: clamp(10px, calc(1.3 * var(--scale)), 16px);
-}
-
-/* Digu Action Buttons */
-.digu-action-btn {
-    padding: calc(0.5 * var(--scale)) calc(1.2 * var(--scale));
-    background: rgba(64, 224, 208, 0.2);
-    border: 1px solid var(--ocean-turquoise);
-    border-radius: calc(0.5 * var(--scale));
-    color: var(--ocean-turquoise);
-    font-size: clamp(11px, calc(1.3 * var(--scale)), 16px);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.digu-action-btn:hover {
-    background: var(--ocean-turquoise);
-    color: var(--night-blue);
-}
-
-.digu-action-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-/* Digu Player Areas */
-.digu-player {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: calc(0.5 * var(--scale));
-    z-index: 5;
-}
-
-.digu-player.bottom {
-    bottom: calc(1 * var(--scale));
-    left: 50%;
-    transform: translateX(-50%);
-    visibility: visible !important;
-    opacity: 1 !important;
-    display: flex !important;
-    z-index: 100;
-    padding: calc(1 * var(--scale));
-}
-
-.digu-player.top {
-    top: calc(2 * var(--scale));
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.digu-player.left {
-    left: calc(2 * var(--scale));
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.digu-player.right {
-    right: calc(2 * var(--scale));
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-/* When inside wrapper divs, use relative positioning */
-div:has(.sponsor-column) > .digu-player.left,
-div:has(.sponsor-column) > .digu-player.right,
-div:has(.sponsor-column) > .digu-player.bottom {
-    position: relative;
-    left: auto;
-    right: auto;
-    top: auto;
-    bottom: auto;
-    transform: none;
-}
+/* Player Areas */
+.digu-player { z-index: 5; }
 
 .digu-player-label {
-    padding: calc(0.6 * var(--scale)) calc(1.4 * var(--scale));
-    background: linear-gradient(135deg, rgba(27, 40, 56, 0.8) 0%, rgba(0, 105, 148, 0.7) 100%);
-    border-radius: calc(2 * var(--scale));
+    padding: 4px 12px;
+    background: linear-gradient(135deg, rgba(27, 40, 56, 0.8), rgba(0, 105, 148, 0.7));
+    border-radius: 12px;
     color: var(--text-light);
-    font-size: clamp(16px, calc(1.8 * var(--scale)), 24px);
+    font-size: clamp(11px, 1.2vw, 16px);
     font-weight: 600;
     border: 1px solid rgba(64, 224, 208, 0.4);
-    margin: calc(0.6 * var(--scale)) 0;
+        margin-bottom: 5px;
 }
 
 .digu-player.bottom .digu-player-label {
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.9) 0%, rgba(218, 165, 32, 0.8) 100%);
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.9), rgba(218, 165, 32, 0.8));
     color: var(--night-blue);
 }
 
 .digu-player.current-turn .digu-player-label {
-    box-shadow: 0 0 calc(1 * var(--scale)) var(--sunset-gold);
-    animation: diguTurnPulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 10px var(--sunset-gold);
+    animation: turnPulse 1.5s ease-in-out infinite;
 }
 
-@keyframes diguTurnPulse {
-    0%, 100% { box-shadow: 0 0 calc(0.5 * var(--scale)) var(--sunset-gold); }
-    50% { box-shadow: 0 0 calc(1.5 * var(--scale)) var(--sunset-gold); }
+@keyframes turnPulse {
+    0%, 100% { box-shadow: 0 0 5px var(--sunset-gold); }
+    50% { box-shadow: 0 0 15px var(--sunset-gold); }
 }
 
-.digu-player-hand {
-    display: flex;
-    gap: calc(-2 * var(--scale));
-    min-height: calc(12 * var(--scale));
-}
-
-.digu-player.bottom .digu-player-hand {
-    gap: calc(-1.5 * var(--scale));
-    min-height: calc(20 * var(--scale));
-    min-height: 70px;
-    visibility: visible !important;
-    opacity: 1 !important;
-    display: flex !important;
-    flex-wrap: nowrap;
-    justify-content: center;
-    align-items: flex-end;
-    z-index: 101;
-    position: relative;
-}
-
-/* Hand sort buttons */
-.hand-sort-buttons {
-    display: flex;
-    gap: calc(0.8 * var(--scale));
-    margin-top: calc(0.5 * var(--scale));
-}
-
-.sort-btn {
-    padding: calc(0.3 * var(--scale)) calc(0.8 * var(--scale));
-    background: rgba(64, 224, 208, 0.15);
-    border: 1px solid rgba(64, 224, 208, 0.5);
-    border-radius: calc(0.4 * var(--scale));
-    color: var(--ocean-turquoise);
-    font-size: clamp(9px, calc(1.1 * var(--scale)), 13px);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.sort-btn:hover {
-    background: var(--ocean-turquoise);
-    color: var(--night-blue);
-}
-
-/* Drag-and-drop card states */
-.digu-player-hand .card.dragging {
-    opacity: 0.5;
-    transform: scale(1.05) translateY(calc(-0.5 * var(--scale)));
-}
-
-.digu-player-hand .card.drag-over {
-    border: calc(0.3 * var(--scale)) solid var(--sunset-gold);
-    box-shadow: 0 0 calc(1 * var(--scale)) var(--sunset-gold);
-}
-
-/* Avatar for AI players */
-.digu-avatar {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: calc(0.5 * var(--scale));
-}
-
+/* Avatar */
 .digu-avatar-icon {
-    width: calc(6 * var(--scale));
-    height: calc(6 * var(--scale));
-    background: linear-gradient(135deg, rgba(27, 40, 56, 0.95) 0%, rgba(0, 105, 148, 0.85) 100%);
-    border: calc(0.25 * var(--scale)) solid var(--ocean-turquoise);
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, rgba(27, 40, 56, 0.95), rgba(0, 105, 148, 0.85));
+    border: 2px solid var(--ocean-turquoise);
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: clamp(16px, calc(2.5 * var(--scale)), 28px);
-    color: var(--text-light);
-    box-shadow:
-        0 calc(0.3 * var(--scale)) calc(1 * var(--scale)) rgba(0, 0, 0, 0.4),
-        inset 0 calc(0.2 * var(--scale)) calc(0.5 * var(--scale)) rgba(255, 255, 255, 0.1);
+    margin-bottom: 5px;
 }
 
 .digu-player.current-turn .digu-avatar-icon {
     border-color: var(--sunset-gold);
-    box-shadow:
-        0 0 calc(1.5 * var(--scale)) var(--sunset-gold),
-        0 calc(0.3 * var(--scale)) calc(1 * var(--scale)) rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 8px var(--sunset-gold);
 }
 
-/* Card count hidden - not needed for Digu */
-.digu-card-count {
-    display: none;
-}
-
-/* Team labels */
+/* Team Labels */
 .digu-team-label {
-    font-size: clamp(9px, calc(1 * var(--scale)), 12px);
+    font-size: clamp(8px, 0.9vw, 11px);
     text-transform: uppercase;
     font-weight: 600;
-    padding: calc(0.2 * var(--scale)) calc(0.5 * var(--scale));
-    border-radius: calc(0.3 * var(--scale));
+    padding: 2px 6px;
+    border-radius: 4px;
+        margin-bottom: 5px;
+    
 }
 
 .digu-player.team-a .digu-team-label {
@@ -724,1135 +121,319 @@ div:has(.sponsor-column) > .digu-player.bottom {
     border: 1px solid #ff6666;
 }
 
-/* Team score styles */
-.digu-match-info {
-    text-align: center;
-    font-size: clamp(11px, calc(1.2 * var(--scale)), 14px);
-    color: rgba(255, 255, 255, 0.8);
-    margin-bottom: calc(0.5 * var(--scale));
+/* Shuffle Count */
+.digu-shuffle-count {
+    font-size: clamp(9px, 1vw, 12px);
+    padding: 2px 8px;
+    background: linear-gradient(135deg, rgba(27, 40, 56, 0.9), rgba(0, 105, 148, 0.8));
+    border-radius: 8px;
+    border: 1px solid rgba(64, 224, 208, 0.5);
+    color: var(--text-light);
 }
 
-.digu-team-scores {
-    display: flex;
-    flex-direction: column;
-    gap: calc(0.5 * var(--scale));
-    margin-top: calc(0.5 * var(--scale));
+.digu-shuffle-count.current-dealer {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.9), rgba(218, 165, 32, 0.8));
+    color: var(--night-blue);
+    border-color: rgba(255, 215, 0, 0.8);
 }
 
-.digu-team-score {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: calc(0.4 * var(--scale)) calc(0.8 * var(--scale));
-    border-radius: calc(0.4 * var(--scale));
-    flex-wrap: wrap;
-    gap: calc(0.3 * var(--scale));
+/* Player Hand */
+.digu-player-hand {
+    gap: -8px;
+    min-height: 80px;
+    z-index: 100;
 }
 
-.team-wins-value {
-    font-size: clamp(10px, calc(1 * var(--scale)), 12px);
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.digu-team-score.team-a {
-    background: rgba(64, 224, 208, 0.2);
-    border: 1px solid var(--ocean-turquoise);
-}
-
-.digu-team-score.team-b {
-    background: rgba(255, 100, 100, 0.2);
-    border: 1px solid #ff6666;
-}
-
-.team-name {
-    font-size: clamp(10px, calc(1.2 * var(--scale)), 14px);
-}
-
-.team-score-value {
-    font-size: clamp(12px, calc(1.5 * var(--scale)), 18px);
-    font-weight: bold;
-}
-
-.digu-team-score.team-a .team-score-value {
-    color: var(--ocean-turquoise);
-}
-
-.digu-team-score.team-b .team-score-value {
-    color: #ff8888;
-}
-
-/* Digu hand cards - 1.5x larger for better visibility */
 .digu-player.bottom .digu-player-hand .card {
-    width: calc(13.5 * var(--scale));
-    height: calc(19.35 * var(--scale));
-    min-width: 45px;
-    min-height: 65px;
+    width: clamp(45px, 8vw, 80px);
+    height: clamp(63px, 11.2vw, 112px);
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    display: block !important;
-    position: relative;
-    background: var(--card-white);
-    border-radius: calc(0.96 * var(--scale));
-    overflow: hidden;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    flex-shrink: 0;
-    z-index: 102;
+    transition: transform 0.2s;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.2);
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    margin-left: -12px;
 }
 
-/* Ensure card images display in Digu */
-.digu-player.bottom .digu-player-hand .card img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+.digu-player.bottom .digu-player-hand .card:first-child { margin-left: 0; }
+.digu-player.bottom .digu-player-hand .card img { width: 100%; height: 100%; object-fit: contain; }
+.digu-player.bottom .digu-player-hand .card:hover { transform: translateY(-8px); z-index: 10; }
+.digu-player.bottom .digu-player-hand .card.selected { transform: translateY(-12px); box-shadow: 0 0 8px var(--sunset-gold); }
+.digu-player.bottom .digu-player-hand .card.meld-set { box-shadow: 0 0 6px rgba(255, 215, 0, 0.7); border-color: rgba(255, 215, 0, 0.8); }
+.digu-player.bottom .digu-player-hand .card.meld-run { box-shadow: 0 0 6px rgba(64, 224, 208, 0.7); border-color: rgba(64, 224, 208, 0.8); }
+.digu-player.bottom .digu-player-hand .card.meld-end { margin-right: 8px; }
+.digu-player.bottom .digu-player-hand .card.dragging { opacity: 0.4; }
+
+/* Piles */
+.digu-pile {
+    width: clamp(60px, 8vw, 90px);
+    height: clamp(84px, 11.2vw, 126px);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    z-index: 15;
 }
 
-.digu-player.bottom .digu-player-hand .card:hover {
-    transform: translateY(calc(-1 * var(--scale)));
+.digu-pile:hover { transform: scale(1.05); }
+
+#digu-stock {
+    background: linear-gradient(145deg, #1a365d, #0d1b2a);
+    border: 2px solid var(--ocean-turquoise);
 }
 
-.digu-player.bottom .digu-player-hand .card.selected {
-    transform: translateY(calc(-2 * var(--scale)));
-    box-shadow: 0 0 calc(1 * var(--scale)) var(--sunset-gold);
-}
-
-.digu-player.bottom .digu-player-hand .card.selected-for-meld {
-    transform: translateY(calc(-1.5 * var(--scale)));
-    box-shadow: 0 0 calc(0.8 * var(--scale)) var(--palm-green);
-    border-color: var(--palm-green);
-}
-
-/* Meld separators in hand */
-.meld-separator {
-    width: calc(0.8 * var(--scale));
-    height: calc(10 * var(--scale));
-    background: linear-gradient(180deg, transparent 10%, rgba(255, 255, 255, 0.3) 50%, transparent 90%);
-    margin: 0 calc(0.3 * var(--scale));
-    flex-shrink: 0;
-}
-
-.discard-separator {
-    width: calc(1.2 * var(--scale));
-    height: calc(10 * var(--scale));
-    background: linear-gradient(180deg, transparent 10%, rgba(255, 100, 100, 0.5) 50%, transparent 90%);
-    margin: 0 calc(0.5 * var(--scale));
-    flex-shrink: 0;
-}
-
-/* Valid meld highlighting in hand */
-.digu-player.bottom .digu-player-hand .card.valid-meld-card {
+#digu-discard {
+    background: linear-gradient(145deg, rgba(50, 50, 50, 0.9), rgba(30, 30, 30, 0.9));
+    border: 2px dashed rgba(255, 255, 255, 0.4);
     position: relative;
 }
 
-.digu-player.bottom .digu-player-hand .card.meld-set {
-    box-shadow:
-        0 0 calc(0.8 * var(--scale)) rgba(255, 215, 0, 0.7),
-        inset 0 0 calc(0.3 * var(--scale)) rgba(255, 215, 0, 0.2);
-    border: calc(0.25 * var(--scale)) solid rgba(255, 215, 0, 0.8);
+#digu-discard.drag-over {
+    border-color: var(--sunset-gold);
+    border-style: solid;
+    box-shadow: 0 0 12px var(--sunset-gold);
 }
 
-.digu-player.bottom .digu-player-hand .card.meld-set::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: inherit;
-    background: linear-gradient(180deg, rgba(255, 215, 0, 0.2) 0%, transparent 50%);
-    pointer-events: none;
+.discard-card { position: absolute; inset: 0; }
+.discard-card .card { width: 100% !important; height: 100% !important; border-radius: 8px; }
+.discard-card .card img { width: 100%; height: 100%; object-fit: fill; }
+
+/* Phase Indicator */
+#digu-phase {
+    padding: 6px 16px;
+    background: linear-gradient(145deg, rgba(10, 20, 30, 0.95), rgba(20, 40, 60, 0.9));
+    border: 2px solid var(--ocean-turquoise);
+    border-radius: 6px;
+    color: var(--ocean-turquoise);
+    font-size: clamp(12px, 1.4vw, 18px);
+    font-weight: 600;
+    text-transform: uppercase;
+    z-index: 10;
 }
 
-.digu-player.bottom .digu-player-hand .card.meld-run {
-    box-shadow:
-        0 0 calc(0.8 * var(--scale)) rgba(64, 224, 208, 0.7),
-        inset 0 0 calc(0.3 * var(--scale)) rgba(64, 224, 208, 0.2);
-    border: calc(0.25 * var(--scale)) solid rgba(64, 224, 208, 0.8);
+#digu-phase.draw-phase { border-color: var(--sunset-gold); color: var(--sunset-gold); }
+#digu-phase.meld-phase { border-color: var(--palm-green); color: var(--palm-green); }
+#digu-phase.discard-phase { border-color: var(--coral-pink); color: var(--coral-pink); }
+
+/* DIGU Button */
+#digu-btn {
+    padding: 8px 24px;
+    font-size: clamp(14px, 2vw, 24px);
+    letter-spacing: 0.15em;
 }
 
-.digu-player.bottom .digu-player-hand .card.meld-run::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: inherit;
-    background: linear-gradient(180deg, rgba(64, 224, 208, 0.2) 0%, transparent 50%);
-    pointer-events: none;
-}
-
-/* Meld end indicator - right border after last card of a meld */
-.digu-player.bottom .digu-player-hand .card.meld-end {
-    margin-right: calc(1.2 * var(--scale));
-}
-
-.digu-player.bottom .digu-player-hand .card.meld-end::before {
-    content: '';
-    position: absolute;
-    right: calc(-0.8 * var(--scale));
-    top: 10%;
-    bottom: 10%;
-    width: calc(0.3 * var(--scale));
-    background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.5), transparent);
-    border-radius: calc(0.2 * var(--scale));
-}
-
-/* Discard card highlight (11th card) */
-.digu-player.bottom .digu-player-hand .card.discard-card-highlight {
-    opacity: 0.7;
-    border-color: rgba(255, 100, 100, 0.6);
-}
-
-/* Discard hint text */
+/* Meld Hint */
 #meld-hint {
-    font-size: clamp(12px, calc(1.4 * var(--scale)), 18px);
+    font-size: clamp(10px, 1.2vw, 14px);
     color: var(--sunset-orange);
-    text-align: center;
-    margin-top: calc(0.5 * var(--scale));
     font-weight: 600;
 }
 
-/* Digu Scores Panel */
+/* Scores Panel */
 #digu-scores {
-    position: absolute;
-    top: calc(1.5 * var(--scale));
-    right: calc(2 * var(--scale));
-    padding: calc(1.2 * var(--scale)) calc(1.8 * var(--scale));
-    background: linear-gradient(145deg, rgba(10, 20, 30, 0.95) 0%, rgba(20, 40, 60, 0.9) 100%);
-    border: calc(0.25 * var(--scale)) solid var(--sunset-gold);
-    border-radius: calc(1 * var(--scale));
+    padding: 8px 12px;
+    background: linear-gradient(145deg, rgba(10, 20, 30, 0.95), rgba(20, 40, 60, 0.9));
+    border: 2px solid var(--sunset-gold);
+    border-radius: 8px;
     color: var(--text-light);
-    z-index: 15;
-    min-width: calc(15 * var(--scale));
+    font-size: clamp(9px, 1vw, 12px);
+    float: right;
 }
 
 .digu-scores-title {
-    font-size: clamp(12px, calc(1.4 * var(--scale)), 18px);
     color: var(--sunset-gold);
     text-transform: uppercase;
     text-align: center;
-    margin-bottom: calc(0.8 * var(--scale));
-}
-
-.digu-score-list {
-    display: flex;
-    flex-direction: column;
-    gap: calc(0.5 * var(--scale));
-}
-
-.digu-score-item {
-    display: flex;
-    justify-content: space-between;
-    gap: calc(2 * var(--scale));
-    font-size: clamp(12px, calc(1.4 * var(--scale)), 18px);
-}
-
-.digu-score-item.you {
-    color: var(--sunset-gold);
+    margin-bottom: 4px;
     font-weight: 600;
 }
 
-.digu-score-item.winner {
-    color: var(--palm-green);
+.digu-team-scores { display: flex; flex-direction: column; gap: 4px; }
+
+.digu-team-score {
+    padding: 4px 8px;
+    border-radius: 4px;
+    gap: 8px;
 }
 
-/* Digu Turn Indicator */
+.digu-team-score.team-a { background: rgba(64, 224, 208, 0.2); border: 1px solid var(--ocean-turquoise); }
+.digu-team-score.team-b { background: rgba(255, 100, 100, 0.2); border: 1px solid #ff6666; }
+.digu-team-score.team-a .team-score-value { color: var(--ocean-turquoise); font-weight: bold; }
+.digu-team-score.team-b .team-score-value { color: #ff8888; font-weight: bold; }
+
+/* Sponsors */
+.sponsor-column {
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drink-item, .food-item {
+    width: clamp(30px, 100%, 50px);
+    height: clamp(80px, 60%, 150px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drink-item:hover, .food-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--ocean-turquoise);
+}
+
+.drink-item img, .food-item img { max-width: 90%; max-height: 90%; object-fit: contain; }
+
+#table-sponsor { opacity: 0.8; z-index: 10; }
+#table-sponsor:hover { opacity: 1; }
+
+/* Turn Indicator */
 #digu-turn-indicator {
     position: absolute;
-    width: calc(3 * var(--scale));
-    height: calc(3 * var(--scale));
+    width: 20px;
+    height: 20px;
     background: radial-gradient(circle, var(--sunset-gold), var(--sunset-orange));
     border-radius: 50%;
-    box-shadow: 0 0 calc(1 * var(--scale)) var(--sunset-gold);
+    box-shadow: 0 0 8px var(--sunset-gold);
     pointer-events: none;
     z-index: 20;
     opacity: 0;
-    transition: all 0.3s;
 }
 
 #digu-turn-indicator.active {
     opacity: 1;
-    animation: diguIndicatorPulse 1s ease-in-out infinite;
+    animation: indicatorPulse 1s ease-in-out infinite;
 }
 
-@keyframes diguIndicatorPulse {
+@keyframes indicatorPulse {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.3); }
 }
 
-/* Digu Draw Notification - positioned above "Draw a card" in center area (1.2x size) */
+/* Draw Notification */
 .digu-draw-notification {
-    position: relative;
     background: rgba(0, 0, 0, 0.85);
     border: 1px solid var(--ocean-turquoise);
-    border-radius: calc(0.96 * var(--scale));
-    padding: calc(0.72 * var(--scale)) calc(1.44 * var(--scale));
-    font-size: clamp(13px, calc(1.56 * var(--scale)), 19px);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: clamp(11px, 1.2vw, 14px);
     color: var(--text-light);
-    z-index: 100;
     opacity: 0;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
-    pointer-events: none;
-    white-space: nowrap;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    margin-bottom: calc(0.6 * var(--scale));
+    transition: opacity 0.3s;
 }
 
-.digu-draw-notification.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
+.digu-draw-notification.visible { opacity: 1; }
+.digu-draw-notification.from-discard { border-color: var(--sunset-gold); }
+.digu-draw-notification .draw-player { color: var(--sunset-gold); font-weight: 600; }
+.digu-draw-notification .draw-card { font-weight: bold; padding: 2px 4px; background: white; border-radius: 3px; }
+.digu-draw-notification .draw-card.red { color: #d32f2f; }
+.digu-draw-notification .draw-card.black { color: #212121; }
 
-.digu-draw-notification.from-discard {
-    border-color: var(--sunset-gold);
-    background: rgba(30, 20, 0, 0.9);
-}
-
-.digu-draw-notification.from-stock {
-    border-color: var(--ocean-turquoise);
-}
-
-.digu-draw-notification .draw-player {
-    color: var(--sunset-gold);
-    font-weight: 600;
-}
-
-.digu-draw-notification .draw-card {
-    font-weight: bold;
-    padding: calc(0.2 * var(--scale)) calc(0.4 * var(--scale));
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: calc(0.3 * var(--scale));
-    margin: 0 calc(0.3 * var(--scale));
-}
-
-.digu-draw-notification .draw-card.red {
-    color: #d32f2f;
-}
-
-.digu-draw-notification .draw-card.black {
-    color: #212121;
-}
-
-/* Digu Player Count Modal */
-#digu-player-count-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: var(--night-blue);
-    padding: calc(2.5 * var(--scale));
-    border-radius: calc(1.5 * var(--scale));
-    border: calc(0.25 * var(--scale)) solid var(--ocean-turquoise);
-    z-index: 2000;
-    text-align: center;
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
-    min-width: 280px;
-}
-
-#digu-player-count-modal h3 {
-    font-size: clamp(20px, calc(2.5 * var(--scale)), 32px);
-    color: var(--sunset-gold);
-    margin-bottom: calc(0.5 * var(--scale));
-}
-
-.modal-subtitle {
-    font-size: clamp(14px, calc(1.6 * var(--scale)), 20px);
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: calc(1.5 * var(--scale));
-}
-
-.player-count-options {
-    display: flex;
-    gap: calc(1 * var(--scale));
-    justify-content: center;
-    margin-bottom: calc(1.5 * var(--scale));
-}
-
-.player-count-btn {
-    padding: calc(1 * var(--scale)) calc(2 * var(--scale));
-    background: rgba(64, 224, 208, 0.2);
-    border: calc(0.2 * var(--scale)) solid var(--ocean-turquoise);
-    border-radius: calc(0.8 * var(--scale));
-    color: var(--text-light);
-    font-size: clamp(16px, calc(2 * var(--scale)), 24px);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.player-count-btn:hover {
-    background: rgba(64, 224, 208, 0.4);
-}
-
-.player-count-btn.selected {
-    background: var(--ocean-turquoise);
-    color: var(--night-blue);
-    font-weight: 600;
-}
-
-/* Digu Shuffle Count Display */
-.digu-shuffle-count {
-    position: absolute;
-    color: var(--text-light);
-    font-size: clamp(10px, calc(1.2 * var(--scale)), 14px);
-    padding: calc(0.3 * var(--scale)) calc(0.8 * var(--scale));
-    background: linear-gradient(135deg, rgba(27, 40, 56, 0.9) 0%, rgba(0, 105, 148, 0.8) 100%);
-    border-radius: calc(1.5 * var(--scale));
-    border: 1px solid rgba(64, 224, 208, 0.5);
-    font-weight: 500;
-    opacity: 0.9;
-    white-space: nowrap;
-}
-
-/* Bottom player (human) - positioned on left side of game board */
-#digu-player-0 .digu-shuffle-count {
-    position: absolute;
-    left: calc(2 * var(--scale));
-    bottom: calc(3 * var(--scale));
-    transform: none;
-}
-
-/* Left player - below avatar */
-#digu-player-1 .digu-shuffle-count {
-    bottom: calc(-2.5 * var(--scale));
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-/* Top player (partner) - below avatar */
-#digu-player-2 .digu-shuffle-count {
-    bottom: calc(-2.5 * var(--scale));
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-/* Right player - below avatar */
-#digu-player-3 .digu-shuffle-count {
-    bottom: calc(-2.5 * var(--scale));
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-/* Current dealer highlight for Digu */
-.digu-shuffle-count.current-dealer {
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.9) 0%, rgba(218, 165, 32, 0.8) 100%);
-    color: var(--night-blue);
-    border: 1px solid rgba(255, 215, 0, 0.8);
-    font-weight: 600;
-}
-
-/* ============================================
-   DIGU END GAME RESULT MODAL
-   ============================================ */
-
+/* Result Modal */
 #digu-result-modal {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background: rgba(0, 0, 0, 0.85);
     z-index: 200;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow-y: auto;
-    padding: calc(2 * var(--scale));
+    padding: 16px;
 }
 
-#digu-result-modal.hidden {
-    display: none;
-}
+#digu-result-modal.hidden { display: none; }
 
 .digu-result-content {
-    background: linear-gradient(145deg, rgba(10, 20, 30, 0.98) 0%, rgba(20, 40, 60, 0.95) 100%);
-    border: calc(0.3 * var(--scale)) solid var(--sunset-gold);
-    border-radius: calc(1.5 * var(--scale));
-    padding: calc(2 * var(--scale));
-    /* Landscape optimized: wider layout */
-    max-width: calc(160 * var(--scale));
-    width: 95%;
+    background: linear-gradient(145deg, rgba(10, 20, 30, 0.98), rgba(20, 40, 60, 0.95));
+    border: 2px solid var(--sunset-gold);
+    border-radius: 12px;
+    padding: 16px;
+    max-width: 90vw;
     max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 0 calc(3 * var(--scale)) rgba(255, 215, 0, 0.3);
+    overflow-y: auto;
 }
 
-.digu-result-content h2 {
-    font-size: clamp(18px, calc(2.5 * var(--scale)), 32px);
-    color: var(--sunset-gold);
-    text-align: center;
-    margin-bottom: calc(1.5 * var(--scale));
-    text-transform: uppercase;
-}
+.digu-result-content h2 { color: var(--sunset-gold); text-align: center; text-transform: uppercase; }
+.digu-result-content h2.win { color: var(--palm-green); }
+.digu-result-content h2.lose { color: #ff6b6b; }
 
-.digu-result-content h2.win {
-    color: var(--palm-green);
-}
-
-.digu-result-content h2.lose {
-    color: #ff6b6b;
-}
-
-/* Match Stats Section */
 .digu-match-stats {
     background: rgba(0, 0, 0, 0.3);
-    border-radius: calc(1 * var(--scale));
-    padding: calc(1 * var(--scale));
-    margin-bottom: calc(1.5 * var(--scale));
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 12px;
 }
 
-.match-stats-row {
-    display: flex;
-    justify-content: space-between;
-    padding: calc(0.4 * var(--scale)) calc(0.8 * var(--scale));
-    font-size: clamp(12px, calc(1.3 * var(--scale)), 16px);
-    color: var(--text-light);
-}
+.match-stats-row { display: flex; justify-content: space-between; padding: 4px 8px; color: var(--text-light); }
+.match-stats-row.total { border-top: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; }
 
-.match-stats-row.total {
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    margin-top: calc(0.5 * var(--scale));
-    padding-top: calc(0.6 * var(--scale));
-    font-weight: 600;
-}
+.digu-game-score h3 { color: var(--ocean-turquoise); text-align: center; }
+.game-score-row { display: flex; justify-content: space-between; padding: 4px 8px; color: var(--text-light); }
+.game-score-row.winner { color: var(--palm-green); font-weight: 600; }
 
-.match-stat-label {
-    color: rgba(255, 255, 255, 0.7);
-}
-
-/* Game Score Section */
-.digu-game-score {
-    margin-bottom: calc(1.5 * var(--scale));
-}
-
-.digu-game-score h3 {
-    font-size: clamp(14px, calc(1.6 * var(--scale)), 20px);
-    color: var(--ocean-turquoise);
-    margin-bottom: calc(0.8 * var(--scale));
-    text-align: center;
-}
-
-.game-score-row {
-    display: flex;
-    justify-content: space-between;
-    padding: calc(0.4 * var(--scale)) calc(1 * var(--scale));
-    font-size: clamp(12px, calc(1.3 * var(--scale)), 16px);
-    color: var(--text-light);
-}
-
-.game-score-row.winner {
-    color: var(--palm-green);
-    font-weight: 600;
-}
-
-.game-score-row.penalty {
-    color: #ff6b6b;
-}
-
-/* Players Cards Display - Landscape optimized grid */
-#digu-result-players {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: calc(0.8 * var(--scale));
-    margin-bottom: calc(1 * var(--scale));
-    overflow-y: auto;
-    flex: 1;
-    min-height: 0;
-    max-height: 45vh;
-}
+#digu-result-players { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
 
 .result-player-row {
     background: rgba(0, 0, 0, 0.3);
-    border-radius: calc(0.6 * var(--scale));
-    padding: calc(0.5 * var(--scale));
-    display: flex;
-    flex-direction: column;
+    border-radius: 6px;
+    padding: 8px;
 }
 
-.result-player-row.winner {
-    border: calc(0.15 * var(--scale)) solid var(--palm-green);
-    background: rgba(76, 175, 80, 0.1);
-}
+.result-player-row.winner { border: 1px solid var(--palm-green); background: rgba(76, 175, 80, 0.1); }
+.result-player-row.loser { border: 1px solid rgba(255, 107, 107, 0.5); }
 
-.result-player-row.loser {
-    border: calc(0.15 * var(--scale)) solid rgba(255, 107, 107, 0.5);
-}
+.result-player-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.result-player-name { color: var(--text-light); font-weight: 600; }
+.result-player-name.you { color: var(--sunset-gold); }
+.result-player-score.positive { color: var(--palm-green); }
+.result-player-score.negative { color: #ff6b6b; }
 
-.result-player-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: calc(0.4 * var(--scale));
-    flex-wrap: wrap;
-    gap: calc(0.3 * var(--scale));
-}
+.result-player-cards { display: flex; flex-wrap: wrap; gap: 2px; }
+.result-player-cards .card { width: 24px !important; height: 34px !important; }
+.result-player-cards .meld-group { display: flex; gap: 1px; margin-right: 6px; padding: 2px; border-radius: 3px; }
+.result-player-cards .meld-group.valid-set { background: rgba(255, 215, 0, 0.15); border: 1px solid rgba(255, 215, 0, 0.5); }
+.result-player-cards .meld-group.valid-run { background: rgba(64, 224, 208, 0.15); border: 1px solid rgba(64, 224, 208, 0.5); }
+.result-player-cards .meld-group.invalid { background: rgba(255, 107, 107, 0.15); border: 1px solid rgba(255, 107, 107, 0.5); }
 
-.result-player-name {
-    font-size: clamp(11px, calc(1.2 * var(--scale)), 16px);
-    color: var(--text-light);
-    font-weight: 600;
-}
-
-.result-player-name.you {
-    color: var(--sunset-gold);
-}
-
-.result-player-team {
-    font-size: clamp(9px, calc(1 * var(--scale)), 12px);
-    color: rgba(255, 255, 255, 0.6);
-    margin-left: calc(0.3 * var(--scale));
-}
-
-.result-player-score {
-    font-size: clamp(10px, calc(1.1 * var(--scale)), 14px);
-    font-weight: 600;
-}
-
-.result-player-score.positive {
-    color: var(--palm-green);
-}
-
-.result-player-score.negative {
-    color: #ff6b6b;
-}
-
-.result-player-score.neutral {
-    color: var(--sunset-gold);
-}
-
-/* Player Cards Display */
-.result-player-cards {
-    display: flex;
-    flex-wrap: wrap;
-    gap: calc(0.3 * var(--scale));
-    justify-content: flex-start;
-    align-items: flex-start;
-}
-
-.result-player-cards .card {
-    width: calc(3.5 * var(--scale)) !important;
-    height: calc(5 * var(--scale)) !important;
-    font-size: calc(1.2 * var(--scale)) !important;
-    flex-shrink: 0;
-}
-
-.result-player-cards .meld-group {
-    display: flex;
-    gap: calc(0.15 * var(--scale));
-    margin-right: calc(0.5 * var(--scale));
-    margin-bottom: calc(0.3 * var(--scale));
-    padding: calc(0.2 * var(--scale));
-    border-radius: calc(0.3 * var(--scale));
-    position: relative;
-}
-
-/* Meld group label showing card count */
-.result-player-cards .meld-group::after {
-    content: attr(data-count);
-    position: absolute;
-    top: calc(-0.8 * var(--scale));
-    right: calc(-0.3 * var(--scale));
-    font-size: clamp(8px, calc(0.9 * var(--scale)), 11px);
-    padding: calc(0.1 * var(--scale)) calc(0.3 * var(--scale));
-    border-radius: calc(0.3 * var(--scale));
-    font-weight: bold;
-}
-
-.result-player-cards .meld-group.valid-set {
-    background: rgba(255, 215, 0, 0.15);
-    border: 1px solid rgba(255, 215, 0, 0.5);
-}
-
-.result-player-cards .meld-group.valid-set::after {
-    background: rgba(255, 215, 0, 0.8);
-    color: #000;
-}
-
-.result-player-cards .meld-group.valid-run {
-    background: rgba(64, 224, 208, 0.15);
-    border: 1px solid rgba(64, 224, 208, 0.5);
-}
-
-.result-player-cards .meld-group.valid-run::after {
-    background: rgba(64, 224, 208, 0.8);
-    color: #000;
-}
-
-.result-player-cards .meld-group.invalid {
-    background: rgba(255, 107, 107, 0.15);
-    border: 1px solid rgba(255, 107, 107, 0.5);
-}
-
-.result-player-cards .meld-group.invalid::after {
-    background: rgba(255, 107, 107, 0.8);
-    color: #fff;
-}
-
-/* Meld value labels */
-.meld-value-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: calc(2 * var(--scale));
-    padding: 0 calc(0.2 * var(--scale));
-    font-size: clamp(9px, calc(1 * var(--scale)), 12px);
-    font-weight: bold;
-    border-radius: calc(0.3 * var(--scale));
-}
-
-.meld-value-label.valid {
-    color: var(--palm-green);
-    background: rgba(46, 204, 113, 0.2);
-}
-
-.meld-value-label.invalid {
-    color: #ff6b6b;
-    background: rgba(255, 107, 107, 0.2);
-}
-
-/* Player score summary */
-.player-score-summary {
-    display: flex;
-    gap: calc(0.8 * var(--scale));
-    font-size: clamp(9px, calc(1 * var(--scale)), 12px);
-    margin-top: calc(0.3 * var(--scale));
-    flex-wrap: wrap;
-}
-
-.player-score-summary .valid-score {
-    color: var(--palm-green);
-    font-weight: bold;
-}
-
-.player-score-summary .invalid-score {
-    color: #ff6b6b;
-    font-weight: bold;
-}
-
-/* Action Buttons */
-.digu-result-buttons {
-    display: flex;
-    gap: calc(1 * var(--scale));
-    justify-content: center;
-    flex-wrap: wrap;
-    flex-shrink: 0;
-    padding-top: calc(1 * var(--scale));
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    margin-top: auto;
-}
+.digu-result-buttons { display: flex; gap: 8px; justify-content: center; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
 
 .digu-result-btn {
-    padding: calc(0.8 * var(--scale)) calc(1.5 * var(--scale));
-    border-radius: calc(0.6 * var(--scale));
-    font-size: clamp(12px, calc(1.4 * var(--scale)), 18px);
+    padding: 8px 16px;
+    border-radius: 6px;
     cursor: pointer;
-    border: calc(0.15 * var(--scale)) solid var(--ocean-turquoise);
+    border: 1px solid var(--ocean-turquoise);
     background: rgba(64, 224, 208, 0.2);
     color: var(--text-light);
-    transition: all 0.2s;
 }
 
-.digu-result-btn:hover {
-    background: rgba(64, 224, 208, 0.4);
-}
+.digu-result-btn:hover { background: rgba(64, 224, 208, 0.4); }
+.digu-result-btn.primary { background: linear-gradient(145deg, var(--sunset-gold), var(--sunset-orange)); border-color: var(--sunset-gold); color: var(--night-blue); font-weight: 600; }
 
-.digu-result-btn.primary {
-    background: linear-gradient(145deg, var(--sunset-gold) 0%, var(--sunset-orange) 100%);
-    border-color: var(--sunset-gold);
-    color: var(--night-blue);
-    font-weight: 600;
-}
-
-.digu-result-btn.primary:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 calc(1 * var(--scale)) var(--sunset-gold);
-}
-
-/* Touch Drag Clone for Mobile */
-.touch-drag-clone {
-    position: fixed !important;
-    z-index: 10000 !important;
-    pointer-events: none !important;
-    opacity: 0.9 !important;
-    transform-origin: top left !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
-    transition: none !important;
-    animation: none !important;
-}
-
-/* Dragging card state */
-.digu-player.bottom .digu-player-hand .card.dragging {
-    opacity: 0.4;
-    transform: scale(0.95);
-}
-
-/* Drag over highlight for cards */
-.digu-player.bottom .digu-player-hand .card.drag-over {
-    transform: translateY(calc(-1 * var(--scale)));
-    box-shadow: 0 0 calc(1 * var(--scale)) var(--ocean-turquoise);
-    border-color: var(--ocean-turquoise);
-}
-
-/* Drag over highlight for discard pile */
-#digu-discard.drag-over {
-    box-shadow: 0 0 calc(1.5 * var(--scale)) var(--sunset-gold),
-                inset 0 0 calc(1 * var(--scale)) rgba(255, 215, 0, 0.3);
-    border-color: var(--sunset-gold);
-    transform: scale(1.05);
-}
-
-/* Touch target sizing for Digu */
-#digu-btn,
-#digu-stock,
-#digu-discard,
-.meld-slot,
-.digu-player.bottom .digu-player-hand .card {
-    min-height: var(--touch-target-min);
-    min-width: var(--touch-target-min);
-}
-
-/* Touch feedback for Digu button */
-#digu-btn:active:not(:disabled) {
-    transform: scale(0.97);
-    opacity: 0.9;
-    transition: transform 0.1s ease, opacity 0.1s ease;
-}
-
-/* ===== DIGU RESULT MODAL - MOBILE LANDSCAPE ===== */
-@media screen and (max-width: 900px) and (orientation: landscape),
-       screen and (max-height: 500px) and (orientation: landscape) {
-    #digu-result-modal {
-        padding: calc(1 * var(--scale));
-    }
-
-    .digu-result-content {
-        padding: calc(1 * var(--scale));
-        max-width: 95vw;
-        max-height: 95vh;
-        width: 95vw;
-    }
-
-    .digu-result-content h2 {
-        font-size: clamp(14px, calc(1.8 * var(--scale)), 22px);
-        margin-bottom: calc(0.5 * var(--scale));
-    }
-
-    /* Match Stats - horizontal compact layout */
-    .digu-match-stats {
-        display: flex;
-        flex-wrap: wrap;
-        gap: calc(0.3 * var(--scale)) calc(1 * var(--scale));
-        justify-content: center;
-        margin-bottom: calc(0.5 * var(--scale));
-        padding: calc(0.4 * var(--scale));
-    }
-
-    .match-stats-row {
-        font-size: clamp(9px, calc(0.9 * var(--scale)), 11px);
-        padding: calc(0.2 * var(--scale)) calc(0.4 * var(--scale));
-    }
-
-    .match-stats-row.total {
-        font-size: clamp(10px, calc(1 * var(--scale)), 12px);
-    }
-
-    /* Game Score - compact */
-    .digu-game-score {
-        padding: calc(0.4 * var(--scale));
-        margin-bottom: calc(0.5 * var(--scale));
-    }
-
-    .digu-game-score h3 {
-        font-size: clamp(10px, calc(1.1 * var(--scale)), 13px);
-        margin-bottom: calc(0.3 * var(--scale));
-    }
-
-    .game-score-row {
-        font-size: clamp(9px, calc(0.9 * var(--scale)), 11px);
-        padding: calc(0.2 * var(--scale)) 0;
-    }
-
-    /* Players Grid - 2x2 compact */
-    #digu-result-players {
-        grid-template-columns: repeat(2, 1fr);
-        gap: calc(0.5 * var(--scale));
-        max-height: 40vh;
-        margin-bottom: calc(0.5 * var(--scale));
-    }
-
-    .result-player-row {
-        padding: calc(0.4 * var(--scale));
-    }
-
-    .result-player-header {
-        margin-bottom: calc(0.3 * var(--scale));
-    }
-
-    .result-player-name {
-        font-size: clamp(9px, calc(1 * var(--scale)), 12px);
-    }
-
-    .result-player-team {
-        font-size: clamp(8px, calc(0.8 * var(--scale)), 10px);
-    }
-
-    .result-player-score {
-        font-size: clamp(9px, calc(0.9 * var(--scale)), 11px);
-    }
-
-    /* Cards - smaller for mobile */
-    .result-player-cards .card {
-        width: calc(2.8 * var(--scale)) !important;
-        height: calc(4 * var(--scale)) !important;
-        font-size: calc(1 * var(--scale)) !important;
-    }
-
-    .result-player-cards .meld-group {
-        gap: calc(0.1 * var(--scale));
-        margin-right: calc(0.4 * var(--scale));
-        margin-bottom: calc(0.2 * var(--scale));
-        padding: calc(0.15 * var(--scale));
-    }
-
-    .result-player-cards .meld-group::after {
-        font-size: clamp(7px, calc(0.7 * var(--scale)), 9px);
-        top: calc(-0.6 * var(--scale));
-        right: calc(-0.2 * var(--scale));
-        padding: calc(0.05 * var(--scale)) calc(0.2 * var(--scale));
-    }
-
-    .meld-value-label {
-        min-width: calc(1.5 * var(--scale));
-        font-size: clamp(8px, calc(0.8 * var(--scale)), 10px);
-        padding: 0 calc(0.15 * var(--scale));
-    }
-
-    .player-score-summary {
-        font-size: clamp(8px, calc(0.8 * var(--scale)), 10px);
-        gap: calc(0.5 * var(--scale));
-        margin-top: calc(0.2 * var(--scale));
-    }
-
-    /* Buttons - compact row */
-    .digu-result-buttons {
-        gap: calc(0.5 * var(--scale));
-        padding-top: calc(0.5 * var(--scale));
-        flex-wrap: nowrap;
-    }
-
-    .digu-result-btn {
-        padding: calc(0.5 * var(--scale)) calc(0.8 * var(--scale));
-        font-size: clamp(10px, calc(1.1 * var(--scale)), 13px);
-        flex: 1;
-        min-width: 0;
-    }
-}
-
-/* ===== DIGU SPONSOR AREAS ===== */
-
-/* Sponsor base styling */
-#digu-game-board .sponsor-area {
-    position: absolute;
-    z-index: 2;
-    pointer-events: none;
-}
-
-#digu-game-board .center-sponsor {
-    top: calc(50% + 8 * var(--scale));
-    left: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: auto;
-}
-
-#digu-game-board .sponsor-logo {
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
-}
-
-#digu-game-board .sponsor-logo:hover {
-    opacity: 1;
-}
-
-#digu-game-board .sponsor-logo.ooredoo svg {
-    width: calc(15 * var(--scale));
-    height: calc(6 * var(--scale));
-    min-width: 120px;
-    min-height: 48px;
-}
-
-/* Wrapper divs for players with sponsors (non-grid layout) */
-
-/* Bottom player (player 0) wrapper */
-#digu-game-board:not(.grid-layout) > div:has(#digu-player-0) {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: row;
-    align-items: flex-end;
-    gap: calc(2 * var(--scale));
-    z-index: 100;
-}
-
-#digu-game-board:not(.grid-layout) > div:has(#digu-player-0) #digu-player-0 {
-    position: relative;
-    bottom: auto;
-    left: auto;
-    transform: none;
-    padding-bottom: calc(1 * var(--scale));
-}
-
-/* Ensure player 0 label stays at the top of the hand area */
-#digu-game-board:not(.grid-layout) > div:has(#digu-player-0) .digu-player-label {
-    order: -1;
-}
-
-/* Sponsor column next to player 0 - align to bottom */
-#digu-game-board:not(.grid-layout) > div:has(#digu-player-0) .sponsor-column {
-    align-self: flex-end;
-    margin-bottom: calc(3 * var(--scale));
-}
-
-/* Left player (player 1) wrapper */
-#digu-game-board:not(.grid-layout) > div:has(#digu-player-1) {
-    position: absolute;
-    left: calc(2 * var(--scale));
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: calc(1.5 * var(--scale));
-    z-index: 5;
-}
-
-/* Right player (player 3) wrapper */
-#digu-game-board:not(.grid-layout) > div:has(#digu-player-3) {
-    position: absolute;
-    right: calc(2 * var(--scale));
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: calc(1.5 * var(--scale));
-    z-index: 5;
-}
-
-/* Override absolute positioning for players inside wrapper (non-grid) */
-#digu-game-board:not(.grid-layout) > div:has(#digu-player-0) #digu-player-0,
-#digu-game-board:not(.grid-layout) > div:has(#digu-player-1) #digu-player-1,
-#digu-game-board:not(.grid-layout) > div:has(#digu-player-3) #digu-player-3 {
-    position: relative;
-    left: auto;
-    right: auto;
-    top: auto;
-    bottom: auto;
-    transform: none;
-}
-
-/* Sponsor column styling */
-.sponsor-column {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    pointer-events: auto;
+/* Inline Game Buttons */
+#new-game-btn-inline,
+#menu-btn-inline {
+    padding: 6px 12px;
+    font-size: clamp(10px, 1.2vw, 14px);
+    background: linear-gradient(145deg, rgba(10, 20, 30, 0.9), rgba(20, 40, 60, 0.85));
+    border: 1px solid var(--ocean-turquoise);
+    color: var(--text-light);
+    border-radius: 6px;
     cursor: pointer;
-}
-
-/* Drink and Food item containers */
-.drink-item,
-.food-item {
-    width: calc(7 * var(--scale));
-    height: calc(7 * var(--scale));
-    min-width: 50px;
-    min-height: 50px;
-    background: rgba(255, 255, 255, 0.1);
-    border: calc(0.2 * var(--scale)) dashed rgba(255, 255, 255, 0.3);
-    border-radius: calc(1 * var(--scale));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-}
-
-.drink-item:hover,
-.food-item:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: var(--ocean-turquoise);
-}
-
-/* Sponsor images inside drink/food items */
-.drink-item img,
-.food-item img {
-    max-width: 90%;
-    max-height: 90%;
-    object-fit: contain;
-    border-radius: calc(0.5 * var(--scale));
-}
-
-/* Sponsor callouts for drink/food */
-#drink-callout,
-#food-callout {
-    margin-top: calc(0.5 * var(--scale));
-}
-
-/* Sponsor callouts */
-#digu-game-board .sponsor-callout {
-    position: absolute;
-    background: var(--sunset-gold);
-    color: var(--night-blue);
-    padding: calc(0.5 * var(--scale)) calc(1 * var(--scale));
-    border-radius: calc(0.5 * var(--scale));
-    font-size: calc(1 * var(--scale));
-    font-weight: 600;
+    transition: all 0.2s;
     white-space: nowrap;
-    z-index: 20;
-    animation: callout-bounce 0.5s ease;
 }
 
-#digu-game-board .sponsor-callout .callout-arrow {
-    position: absolute;
-    width: 0;
-    height: 0;
-    border-left: calc(0.5 * var(--scale)) solid transparent;
-    border-right: calc(0.5 * var(--scale)) solid transparent;
-    border-top: calc(0.5 * var(--scale)) solid var(--sunset-gold);
-    bottom: calc(-0.5 * var(--scale));
-    left: 50%;
-    transform: translateX(-50%);
+#new-game-btn-inline:hover,
+#menu-btn-inline:hover {
+    background: rgba(64, 224, 208, 0.3);
+    border-color: var(--sunset-gold);
+    color: var(--sunset-gold);
 }
 
-@keyframes callout-bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-}
-
-/* Lobby sponsors */
-.lobby-sponsor {
-    opacity: 0.9;
-}
-
-.lobby-sponsor-label {
-    font-size: calc(0.9 * var(--scale));
-    color: rgba(255, 255, 255, 0.6);
-    margin-bottom: calc(0.5 * var(--scale));
-    display: block;
-}
-
-.lobby-sponsor-logo {
-    min-height: calc(4 * var(--scale));
-}
-
-.lobby-sponsor-logo img {
-    max-width: calc(15 * var(--scale));
-    max-height: calc(4 * var(--scale));
-    object-fit: contain;
-}
+/* Touch Drag */
+.touch-drag-clone { position: fixed !important; z-index: 10000 !important; pointer-events: none !important; opacity: 0.9 !important; }

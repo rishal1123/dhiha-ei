@@ -81,8 +81,10 @@
         media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
 
     <title>Digu - Thaasbai</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/base.css?v=8">
-    <link rel="stylesheet" href="css/digu.css?v=11">
+    <link rel="stylesheet" href="css/digu.css?v=24">
 
     <!-- Socket.IO for multiplayer -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
@@ -170,143 +172,119 @@
                 <div id="game-status"></div>
             </header>
 
-            <!-- Digu Game Board - CSS Grid Layout -->
-            <main id="digu-game-board" class="grid-layout">
-                <!-- Grid Area: Top Player -->
-                <div class="grid-area-top">
-                    <div id="digu-player-2" class="digu-player top team-a">
-                        <div class="digu-avatar">
-                            <div class="digu-avatar-icon"></div>
+            <!-- Digu Game Board - Bootstrap Grid -->
+            <main id="digu-game-board" class="container-fluid p-0">
+                <!-- Row 1: Future use | Partner | Match Stats -->
+                <div class="row" style="height: 15%;">
+                    <div class="col">
+                        <div id="future-use"></div>
+                    </div>
+                    <div class="col text-center">
+                        <div id="digu-player-2" class="digu-player top team-a d-flex flex-column align-items-center">
+                            <div class="digu-avatar"><div class="digu-avatar-icon"></div></div>
+                            <div class="digu-team-label">Partner</div>
+                            <div class="digu-player-label">Player 3</div>
+                            <div class="digu-shuffle-count" id="digu-shuffle-count-2">Shuffle: 0</div>
                         </div>
-                        <div class="digu-team-label">Partner</div>
-                        <div class="digu-player-label">Player 3</div>
-                        <div class="digu-card-count">10 cards</div>
-                        <div class="digu-shuffle-count" id="digu-shuffle-count-2">Shuffle: 0</div>
+                    </div>
+                    <div class="col text-end">
+                        <div id="digu-scores">
+                            <div class="digu-scores-title">Match Stats</div>
+                            <div class="digu-match-info">Games: <span id="digu-games-count">0</span></div>
+                            <div class="digu-team-scores">
+                                <div class="digu-team-score team-a d-flex justify-content-between">
+                                    <span class="team-name">Your Team</span>
+                                    <span class="team-wins-value" id="team-a-wins">0</span>
+                                    <span class="team-score-value" id="team-a-score">0</span>
+                                </div>
+                                <div class="digu-team-score team-b d-flex justify-content-between">
+                                    <span class="team-name">Opponents</span>
+                                    <span class="team-wins-value" id="team-b-wins">0</span>
+                                    <span class="team-score-value" id="team-b-score">0</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Grid Area: Left Player + Sponsor -->
-                <div class="grid-area-left">
-                    <div id="digu-player-1" class="digu-player left team-b">
-                        <div class="digu-avatar">
-                            <div class="digu-avatar-icon"></div>
-                        </div>
-                        <div class="digu-team-label">Opponent</div>
-                        <div class="digu-player-label">Player 2</div>
-                        <div class="digu-card-count">10 cards</div>
-                        <div class="digu-shuffle-count" id="digu-shuffle-count-1">Shuffle: 0</div>
-                    </div>
-                    <!-- Drink sponsor - left side -->
-                    <div class="sponsor-column" id="drink-sponsor">
-                        <div class="drink-item"></div>
-                        <div id="drink-callout" class="sponsor-callout hidden">
-                            <span class="callout-text">Thirsty? Take a sip!</span>
-                            <div class="callout-arrow"></div>
+                <!-- Row 2: Left Player | Drink Sponsor | Stock | Center | Discard | Food Sponsor | Right Player -->
+                <div class="row" style="height: 55%;">
+                    <div class="col-1 d-flex align-items-center justify-content-center">
+                        <div id="digu-player-1" class="digu-player left team-b d-flex flex-column align-items-center">
+                            <div class="digu-avatar"><div class="digu-avatar-icon"></div></div>
+                            <div class="digu-team-label">Opponent</div>
+                            <div class="digu-player-label">Player 2</div>
+                            <div class="digu-shuffle-count" id="digu-shuffle-count-1">Shuffle: 0</div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Grid Area: Right Player + Sponsor -->
-                <div class="grid-area-right">
-                    <!-- Food sponsor - right side -->
-                    <div class="sponsor-column" id="food-sponsor">
-                        <div class="food-item"></div>
-                        <div id="food-callout" class="sponsor-callout hidden">
-                            <span class="callout-text">Snack break!</span>
-                            <div class="callout-arrow"></div>
+                    <div class="col-1 h-100">
+                        <div class="sponsor-column" id="drink-sponsor">
+                            <div class="drink-item"></div>
                         </div>
                     </div>
-                    <div id="digu-player-3" class="digu-player right team-b">
-                        <div class="digu-avatar">
-                            <div class="digu-avatar-icon"></div>
-                        </div>
-                        <div class="digu-team-label">Opponent</div>
-                        <div class="digu-player-label">Player 4</div>
-                        <div class="digu-card-count">10 cards</div>
-                        <div class="digu-shuffle-count" id="digu-shuffle-count-3">Shuffle: 0</div>
+                    <div class="col d-flex align-items-center justify-content-end">
+                        <div id="digu-stock" class="digu-pile clickable" title="Draw from deck"></div>
                     </div>
-                </div>
-
-                <!-- Grid Area: Center Table (Stock, Center, Discard, Sponsor) -->
-                <div class="grid-area-center">
-                    <!-- Stock Pile -->
-                    <div id="digu-stock" class="digu-pile clickable" title="Draw from deck"></div>
-
-                    <!-- Center: Phase, Button & Table Sponsor -->
-                    <div id="digu-center-area">
-                        <!-- Phase Indicator -->
+                    <div class="col d-flex flex-column align-items-center justify-content-center">
                         <div id="digu-phase">Draw a card</div>
-
-                        <!-- DIGU Button -->
-                        <button id="digu-btn" class="hidden" disabled>DIGU!</button>
-
-                        <!-- Center Table Sponsor -->
-                        <div id="table-sponsor" class="sponsor-area center-sponsor">
+                        <div id="table-sponsor" class="my-2">
                             <div class="sponsor-logo ooredoo">
-                                <svg viewBox="0 0 200 80" width="200" height="80">
-                                    <defs>
-                                        <linearGradient id="ooredooRed" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" style="stop-color:#E60012" />
-                                            <stop offset="100%" style="stop-color:#C4000F" />
-                                        </linearGradient>
-                                    </defs>
+                                <svg viewBox="0 0 200 80" width="150" height="60">
+                                    <defs><linearGradient id="ooredooRed" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#E60012"/><stop offset="100%" style="stop-color:#C4000F"/>
+                                    </linearGradient></defs>
                                     <g transform="translate(15, 12)">
-                                        <circle cx="28" cy="28" r="26" fill="url(#ooredooRed)" />
-                                        <circle cx="20" cy="22" r="10" fill="white" />
-                                        <circle cx="36" cy="22" r="8" fill="white" />
-                                        <circle cx="28" cy="38" r="7" fill="white" />
-                                        <path d="M22 30 Q28 32 34 28" stroke="white" stroke-width="4" fill="none" />
+                                        <circle cx="28" cy="28" r="26" fill="url(#ooredooRed)"/>
+                                        <circle cx="20" cy="22" r="10" fill="white"/><circle cx="36" cy="22" r="8" fill="white"/>
+                                        <circle cx="28" cy="38" r="7" fill="white"/>
+                                        <path d="M22 30 Q28 32 34 28" stroke="white" stroke-width="4" fill="none"/>
                                     </g>
-                                    <text x="75" y="48" font-family="Arial, sans-serif" font-size="28" font-weight="bold"
-                                        fill="#E60012" letter-spacing="-1">ooredoo</text>
-                                    <text x="77" y="65" font-family="Arial, sans-serif" font-size="12" fill="#E60012"
-                                        letter-spacing="2">MALDIVES</text>
+                                    <text x="75" y="48" font-family="Arial" font-size="28" font-weight="bold" fill="#E60012">ooredoo</text>
+                                    <text x="77" y="65" font-family="Arial" font-size="12" fill="#E60012">MALDIVES</text>
                                 </svg>
                             </div>
-                            <div id="table-callout" class="sponsor-callout hidden">
-                                <div class="callout-arrow"></div>
-                                <span class="callout-text">Stay connected!</span>
-                            </div>
+                        </div>
+                        <div id="digu-draw-notification" class="digu-draw-notification"></div>
+                        <button id="digu-btn" class="btn btn-warning fw-bold text-uppercase hidden" disabled>DIGU!</button>
+                    </div>
+                    <div class="col d-flex align-items-center justify-content-start">
+                        <div id="digu-discard" class="digu-pile clickable" title="Draw from discard">
+                            <div class="discard-card" id="digu-discard-top"></div>
                         </div>
                     </div>
-
-                    <!-- Discard Pile -->
-                    <div id="digu-discard" class="digu-pile clickable" title="Draw from discard">
-                        <div class="discard-card" id="digu-discard-top"></div>
+                    <div class="col-1 h-100">
+                        <div class="sponsor-column" id="food-sponsor">
+                            <div class="food-item"></div>
+                        </div>
                     </div>
-
-                    <!-- Discard hint -->
-                    <div id="meld-hint">Discard</div>
+                    <div class="col-1 d-flex align-items-center justify-content-center">
+                        <div id="digu-player-3" class="digu-player right team-b d-flex flex-column align-items-center">
+                            <div class="digu-avatar"><div class="digu-avatar-icon"></div></div>
+                            <div class="digu-team-label">Opponent</div>
+                            <div class="digu-player-label">Player 4</div>
+                            <div class="digu-shuffle-count" id="digu-shuffle-count-3">Shuffle: 0</div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Grid Area: Bottom Player -->
-                <div class="grid-area-bottom">
-                    <div id="digu-player-0" class="digu-player bottom team-a">
-                        <div class="digu-player-label">You</div>
-                        <div class="digu-shuffle-count" id="digu-shuffle-count-0">Shuffle: 0</div>
-                        <div class="digu-player-hand"></div>
+                <!-- Row 3: You/Shuffle | Player Hand | Buttons -->
+                <div class="row" style="height: 30%;">
+                    <div class="col-2 d-flex flex-column align-items-center justify-content-center">
+                        <span class="digu-player-label">You</span>
+                        <span class="digu-shuffle-count" id="digu-shuffle-count-0">Shuffle: 0</span>
                     </div>
-                </div>
+                    <div class="col d-flex align-items-center justify-content-center">
+                        <div id="digu-player-0" class="digu-player bottom team-a">
+                            <div class="digu-player-hand d-flex"></div>
+                        </div>
+                    </div>
+                    <div class="col-2 d-flex flex-column align-items-center justify-content-center gap-2">
+                        <div class="row">
+                            <div class="col">  <button id="new-game-btn-inline" class="btn btn-sm btn-outline-light">New Game</button></div>
+                                 <div class="col">                        <button id="menu-btn-inline" class="btn btn-sm btn-outline-light">Menu</button></div>
+                        </div>
+                      
 
-                <!-- Grid Area: Scores Panel -->
-                <div class="grid-area-scores">
-                    <div id="digu-scores">
-                        <div class="digu-scores-title">Match Stats</div>
-                        <div class="digu-match-info">
-                            <span>Games: <span id="digu-games-count">0</span></span>
-                        </div>
-                        <div class="digu-team-scores">
-                            <div class="digu-team-score team-a">
-                                <span class="team-name">Your Team</span>
-                                <span class="team-wins-value" id="team-a-wins">0 wins</span>
-                                <span class="team-score-value" id="team-a-score">0</span>
-                            </div>
-                            <div class="digu-team-score team-b">
-                                <span class="team-name">Opponents</span>
-                                <span class="team-wins-value" id="team-b-wins">0 wins</span>
-                                <span class="team-score-value" id="team-b-score">0</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -505,21 +483,6 @@
                     </div>
                 </div>
 
-                <!-- Digu Player Count Modal -->
-                <div id="digu-player-count-modal" class="hidden">
-                    <h3>How Many Players?</h3>
-                    <p class="modal-subtitle">Play against AI opponents</p>
-                    <div class="player-count-options">
-                        <button class="player-count-btn" data-players="2">2 Players</button>
-                        <button class="player-count-btn" data-players="3">3 Players</button>
-                        <button class="player-count-btn selected" data-players="4">4 Players</button>
-                    </div>
-                    <div class="modal-actions">
-                        <button id="digu-cancel-btn" class="lobby-btn secondary">Cancel</button>
-                        <button id="digu-start-btn" class="lobby-btn primary">Start Game</button>
-                    </div>
-                </div>
-
                 <!-- Error Display -->
                 <div id="lobby-error" class="hidden"></div>
             </div>
@@ -562,7 +525,7 @@
         </div>
 
         <!-- Single bundled script (no modules) -->
-        <script src="js/bundle.js?v=77"></script>
+        <script src="js/bundle.js?v=79"></script>
 
         <!-- PWA Install Handler -->
         <script>

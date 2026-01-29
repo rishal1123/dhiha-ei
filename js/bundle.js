@@ -4093,6 +4093,25 @@
             menuBtn.addEventListener('click', () => {
                 this.returnToLobby();
             });
+
+            // Inline buttons for Digu game board
+            const newGameBtnInline = document.getElementById('new-game-btn-inline');
+            if (newGameBtnInline) {
+                newGameBtnInline.addEventListener('click', () => {
+                    if (this.isMultiplayerMode) {
+                        this.confirmLeaveMultiplayer();
+                    } else {
+                        this.startNewMatch();
+                    }
+                });
+            }
+
+            const menuBtnInline = document.getElementById('menu-btn-inline');
+            if (menuBtnInline) {
+                menuBtnInline.addEventListener('click', () => {
+                    this.returnToLobby();
+                });
+            }
         }
 
         // Return to lobby from game
@@ -4127,14 +4146,9 @@
                 playAiBtn.addEventListener('click', () => {
                     console.log('[UIManager] Play vs AI clicked, selectedGame:', this.selectedGame);
                     if (this.selectedGame === 'digu') {
-                        // Show Digu player count modal for single player
-                        const modal = document.getElementById('digu-player-count-modal');
-                        if (modal) {
-                            console.log('[UIManager] Showing Digu player count modal');
-                            modal.classList.remove('hidden');
-                        } else {
-                            console.error('[UIManager] digu-player-count-modal not found');
-                        }
+                        // Digu is always 4 players - start directly
+                        console.log('[UIManager] Starting Digu with 4 players');
+                        this.startDiguGame(4);
                     } else {
                         this.startSinglePlayerGame();
                     }
