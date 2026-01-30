@@ -875,6 +875,11 @@ html.standalone #game-board {
     background: rgba(34, 139, 34, 0.2);
 }
 
+.player-slot.you {
+    border-color: var(--sunset-gold);
+    background: rgba(255, 179, 71, 0.15);
+}
+
 .slot-status { color: rgba(255, 255, 255, 0.5); font-size: clamp(14px, 1.6vw, 22px); }
 .slot-name { font-weight: 600; font-size: clamp(16px, 1.8vw, 24px); }
 .slot-ready { color: var(--palm-green); font-size: clamp(14px, 1.6vw, 22px); }

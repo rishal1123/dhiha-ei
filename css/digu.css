@@ -1046,3 +1046,27 @@
 
 /* Digu Matchmaking Screen */
 #digu-matchmaking-screen:not(.hidden) { display: block; }
+
+#digu-matchmaking-screen .matchmaking-content { text-align: center; }
+
+#digu-matchmaking-screen .matchmaking-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(64, 224, 208, 0.3);
+    border-top-color: var(--ocean-turquoise);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 16px auto;
+}
+
+#digu-matchmaking-screen .matchmaking-status {
+    font-size: clamp(22px, 2.6vw, 34px);
+    color: var(--sunset-gold);
+    margin: 8px 0;
+}
+
+#digu-matchmaking-screen .matchmaking-hint {
+    font-size: clamp(14px, 1.6vw, 22px);
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 12px;
+}
