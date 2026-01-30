@@ -1,6 +1,16 @@
 /* Thaasbai - Base Styles */
 /* Shared foundation styles for all games */
 
+/* Faruma Font - Dhivehi/Thaana script support */
+@font-face {
+    font-family: 'Faruma';
+    src: url('../fonts/Faruma.woff2') format('woff2'),
+         url('../fonts/Faruma.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     /* Maldivian Color Palette - Dark Theme */
     --ocean-deep: #003d54;

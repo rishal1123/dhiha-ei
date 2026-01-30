@@ -4,7 +4,7 @@
  */
 
 // IMPORTANT: Increment this version to trigger update
-const CACHE_VERSION = 181;
+const CACHE_VERSION = 182;
 const CACHE_NAME = `thaasbai-v${CACHE_VERSION}`;
 const OFFLINE_URL = '/';
 
@@ -38,7 +38,13 @@ const ASSETS_TO_CACHE = [
   '/icons/icon-180x180.png',
   '/icons/icon-152x152.png',
   '/icons/icon-167x167.png',
-  '/icons/icon-120x120.png'
+  '/icons/icon-120x120.png',
+  // Fonts
+  '/fonts/Faruma.woff2',
+  '/fonts/Faruma.woff',
+  // Language files
+  '/lang/en.json',
+  '/lang/dv.json'
 ];
 
 // Install event - cache essential assets
