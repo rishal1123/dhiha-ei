@@ -1778,6 +1778,86 @@ def handle_digu_set_ready(data):
         digu_rooms[room_id]['players'][position]['ready'] = ready
         emit('digu_players_changed', {'players': digu_rooms[room_id]['players']}, room=room_id)
 
+@socketio.on('swap_digu_player')
+def handle_swap_digu_player(data):
+    """Swap a Digu player to the other team (host only)"""
+    sid = request.sid
+    from_position = data.get('fromPosition')
+
+    if sid not in player_sessions:
+        return
+
+    session = player_sessions[sid]
+    if session.get('gameType') != 'digu':
+        return
+
+    room_id = session['roomId']
+
+    # Only host (position 0) can swap
+    if session['position'] != 0:
+        emit('error', {'message': 'Only host can assign teams'})
+        return
+
+    if room_id not in digu_rooms:
+        return
+
+    room = digu_rooms[room_id]
+    players = room['players']
+
+    if from_position not in players:
+        emit('error', {'message': 'No player in that position'})
+        return
+
+    # Determine teams
+    # Team A: positions 0, 2 | Team B: positions 1, 3
+    current_team = 0 if from_position in [0, 2] else 1
+    target_team = 1 if current_team == 0 else 0
+    target_positions = [1, 3] if target_team == 1 else [0, 2]
+
+    # Find empty slot on target team
+    target_position = None
+    for pos in target_positions:
+        if pos not in players:
+            target_position = pos
+            break
+
+    player_to_move = players[from_position]
+
+    if target_position is not None:
+        # Move to empty slot
+        players[target_position] = player_to_move
+        del players[from_position]
+
+        # Update session for moved player
+        for sess_id, sess in player_sessions.items():
+            if sess.get('roomId') == room_id and sess.get('position') == from_position:
+                sess['position'] = target_position
+                break
+    else:
+        # Swap with first player on target team
+        target_position = target_positions[0]
+        player_to_swap = players[target_position]
+
+        players[target_position] = player_to_move
+        players[from_position] = player_to_swap
+
+        # Update sessions for both players
+        for sess_id, sess in player_sessions.items():
+            if sess.get('roomId') == room_id:
+                if sess.get('position') == from_position:
+                    sess['position'] = target_position
+                elif sess.get('position') == target_position:
+                    sess['position'] = from_position
+
+    emit('digu_players_changed', {'players': players}, room=room_id)
+
+    # Notify affected players of their new positions
+    emit('digu_position_changed', {
+        'fromPosition': from_position,
+        'toPosition': target_position,
+        'players': players
+    }, room=room_id)
+
 @socketio.on('start_digu_game')
 def handle_start_digu_game(data):
     """Host starts the Digu game"""

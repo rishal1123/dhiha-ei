@@ -375,7 +375,7 @@
                     </div>
                 </div>
 
-                <!-- Digu Waiting Room -->
+                <!-- Digu Waiting Room (same structure as Dhiha Ei) -->
                 <div id="digu-waiting-room" class="hidden">
                     <div class="room-header">
                         <h3>Room Code</h3>
@@ -384,29 +384,31 @@
                     </div>
 
                     <div id="digu-player-slots">
-                        <div class="digu-slot-row">
-                            <div class="digu-player-slot" data-position="0">
-                                <span class="slot-number">1</span>
+                        <div class="team-column" data-team="0">
+                            <div class="team-label">Team A</div>
+                            <div class="player-slot" data-position="0" data-team="0">
                                 <span class="slot-status">Waiting...</span>
                                 <span class="slot-name"></span>
                                 <span class="slot-ready"></span>
+                                <button class="swap-btn hidden" title="Move to Team B">&#8594;</button>
                             </div>
-                            <div class="digu-player-slot" data-position="1">
-                                <span class="slot-number">2</span>
+                            <div class="player-slot" data-position="2" data-team="0">
                                 <span class="slot-status">Waiting...</span>
                                 <span class="slot-name"></span>
                                 <span class="slot-ready"></span>
+                                <button class="swap-btn hidden" title="Move to Team B">&#8594;</button>
                             </div>
                         </div>
-                        <div class="digu-slot-row">
-                            <div class="digu-player-slot" data-position="2">
-                                <span class="slot-number">3</span>
+                        <div class="team-column" data-team="1">
+                            <div class="team-label">Team B</div>
+                            <div class="player-slot" data-position="1" data-team="1">
+                                <button class="swap-btn hidden" title="Move to Team A">&#8592;</button>
                                 <span class="slot-status">Waiting...</span>
                                 <span class="slot-name"></span>
                                 <span class="slot-ready"></span>
                             </div>
-                            <div class="digu-player-slot" data-position="3">
-                                <span class="slot-number">4</span>
+                            <div class="player-slot" data-position="3" data-team="1">
+                                <button class="swap-btn hidden" title="Move to Team A">&#8592;</button>
                                 <span class="slot-status">Waiting...</span>
                                 <span class="slot-name"></span>
                                 <span class="slot-ready"></span>
@@ -414,7 +416,7 @@
                         </div>
                     </div>
 
-                    <p class="digu-room-hint">Minimum 2 players to start</p>
+                    <p id="digu-host-team-hint" class="host-hint hidden">As host, click arrows to move players between teams</p>
 
                     <div id="digu-waiting-room-actions" class="d-flex flex-column gap-2">
                         <button id="digu-ready-btn" class="btn btn-outline-light w-100">Ready</button>
@@ -428,7 +430,7 @@
                     </div>
 
                     <!-- Waiting Room Sponsor -->
-                    <div id="waiting-room-sponsor" class="lobby-sponsor">
+                    <div id="digu-waiting-room-sponsor" class="lobby-sponsor">
                         <span class="lobby-sponsor-label">Sponsored by</span>
                         <div class="lobby-sponsor-logo">
                             <!-- Sponsor logo will be inserted dynamically -->

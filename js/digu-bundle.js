@@ -907,6 +907,17 @@
         getGameStartData() {
             return this.gameStartData;
         }
+
+        // Swap a player to the other team (host only)
+        async swapPlayerTeam(fromPosition) {
+            if (!this.isHost()) {
+                throw new Error('Only host can assign teams');
+            }
+
+            if (!socket) return;
+
+            socket.emit('swap_digu_player', { fromPosition });
+        }
     }
 
     // ============================================
@@ -4417,13 +4428,24 @@
                 });
             }
 
-            // Swap buttons for team assignment (host only)
-            document.querySelectorAll('.swap-btn').forEach(btn => {
+            // Swap buttons for team assignment (host only) - for Dhiha Ei
+            document.querySelectorAll('#player-slots .swap-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const slot = e.target.closest('.player-slot');
                     if (slot) {
                         const position = parseInt(slot.dataset.position);
                         this.handleSwapPlayer(position);
+                    }
+                });
+            });
+
+            // Swap buttons for Digu waiting room
+            document.querySelectorAll('#digu-player-slots .swap-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const slot = e.target.closest('.player-slot');
+                    if (slot) {
+                        const position = parseInt(slot.dataset.position);
+                        this.handleDiguSwapPlayer(position);
                     }
                 });
             });
@@ -5964,7 +5986,7 @@
             }
         }
 
-        // Handle swap player button click
+        // Handle swap player button click (Dhiha Ei)
         async handleSwapPlayer(position) {
             if (!this.lobbyManager || !this.lobbyManager.isHost()) return;
 
@@ -5972,6 +5994,18 @@
                 await this.lobbyManager.swapPlayerTeam(position);
             } catch (error) {
                 console.error('Error swapping player:', error);
+                this.showError(error.message || 'Failed to swap player');
+            }
+        }
+
+        // Handle swap player button click (Digu)
+        async handleDiguSwapPlayer(position) {
+            if (!this.diguLobbyManager || !this.diguLobbyManager.isHost()) return;
+
+            try {
+                await this.diguLobbyManager.swapPlayerTeam(position);
+            } catch (error) {
+                console.error('Error swapping Digu player:', error);
                 this.showError(error.message || 'Failed to swap player');
             }
         }
@@ -7218,37 +7252,85 @@
         }
 
         updateDiguPlayerSlots(players) {
-            const slots = document.querySelectorAll('.digu-player-slot');
+            const slotsContainer = document.getElementById('digu-player-slots');
+            if (!slotsContainer) return;
+
+            const slots = slotsContainer.querySelectorAll('.player-slot');
+            const localPosition = this.diguLobbyManager ? this.diguLobbyManager.getPosition() : null;
+            const isHost = this.diguLobbyManager && this.diguLobbyManager.isHost();
+
+            let filledCount = 0;
+            let allReady = true;
 
             slots.forEach(slot => {
                 const position = parseInt(slot.dataset.position);
                 const player = players[position];
 
+                slot.classList.remove('filled', 'ready', 'you');
+
                 const statusEl = slot.querySelector('.slot-status');
                 const nameEl = slot.querySelector('.slot-name');
                 const readyEl = slot.querySelector('.slot-ready');
+                const swapBtn = slot.querySelector('.swap-btn');
 
                 if (player) {
+                    filledCount++;
                     slot.classList.add('filled');
-                    slot.classList.toggle('ready', player.ready);
-                    if (statusEl) statusEl.textContent = '';
-                    if (nameEl) nameEl.textContent = player.name;
-                    if (readyEl) readyEl.textContent = player.ready ? 'Ready' : '';
+
+                    if (position === localPosition) {
+                        slot.classList.add('you');
+                    }
+
+                    if (player.ready) {
+                        slot.classList.add('ready');
+                        if (readyEl) readyEl.textContent = 'READY';
+                    } else {
+                        if (readyEl) readyEl.textContent = '';
+                        allReady = false;
+                    }
+
+                    if (statusEl) statusEl.textContent = position === 0 ? 'Host' : 'Player';
+                    if (nameEl) nameEl.textContent = player.name || 'Unknown';
+
+                    // Show swap button for host (can swap any non-host player)
+                    if (swapBtn) {
+                        if (isHost && position !== 0) {
+                            swapBtn.classList.remove('hidden');
+                        } else {
+                            swapBtn.classList.add('hidden');
+                        }
+                    }
                 } else {
-                    slot.classList.remove('filled', 'ready');
                     if (statusEl) statusEl.textContent = 'Waiting...';
                     if (nameEl) nameEl.textContent = '';
                     if (readyEl) readyEl.textContent = '';
+                    allReady = false;
+
+                    // Hide swap button for empty slots
+                    if (swapBtn) {
+                        swapBtn.classList.add('hidden');
+                    }
                 }
             });
 
+            // Show/hide host team hint
+            const hostHint = document.getElementById('digu-host-team-hint');
+            if (hostHint) {
+                if (isHost && filledCount > 1) {
+                    hostHint.classList.remove('hidden');
+                } else {
+                    hostHint.classList.add('hidden');
+                }
+            }
+
             // Update start button state for host - requires all 4 players
-            if (this.diguLobbyManager && this.diguLobbyManager.isHost()) {
-                const playerCount = Object.keys(players).length;
-                const allReady = Object.values(players).every(p => p.ready);
-                const startBtn = document.getElementById('digu-start-game-btn');
-                if (startBtn) {
-                    startBtn.disabled = playerCount < 4 || !allReady;
+            const startBtn = document.getElementById('digu-start-game-btn');
+            if (startBtn) {
+                if (isHost) {
+                    startBtn.classList.remove('hidden');
+                    startBtn.disabled = filledCount < 4 || !allReady;
+                } else {
+                    startBtn.classList.add('hidden');
                 }
             }
         }
