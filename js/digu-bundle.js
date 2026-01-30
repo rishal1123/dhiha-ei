@@ -225,6 +225,7 @@
     let socket = null;
     let currentUserId = null;
     let isConnected = false;
+    let onConnectionStatusChanged = null; // Callback for connection status changes
 
     // Get WebSocket server URL (same origin or configurable)
     function getServerUrl() {
@@ -261,9 +262,32 @@
                 console.log('Session ID:', currentUserId);
             });
 
-            socket.on('disconnect', () => {
-                console.log('Disconnected from server');
+            socket.on('disconnect', (reason) => {
+                console.log('Disconnected from server:', reason);
                 isConnected = false;
+                // Notify any listeners about disconnection
+                if (onConnectionStatusChanged) {
+                    onConnectionStatusChanged(false, reason);
+                }
+            });
+
+            socket.on('reconnect', (attemptNumber) => {
+                console.log('Reconnected to server after', attemptNumber, 'attempts');
+                isConnected = true;
+                if (onConnectionStatusChanged) {
+                    onConnectionStatusChanged(true, 'reconnected');
+                }
+            });
+
+            socket.on('reconnect_attempt', (attemptNumber) => {
+                console.log('Reconnection attempt', attemptNumber);
+            });
+
+            socket.on('reconnect_failed', () => {
+                console.error('Failed to reconnect to server');
+                if (onConnectionStatusChanged) {
+                    onConnectionStatusChanged(false, 'reconnect_failed');
+                }
             });
 
             socket.on('connect_error', (error) => {
@@ -677,14 +701,19 @@
                 throw new Error('Not connected to server');
             }
 
+            // Setup listeners BEFORE emitting to avoid race condition
+            this.setupSocketListeners();
+
             return new Promise((resolve, reject) => {
-                socket.emit('create_digu_room', { playerName: hostName, maxPlayers });
+                const timeout = setTimeout(() => {
+                    reject(new Error('Room creation timeout'));
+                }, 10000);
 
                 socket.once('digu_room_created', (data) => {
+                    clearTimeout(timeout);
                     this.currentRoomId = data.roomId;
                     this.currentPosition = data.position;
                     this.maxPlayers = data.maxPlayers;
-                    this.setupSocketListeners();
 
                     if (this.onPlayersChanged) {
                         this.onPlayersChanged(data.players);
@@ -694,8 +723,11 @@
                 });
 
                 socket.once('error', (data) => {
+                    clearTimeout(timeout);
                     reject(new Error(data.message));
                 });
+
+                socket.emit('create_digu_room', { playerName: hostName, maxPlayers });
             });
         }
 
@@ -704,17 +736,19 @@
                 throw new Error('Not connected to server');
             }
 
+            // Setup listeners BEFORE emitting to avoid race condition
+            this.setupSocketListeners();
+
             return new Promise((resolve, reject) => {
-                socket.emit('join_digu_room', {
-                    roomId: roomId.toUpperCase().trim(),
-                    playerName
-                });
+                const timeout = setTimeout(() => {
+                    reject(new Error('Room join timeout'));
+                }, 10000);
 
                 socket.once('digu_room_joined', (data) => {
+                    clearTimeout(timeout);
                     this.currentRoomId = data.roomId;
                     this.currentPosition = data.position;
                     this.maxPlayers = data.maxPlayers;
-                    this.setupSocketListeners();
 
                     if (this.onPlayersChanged) {
                         this.onPlayersChanged(data.players);
@@ -729,7 +763,13 @@
                 });
 
                 socket.once('error', (data) => {
+                    clearTimeout(timeout);
                     reject(new Error(data.message));
+                });
+
+                socket.emit('join_digu_room', {
+                    roomId: roomId.toUpperCase().trim(),
+                    playerName
                 });
             });
         }
@@ -3869,6 +3909,8 @@
             this.diguSelectedCards = [];
             this.diguActiveMeldSlot = null;
             this.diguNumPlayers = 4;
+            this.diguCardsDiscarded = 0; // Counter for sponsor popup every 5 cards
+            this.diguSponsorIndex = 0; // Cycle through sponsors
 
             // Sponsor data (loaded from API)
             this.sponsorsData = null;
@@ -3974,10 +4016,12 @@
                         tableSponsor.innerHTML = `<div class="sponsor-name-placeholder" style="width:${size.width}px;height:${size.height}px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.1);border:1px dashed rgba(255,255,255,0.3);border-radius:8px;color:var(--text-light);font-size:14px;text-align:center;">${this.sponsorsData.table.name}</div>`;
                     }
                     tableSponsor.classList.add('sponsor-active');
+                    tableSponsor.title = this.sponsorsData.table.callout || this.sponsorsData.table.name || '';
                 } else {
                     // Restore original placeholder
                     tableSponsor.innerHTML = this.originalSponsorHTML.table;
                     tableSponsor.classList.remove('sponsor-active');
+                    tableSponsor.title = '';
                 }
                 tableSponsor.style.display = '';
             }
@@ -3993,10 +4037,12 @@
                         drinkSponsor.innerHTML = `<span class="sponsor-label">Drink</span><div class="sponsor-name-placeholder" style="max-width:${size.width}px;max-height:${size.height}px;min-width:80px;min-height:80px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.1);border:1px dashed rgba(255,255,255,0.3);border-radius:8px;color:var(--text-light);font-size:12px;text-align:center;padding:8px;">${this.sponsorsData.drink.name}</div>`;
                     }
                     drinkSponsor.classList.add('sponsor-active');
+                    drinkSponsor.title = this.sponsorsData.drink.callout || this.sponsorsData.drink.name || '';
                 } else {
                     // Restore original placeholder
                     drinkSponsor.innerHTML = this.originalSponsorHTML.drink;
                     drinkSponsor.classList.remove('sponsor-active');
+                    drinkSponsor.title = '';
                 }
                 drinkSponsor.style.display = '';
             }
@@ -4012,10 +4058,12 @@
                         foodSponsor.innerHTML = `<span class="sponsor-label">Food</span><div class="sponsor-name-placeholder" style="max-width:${size.width}px;max-height:${size.height}px;min-width:80px;min-height:80px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.1);border:1px dashed rgba(255,255,255,0.3);border-radius:8px;color:var(--text-light);font-size:12px;text-align:center;padding:8px;">${this.sponsorsData.food.name}</div>`;
                     }
                     foodSponsor.classList.add('sponsor-active');
+                    foodSponsor.title = this.sponsorsData.food.callout || this.sponsorsData.food.name || '';
                 } else {
                     // Restore original placeholder
                     foodSponsor.innerHTML = this.originalSponsorHTML.food;
                     foodSponsor.classList.remove('sponsor-active');
+                    foodSponsor.title = '';
                 }
                 foodSponsor.style.display = '';
             }
@@ -4029,11 +4077,13 @@
                         const size = sponsorSizes.matchmaking;
                         logoContainer.innerHTML = `<img src="${this.sponsorsData.matchmaking.logo}" alt="${this.sponsorsData.matchmaking.name}" style="width:${size.width}px;height:${size.height}px;object-fit:contain;">`;
                     }
+                    matchmakingSponsor.title = this.sponsorsData.matchmaking.callout || this.sponsorsData.matchmaking.name || '';
                 } else {
                     // Restore original placeholder
                     if (logoContainer) {
                         logoContainer.innerHTML = this.originalSponsorHTML.matchmaking;
                     }
+                    matchmakingSponsor.title = '';
                 }
                 matchmakingSponsor.style.display = '';
             }
@@ -4047,11 +4097,13 @@
                         const size = sponsorSizes.waiting_room;
                         logoContainer.innerHTML = `<img src="${this.sponsorsData.waiting_room.logo}" alt="${this.sponsorsData.waiting_room.name}" style="width:${size.width}px;height:${size.height}px;object-fit:contain;">`;
                     }
+                    waitingRoomSponsor.title = this.sponsorsData.waiting_room.callout || this.sponsorsData.waiting_room.name || '';
                 } else {
                     // Restore original placeholder
                     if (logoContainer) {
                         logoContainer.innerHTML = this.originalSponsorHTML.waiting_room;
                     }
+                    waitingRoomSponsor.title = '';
                 }
                 waitingRoomSponsor.style.display = '';
             }
@@ -4097,7 +4149,15 @@
             if (this.isMultiplayerMode) {
                 this.confirmLeaveMultiplayer();
             } else {
-                this.showLobby();
+                // Check if a game is in progress
+                const gameInProgress = this.game || this.diguGame;
+                if (gameInProgress) {
+                    if (confirm('Leave current game and return to menu?')) {
+                        this.showLobby();
+                    }
+                } else {
+                    this.showLobby();
+                }
             }
         }
 
@@ -4522,6 +4582,7 @@
             // Reset UI state
             this.diguSelectedCards = [];
             this.diguActiveMeldSlot = null;
+            this.diguCardsDiscarded = 0; // Reset sponsor counter for new game
 
             // Initial display
             this.updateDiguDisplay();
@@ -4802,6 +4863,42 @@
             }
 
             phaseEl.textContent = text;
+
+            // Update pile glows based on phase and turn
+            this.updateDiguPileGlows();
+        }
+
+        // Update pile glow indicators based on current phase and turn
+        updateDiguPileGlows() {
+            const stockPile = document.getElementById('digu-stock');
+            const discardPile = document.getElementById('digu-discard');
+            if (!stockPile || !discardPile || !this.diguGame) return;
+
+            // Check if it's human player's turn
+            let isHumanTurn;
+            if (this.isDiguMultiplayer) {
+                isHumanTurn = this.diguGame.currentPlayerIndex === this.diguGame.localPlayerPosition;
+            } else {
+                isHumanTurn = this.diguGame.isHumanTurn();
+            }
+
+            const phase = this.diguGame.gamePhase;
+
+            // Remove glow from both piles first
+            stockPile.classList.remove('action-glow');
+            discardPile.classList.remove('action-glow');
+
+            // Only show glow when it's the human player's turn
+            if (isHumanTurn) {
+                if (phase === 'draw') {
+                    // Both piles glow during draw phase
+                    stockPile.classList.add('action-glow');
+                    discardPile.classList.add('action-glow');
+                } else if (phase === 'meld' || phase === 'discard') {
+                    // Only discard pile glows during meld/discard phase
+                    discardPile.classList.add('action-glow');
+                }
+            }
         }
 
         updateDiguTurn(playerIndex) {
@@ -4830,6 +4927,9 @@
                     phaseEl.textContent = `${playerName}'s turn`;
                 }
             }
+
+            // Update pile glows based on turn change
+            this.updateDiguPileGlows();
         }
 
         updateDiguButton() {
@@ -5068,6 +5168,35 @@
             // Don't hide draw notification on discard - let timeout handle it
             // This allows AI draw notifications to stay visible
             this.updateDiguDisplay();
+
+            // Track cards discarded and show sponsor popup every 5 cards
+            this.diguCardsDiscarded++;
+            if (this.diguCardsDiscarded % 5 === 0) {
+                this.showNextSponsorPopup();
+            }
+        }
+
+        // Show the next sponsor in rotation as a popup
+        showNextSponsorPopup() {
+            if (!this.sponsorsData) return;
+
+            // List of sponsor slots to cycle through (only enabled ones)
+            const sponsorSlots = ['table', 'drink', 'food', 'matchmaking', 'waiting_room'];
+            const enabledSponsors = sponsorSlots.filter(slot =>
+                this.sponsorsData[slot] && this.sponsorsData[slot].enabled
+            );
+
+            if (enabledSponsors.length === 0) return;
+
+            // Get next sponsor in rotation
+            const slot = enabledSponsors[this.diguSponsorIndex % enabledSponsors.length];
+            const sponsor = this.sponsorsData[slot];
+            this.diguSponsorIndex++;
+
+            // Use the existing showSponsorDetails method from Renderer
+            if (this.renderer && sponsor) {
+                this.renderer.showSponsorDetails(sponsor);
+            }
         }
 
         showDiguDrawNotification(card, source) {
