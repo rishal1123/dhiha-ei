@@ -173,22 +173,21 @@ const I18n = (function() {
     }
 
     /**
-     * Check if current language is RTL
+     * Check if current language is Dhivehi
      */
-    function isRTL() {
-        return LANGUAGES[currentLang]?.dir === 'rtl';
+    function isDhivehi() {
+        return currentLang === 'dv';
     }
 
     /**
-     * Apply language direction to document
+     * Apply language class to document (font only, no direction change)
      */
     function applyLanguageDirection() {
-        const dir = LANGUAGES[currentLang]?.dir || 'ltr';
-        document.documentElement.setAttribute('dir', dir);
+        // Always keep LTR direction, only change font via class
         document.documentElement.setAttribute('lang', currentLang);
 
-        // Add/remove RTL class for CSS styling
-        if (dir === 'rtl') {
+        // Add/remove class for Dhivehi font styling (no layout direction change)
+        if (currentLang === 'dv') {
             document.body.classList.add('rtl');
         } else {
             document.body.classList.remove('rtl');
@@ -366,7 +365,7 @@ const I18n = (function() {
         setLanguage,
         getLanguage,
         getLanguages,
-        isRTL,
+        isDhivehi,
         isFirstVisit,
         updateAllTranslations,
         onLanguageChange,

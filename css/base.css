@@ -1536,121 +1536,12 @@ html.mobile input, html.mobile select, html.mobile textarea {
 }
 
 /* ==========================================================================
-   RTL (Right-to-Left) STYLES
+   DHIVEHI LANGUAGE STYLES (same LTR layout, different font)
    ========================================================================== */
 
-/* RTL Base */
+/* Dhivehi Font - applied when language is Dhivehi */
 body.rtl {
-    direction: rtl;
-    text-align: right;
-}
-
-/* RTL Dhivehi Font */
-body.rtl {
-    font-family: 'MV Faseyha', 'MV Boli', 'Faruma', 'Segoe UI', Roboto, sans-serif;
-}
-
-/* RTL adjustments for specific elements */
-body.rtl .lang-dropdown {
-    right: auto;
-    left: 0;
-}
-
-body.rtl .lang-option {
-    text-align: right;
-}
-
-body.rtl #lang-switcher-container {
-    right: auto;
-    left: 12px;
-}
-
-/* RTL Game Cards */
-body.rtl .game-cards {
-    flex-direction: row-reverse;
-}
-
-/* RTL Lobby Menu */
-body.rtl .join-section {
-    flex-direction: row-reverse;
-}
-
-body.rtl #room-code-input {
-    text-align: center;
-}
-
-/* RTL Player Slots */
-body.rtl .team-column {
-    text-align: right;
-}
-
-body.rtl .player-slot {
-    flex-direction: row-reverse;
-}
-
-body.rtl .swap-btn {
-    transform: scaleX(-1);
-}
-
-/* RTL Result Modal */
-body.rtl .result-player-header {
-    flex-direction: row-reverse;
-}
-
-body.rtl .game-score-row,
-body.rtl .match-stats-row {
-    flex-direction: row-reverse;
-}
-
-/* RTL Draw Notification */
-body.rtl .digu-draw-notification {
-    text-align: right;
-}
-
-/* RTL Sponsor Callout */
-body.rtl .sponsor-callout {
-    text-align: right;
-}
-
-body.rtl .sponsor-callout-close {
-    right: auto;
-    left: 3px;
-}
-
-/* RTL Buttons maintain layout */
-body.rtl .btn,
-body.rtl button {
-    direction: ltr;
-}
-
-body.rtl .btn span,
-body.rtl button span {
-    direction: rtl;
-}
-
-/* RTL Back button arrow */
-body.rtl .back-btn::before {
-    content: '←';
-    margin-left: 6px;
-    margin-right: 0;
-}
-
-/* Mobile RTL adjustments */
-@media (max-width: 768px) {
-    body.rtl #lang-switcher-container {
-        top: 8px;
-        left: 8px;
-        right: auto;
-    }
-
-    body.rtl .lang-btn {
-        padding: 4px 8px;
-        font-size: 12px;
-    }
-
-    body.rtl .lang-icon {
-        font-size: 14px;
-    }
+    font-family: 'Faruma', 'MV Faseyha', 'MV Boli', 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ==========================================================================
@@ -1723,7 +1614,7 @@ body.rtl .back-btn::before {
     color: var(--ocean-turquoise);
     font-size: clamp(18px, 3vw, 24px);
     margin-bottom: 24px;
-    font-family: 'MV Faseyha', 'MV Boli', 'Faruma', sans-serif;
+    font-family: 'Faruma', 'MV Faseyha', 'MV Boli', sans-serif;
     direction: rtl;
 }
 
@@ -1765,7 +1656,7 @@ body.rtl .back-btn::before {
 }
 
 .lang-select-btn[data-lang="dv"] .lang-select-native {
-    font-family: 'MV Faseyha', 'MV Boli', 'Faruma', sans-serif;
+    font-family: 'Faruma', 'MV Faseyha', 'MV Boli', sans-serif;
 }
 
 .lang-select-name {
