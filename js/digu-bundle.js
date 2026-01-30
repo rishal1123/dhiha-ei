@@ -6127,15 +6127,17 @@
         }
 
         showMatchmakingScreen() {
-            this.lobbyMenu.classList.add('hidden');
-            this.waitingRoom.classList.add('hidden');
-            document.getElementById('matchmaking-screen').classList.remove('hidden');
+            if (this.lobbyMenu) this.lobbyMenu.classList.add('hidden');
+            if (this.waitingRoom) this.waitingRoom.classList.add('hidden');
+            const matchmaking = document.getElementById('matchmaking-screen');
+            if (matchmaking) matchmaking.classList.remove('hidden');
             this.updateQueueCount(1); // At least ourselves
         }
 
         hideMatchmakingScreen() {
-            document.getElementById('matchmaking-screen').classList.add('hidden');
-            this.lobbyMenu.classList.remove('hidden');
+            const matchmaking = document.getElementById('matchmaking-screen');
+            if (matchmaking) matchmaking.classList.add('hidden');
+            if (this.lobbyMenu) this.lobbyMenu.classList.remove('hidden');
         }
 
         updateQueueCount(count) {
@@ -6583,9 +6585,10 @@
             const gameLobby = document.getElementById('game-lobby');
             if (gameSelection) gameSelection.classList.add('hidden');
             if (gameLobby) gameLobby.classList.add('hidden');
-            this.lobbyMenu.classList.add('hidden');
-            this.waitingRoom.classList.remove('hidden');
-            document.getElementById('room-code-display').textContent = roomId;
+            if (this.lobbyMenu) this.lobbyMenu.classList.add('hidden');
+            if (this.waitingRoom) this.waitingRoom.classList.remove('hidden');
+            const roomCodeDisplay = document.getElementById('room-code-display');
+            if (roomCodeDisplay) roomCodeDisplay.textContent = roomId;
 
             const isHost = this.lobbyManager && this.lobbyManager.isHost();
 
@@ -6870,11 +6873,14 @@
             }
 
             // Show game lobby menu (parent container must be visible too)
-            this.waitingRoom.classList.add('hidden');
-            document.getElementById('matchmaking-screen').classList.add('hidden');
-            document.getElementById('game-lobby').classList.remove('hidden');
-            this.lobbyMenu.classList.remove('hidden');
-            document.getElementById('room-code-input').value = '';
+            if (this.waitingRoom) this.waitingRoom.classList.add('hidden');
+            const matchmaking = document.getElementById('matchmaking-screen');
+            const gameLobby = document.getElementById('game-lobby');
+            const roomCodeInput = document.getElementById('room-code-input');
+            if (matchmaking) matchmaking.classList.add('hidden');
+            if (gameLobby) gameLobby.classList.remove('hidden');
+            if (this.lobbyMenu) this.lobbyMenu.classList.remove('hidden');
+            if (roomCodeInput) roomCodeInput.value = '';
         }
 
         // ===========================================
@@ -6964,17 +6970,21 @@
         }
 
         showDiguMatchmakingScreen() {
-            this.lobbyMenu.classList.add('hidden');
-            this.waitingRoom.classList.add('hidden');
-            document.getElementById('digu-waiting-room').classList.add('hidden');
-            document.getElementById('matchmaking-screen').classList.add('hidden');
-            document.getElementById('digu-matchmaking-screen').classList.remove('hidden');
+            if (this.lobbyMenu) this.lobbyMenu.classList.add('hidden');
+            if (this.waitingRoom) this.waitingRoom.classList.add('hidden');
+            const diguWaiting = document.getElementById('digu-waiting-room');
+            const matchmaking = document.getElementById('matchmaking-screen');
+            const diguMatchmaking = document.getElementById('digu-matchmaking-screen');
+            if (diguWaiting) diguWaiting.classList.add('hidden');
+            if (matchmaking) matchmaking.classList.add('hidden');
+            if (diguMatchmaking) diguMatchmaking.classList.remove('hidden');
             this.updateDiguQueueCount(1);
         }
 
         hideDiguMatchmakingScreen() {
-            document.getElementById('digu-matchmaking-screen').classList.add('hidden');
-            this.lobbyMenu.classList.remove('hidden');
+            const diguMatchmaking = document.getElementById('digu-matchmaking-screen');
+            if (diguMatchmaking) diguMatchmaking.classList.add('hidden');
+            if (this.lobbyMenu) this.lobbyMenu.classList.remove('hidden');
         }
 
         updateDiguQueueCount(count) {
@@ -7140,12 +7150,16 @@
         }
 
         showDiguWaitingRoom(roomId) {
-            this.lobbyMenu.classList.add('hidden');
-            this.waitingRoom.classList.add('hidden');
-            document.getElementById('matchmaking-screen').classList.add('hidden');
-            document.getElementById('digu-matchmaking-screen').classList.add('hidden');
-            document.getElementById('digu-waiting-room').classList.remove('hidden');
-            document.getElementById('digu-room-code-display').textContent = roomId;
+            if (this.lobbyMenu) this.lobbyMenu.classList.add('hidden');
+            if (this.waitingRoom) this.waitingRoom.classList.add('hidden');
+            const matchmakingScreen = document.getElementById('matchmaking-screen');
+            const diguMatchmakingScreen = document.getElementById('digu-matchmaking-screen');
+            const diguWaitingRoom = document.getElementById('digu-waiting-room');
+            const diguRoomCodeDisplay = document.getElementById('digu-room-code-display');
+            if (matchmakingScreen) matchmakingScreen.classList.add('hidden');
+            if (diguMatchmakingScreen) diguMatchmakingScreen.classList.add('hidden');
+            if (diguWaitingRoom) diguWaitingRoom.classList.remove('hidden');
+            if (diguRoomCodeDisplay) diguRoomCodeDisplay.textContent = roomId;
 
             // Show start button for host
             const startBtn = document.getElementById('digu-start-game-btn');
@@ -7167,8 +7181,9 @@
         }
 
         hideDiguWaitingRoom() {
-            document.getElementById('digu-waiting-room').classList.add('hidden');
-            this.lobbyMenu.classList.remove('hidden');
+            const diguWaitingRoom = document.getElementById('digu-waiting-room');
+            if (diguWaitingRoom) diguWaitingRoom.classList.add('hidden');
+            if (this.lobbyMenu) this.lobbyMenu.classList.remove('hidden');
         }
 
         copyDiguRoomCode() {
