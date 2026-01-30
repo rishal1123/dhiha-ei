@@ -3955,8 +3955,9 @@
             this.diguSelectedCards = [];
             this.diguActiveMeldSlot = null;
             this.diguNumPlayers = 4;
-            this.diguCardsDiscarded = 0; // Counter for sponsor popup every 5 cards
+            this.diguRoundsPlayed = 0; // Counter for sponsor callout every 5 rounds
             this.diguSponsorIndex = 0; // Cycle through sponsors
+            this.diguGameStarted = false; // Track if game has started (to avoid counting initial turn)
 
             // Sponsor data (loaded from API)
             this.sponsorsData = null;
@@ -4671,7 +4672,8 @@
             // Reset UI state
             this.diguSelectedCards = [];
             this.diguActiveMeldSlot = null;
-            this.diguCardsDiscarded = 0; // Reset sponsor counter for new game
+            this.diguRoundsPlayed = 0; // Reset sponsor counter for new game
+            this.diguGameStarted = true; // Mark game as started
 
             // Initial display
             this.updateDiguDisplay();
@@ -5258,19 +5260,22 @@
             // This allows AI draw notifications to stay visible
             this.updateDiguDisplay();
 
-            // Track cards discarded and show sponsor popup every 5 cards
-            this.diguCardsDiscarded++;
-            if (this.diguCardsDiscarded % 5 === 0) {
-                this.showNextSponsorPopup();
+            // Count only human player's own rounds (when player 0 completes their turn)
+            if (player && player.position === 0) {
+                this.diguRoundsPlayed++;
+                // Show sponsor callout every 5 of your own rounds
+                if (this.diguRoundsPlayed > 0 && this.diguRoundsPlayed % 5 === 0) {
+                    this.showSponsorCallout();
+                }
             }
         }
 
-        // Show the next sponsor in rotation as a popup
-        showNextSponsorPopup() {
+        // Show sponsor callout next to the specific sponsored item (every 5 own rounds)
+        showSponsorCallout() {
             if (!this.sponsorsData) return;
 
-            // List of sponsor slots to cycle through (only enabled ones)
-            const sponsorSlots = ['table', 'drink', 'food', 'matchmaking', 'waiting_room'];
+            // Only show callouts for sponsors visible during gameplay (table, drink, food)
+            const sponsorSlots = ['table', 'drink', 'food'];
             const enabledSponsors = sponsorSlots.filter(slot =>
                 this.sponsorsData[slot] && this.sponsorsData[slot].enabled
             );
@@ -5282,10 +5287,59 @@
             const sponsor = this.sponsorsData[slot];
             this.diguSponsorIndex++;
 
-            // Use the existing showSponsorDetails method from Renderer
-            if (this.renderer && sponsor) {
-                this.renderer.showSponsorDetails(sponsor);
+            // Find the sponsor element to attach the callout to
+            const sponsorElementId = `${slot}-sponsor`;
+            const sponsorElement = document.getElementById(sponsorElementId);
+            if (!sponsorElement || !sponsor) return;
+
+            // Remove any existing callout
+            const existingCallout = document.querySelector('.sponsor-callout:not(.hidden)');
+            if (existingCallout) {
+                existingCallout.classList.add('hidden');
             }
+
+            // Create or get the callout for this sponsor
+            let callout = sponsorElement.querySelector('.sponsor-callout');
+            if (!callout) {
+                callout = document.createElement('div');
+                callout.className = 'sponsor-callout hidden';
+                callout.innerHTML = `
+                    <button class="sponsor-callout-close">&times;</button>
+                    <span class="sponsor-callout-text"></span>
+                `;
+                sponsorElement.style.position = 'relative';
+                sponsorElement.appendChild(callout);
+            }
+
+            const textEl = callout.querySelector('.sponsor-callout-text');
+            const closeBtn = callout.querySelector('.sponsor-callout-close');
+
+            // Set sponsor text only
+            textEl.textContent = sponsor.callout || sponsor.name || 'Sponsored';
+
+            // Show the callout
+            callout.classList.remove('hidden');
+
+            // Handle close button
+            const handleClose = (e) => {
+                e.stopPropagation();
+                callout.classList.add('hidden');
+                closeBtn.removeEventListener('click', handleClose);
+            };
+            closeBtn.addEventListener('click', handleClose);
+
+            // Make callout clickable to open sponsor URL
+            callout.onclick = (e) => {
+                if (e.target === closeBtn) return;
+                if (sponsor.url) {
+                    window.open(sponsor.url, '_blank');
+                }
+            };
+
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                callout.classList.add('hidden');
+            }, 5000);
         }
 
         showDiguDrawNotification(card, source) {
