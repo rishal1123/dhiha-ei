@@ -49,6 +49,23 @@
         }
     }
 
+    // ============================================
+    // TRANSLATION HELPER
+    // ============================================
+
+    /**
+     * Helper function to get translated text with fallback
+     * @param {string} key - Translation key (e.g., 'game.yourTurn')
+     * @param {object} params - Parameters for interpolation
+     * @param {string} fallback - Fallback text if translation not available
+     */
+    function t(key, params = {}, fallback = null) {
+        if (typeof I18n !== 'undefined' && I18n.t) {
+            return I18n.t(key, params);
+        }
+        return fallback || key;
+    }
+
     // Prevent context menu on long press
     document.addEventListener('contextmenu', function(e) {
         if (e.target.closest('.card, .pile, button, .clickable')) {
@@ -6521,7 +6538,7 @@
             // Reset ready button
             const readyBtn = document.getElementById('ready-btn');
             readyBtn.classList.remove('ready');
-            readyBtn.textContent = 'Ready';
+            readyBtn.textContent = t('waitingRoom.readyBtn', {}, 'Ready');
         }
 
         // Update player slots in waiting room
@@ -6554,13 +6571,13 @@
 
                     if (player.ready) {
                         slot.classList.add('ready');
-                        readySpan.textContent = 'READY';
+                        readySpan.textContent = t('waitingRoom.readyStatus', {}, 'READY');
                     } else {
                         readySpan.textContent = '';
                         allReady = false;
                     }
 
-                    statusSpan.textContent = position === 0 ? 'Host' : 'Player';
+                    statusSpan.textContent = position === 0 ? t('common.host', {}, 'Host') : t('common.player', {}, 'Player');
                     nameSpan.textContent = player.name || 'Unknown';
 
                     // Show swap button for host (can swap any non-host player)
@@ -6572,7 +6589,7 @@
                         }
                     }
                 } else {
-                    statusSpan.textContent = 'Waiting...';
+                    statusSpan.textContent = t('common.waiting', {}, 'Waiting...');
                     nameSpan.textContent = '';
                     readySpan.textContent = '';
                     allReady = false;
@@ -6598,10 +6615,10 @@
 
             try {
                 await navigator.clipboard.writeText(roomCode);
-                copyBtn.textContent = 'Copied!';
+                copyBtn.textContent = t('common.copied', {}, 'Copied!');
                 copyBtn.classList.add('copied');
                 setTimeout(() => {
-                    copyBtn.textContent = 'Copy';
+                    copyBtn.textContent = t('common.copy', {}, 'Copy');
                     copyBtn.classList.remove('copied');
                 }, 2000);
             } catch (err) {
@@ -7051,7 +7068,7 @@
             // Reset ready button
             const readyBtn = document.getElementById('digu-ready-btn');
             if (readyBtn) {
-                readyBtn.textContent = 'Ready';
+                readyBtn.textContent = t('waitingRoom.readyBtn', {}, 'Ready');
                 readyBtn.classList.remove('ready');
             }
             this.isDiguReady = false;
@@ -7067,8 +7084,8 @@
             navigator.clipboard.writeText(roomCode).then(() => {
                 const btn = document.getElementById('digu-copy-code-btn');
                 if (btn) {
-                    btn.textContent = 'Copied!';
-                    setTimeout(() => btn.textContent = 'Copy', 2000);
+                    btn.textContent = t('common.copied', {}, 'Copied!');
+                    setTimeout(() => btn.textContent = t('common.copy', {}, 'Copy'), 2000);
                 }
             }).catch(err => {
                 console.error('Failed to copy:', err);
@@ -7084,10 +7101,10 @@
             const readyBtn = document.getElementById('digu-ready-btn');
             if (readyBtn) {
                 if (this.isDiguReady) {
-                    readyBtn.textContent = 'Not Ready';
+                    readyBtn.textContent = t('waitingRoom.notReady', {}, 'Not Ready');
                     readyBtn.classList.add('ready');
                 } else {
-                    readyBtn.textContent = 'Ready';
+                    readyBtn.textContent = t('waitingRoom.readyBtn', {}, 'Ready');
                     readyBtn.classList.remove('ready');
                 }
             }
@@ -7109,10 +7126,10 @@
                     slot.classList.toggle('ready', player.ready);
                     if (statusEl) statusEl.textContent = '';
                     if (nameEl) nameEl.textContent = player.name;
-                    if (readyEl) readyEl.textContent = player.ready ? 'Ready' : '';
+                    if (readyEl) readyEl.textContent = player.ready ? t('waitingRoom.readyBtn', {}, 'Ready') : '';
                 } else {
                     slot.classList.remove('filled', 'ready');
-                    if (statusEl) statusEl.textContent = 'Waiting...';
+                    if (statusEl) statusEl.textContent = t('common.waiting', {}, 'Waiting...');
                     if (nameEl) nameEl.textContent = '';
                     if (readyEl) readyEl.textContent = '';
                 }
@@ -7659,14 +7676,14 @@
             });
 
             if (this.game.isLocalPlayerTurn()) {
-                turnIndicator.textContent = 'Your Turn';
+                turnIndicator.textContent = t('game.yourTurn', {}, 'Your Turn');
                 turnIndicator.classList.add('your-turn');
                 // Highlight player's own area
                 document.getElementById('player-bottom').classList.add('active-turn');
             } else {
                 const currentPlayer = this.game.players[this.game.currentPlayerIndex];
                 const name = currentPlayer.name || `Player ${this.game.currentPlayerIndex + 1}`;
-                turnIndicator.textContent = `${name}'s Turn`;
+                turnIndicator.textContent = t('game.playerTurn', { name }, `${name}'s Turn`);
                 turnIndicator.classList.remove('your-turn');
 
                 // Highlight the current player's avatar
