@@ -956,3 +956,93 @@
     max-height: 80px;
     object-fit: contain;
 }
+
+/* ===========================================
+   DIGU WAITING ROOM (same style as Dhiha Ei)
+   =========================================== */
+
+#digu-waiting-room { display: none; }
+#digu-waiting-room:not(.hidden) { display: block; }
+
+#digu-room-code-display {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: bold;
+    color: var(--sunset-gold);
+    letter-spacing: 4px;
+    margin: 4px 0;
+}
+
+#digu-player-slots {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+#digu-player-slots .team-column {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#digu-player-slots .team-column .team-label {
+    font-weight: 600;
+    color: var(--ocean-turquoise);
+    margin-bottom: 4px;
+}
+
+#digu-player-slots .player-slot {
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(64, 224, 208, 0.3);
+    border-radius: 4px;
+    min-width: 100px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+#digu-player-slots .player-slot.filled {
+    border-color: var(--ocean-turquoise);
+    background: rgba(64, 224, 208, 0.1);
+}
+
+#digu-player-slots .player-slot.ready {
+    border-color: var(--palm-green);
+    background: rgba(34, 139, 34, 0.2);
+}
+
+#digu-player-slots .player-slot.you {
+    border-color: var(--sunset-gold);
+    background: rgba(255, 179, 71, 0.15);
+}
+
+#digu-player-slots .slot-status { color: rgba(255, 255, 255, 0.5); font-size: clamp(14px, 1.6vw, 22px); }
+#digu-player-slots .slot-name { font-weight: 600; font-size: clamp(16px, 1.8vw, 24px); }
+#digu-player-slots .slot-ready { color: var(--palm-green); font-size: clamp(14px, 1.6vw, 22px); }
+
+#digu-waiting-room-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+#digu-connection-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 12px;
+    font-size: clamp(13px, 1.5vw, 20px);
+}
+
+#digu-connection-status .status-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--palm-green);
+    border-radius: 50%;
+}
+
+/* Digu Matchmaking Screen */
+#digu-matchmaking-screen:not(.hidden) { display: block; }
