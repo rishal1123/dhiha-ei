@@ -787,8 +787,8 @@
     background: rgba(0, 0, 0, 0.85);
     border: 1px solid var(--ocean-turquoise);
     border-radius: 5px;
-    padding: 4px 10px;
-    font-size: clamp(8px, 0.9vw, 10px);
+    padding: 5px 13px;
+    font-size: clamp(10px, 1.17vw, 13px);
     color: var(--text-light);
     opacity: 0;
     transition: opacity 0.3s;

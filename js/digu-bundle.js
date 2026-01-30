@@ -4926,10 +4926,10 @@
             const teamAWins = document.getElementById('team-a-wins');
             const teamBWins = document.getElementById('team-b-wins');
             if (teamAWins) {
-                teamAWins.textContent = `${stats.teamWins[0]} wins`;
+                teamAWins.textContent = t('results.wins', { count: stats.teamWins[0] }, `${stats.teamWins[0]} wins`);
             }
             if (teamBWins) {
-                teamBWins.textContent = `${stats.teamWins[1]} wins`;
+                teamBWins.textContent = t('results.wins', { count: stats.teamWins[1] }, `${stats.teamWins[1]} wins`);
             }
 
             // Update total scores
@@ -5375,14 +5375,18 @@
 
             const playerName = this.diguGame.players[this.diguGame.currentPlayerIndex].name;
             const isHuman = this.diguGame.currentPlayerIndex === 0;
+            const youText = t('common.you', {}, 'You');
+            const drewText = t('digu.drew', {}, 'drew');
+            const fromDiscardText = t('digu.fromDiscard', {}, 'from discard');
+            const fromStockText = t('digu.fromStock', {}, 'from stock');
 
             if (source === 'discard') {
                 // Show which card was taken from discard
                 const cardDisplay = `${card.rankDisplay || this.getRankDisplay(card.rank)}${this.getSuitSymbol(card.suit)}`;
                 const cardColor = (card.suit === 'hearts' || card.suit === 'diamonds') ? 'red' : 'black';
                 notifEl.innerHTML = `
-                    <span class="draw-player">${isHuman ? 'You' : playerName}</span> drew
-                    <span class="draw-card ${cardColor}">${cardDisplay}</span> from discard
+                    <span class="draw-player">${isHuman ? youText : playerName}</span> ${drewText}
+                    <span class="draw-card ${cardColor}">${cardDisplay}</span> ${fromDiscardText}
                 `;
                 notifEl.className = 'digu-draw-notification from-discard';
             } else {
@@ -5391,12 +5395,12 @@
                     const cardDisplay = `${card.rankDisplay || this.getRankDisplay(card.rank)}${this.getSuitSymbol(card.suit)}`;
                     const cardColor = (card.suit === 'hearts' || card.suit === 'diamonds') ? 'red' : 'black';
                     notifEl.innerHTML = `
-                        <span class="draw-player">You</span> drew
-                        <span class="draw-card ${cardColor}">${cardDisplay}</span> from stock
+                        <span class="draw-player">${youText}</span> ${drewText}
+                        <span class="draw-card ${cardColor}">${cardDisplay}</span> ${fromStockText}
                     `;
                 } else {
                     notifEl.innerHTML = `
-                        <span class="draw-player">${playerName}</span> drew from stock
+                        <span class="draw-player">${playerName}</span> ${drewText} ${fromStockText}
                     `;
                 }
                 notifEl.className = 'digu-draw-notification from-stock';
@@ -5722,7 +5726,7 @@
             const isYourTeamWinner = winningTeam === 'A';
 
             // Set title with appropriate styling
-            titleEl.textContent = isYourTeamWinner ? 'Your Team Wins!' : 'Opponents Win!';
+            titleEl.textContent = isYourTeamWinner ? t('results.yourTeamWins', {}, 'Your Team Wins!') : t('results.opponentsWin', {}, 'Opponents Win!');
             titleEl.className = isYourTeamWinner ? 'win' : 'lose';
 
             // Update match stats display
@@ -5744,22 +5748,31 @@
             }
 
             // Update this game score section
+            const yourTeamText = t('results.yourTeam', {}, 'Your Team');
+            const opponentsText = t('results.opponents', {}, 'Opponents');
+            const thisGameText = t('results.thisGame', {}, 'This Game');
+            const declaredText = t('results.declaredDiGu', { name: result.winner.name }, `${result.winner.name} declared DIGU!`);
+            const bonusText = t('results.bonus', {}, 'Bonus');
+            const totalMeldedText = t('results.totalMelded', {}, 'Total Melded Card Value');
+            const totalText = t('results.total', {}, 'Total');
+            const penaltyText = t('results.penalty', {}, 'Penalty');
+
             gameScoreEl.innerHTML = `
-                <h3>This Game - ${result.winner.name} declared DIGU!</h3>
+                <h3>${thisGameText} - ${declaredText}</h3>
                 <div class="game-score-row">
-                    <span>${isYourTeamWinner ? 'Your Team' : 'Opponents'} Bonus:</span>
+                    <span>${isYourTeamWinner ? yourTeamText : opponentsText} ${bonusText}:</span>
                     <span>+100</span>
                 </div>
                 <div class="game-score-row">
-                    <span>Total Melded Card Value:</span>
+                    <span>${totalMeldedText}:</span>
                     <span>+${winningMeldedTotal}</span>
                 </div>
                 <div class="game-score-row winner">
-                    <span>${isYourTeamWinner ? 'Your Team' : 'Opponents'} Total:</span>
+                    <span>${isYourTeamWinner ? yourTeamText : opponentsText} ${totalText}:</span>
                     <span>+${result.teamScores[winningTeamIndex]}</span>
                 </div>
                 <div class="game-score-row penalty">
-                    <span>${isYourTeamWinner ? 'Opponents' : 'Your Team'} (Penalty):</span>
+                    <span>${isYourTeamWinner ? opponentsText : yourTeamText} (${penaltyText}):</span>
                     <span>${result.teamScores[losingTeamIndex]}</span>
                 </div>
             `;
@@ -6359,7 +6372,7 @@
                 }
                 if (data.requeued) {
                     // Show re-queued message
-                    this.showNotification('Requeued - waiting for new match');
+                    this.showNotification(t('errors.requeued', {}, 'Requeued - waiting for new match'));
                     // Reset matchmaking UI
                     this.setupMatchmakingListeners();
                     const statusText = document.querySelector('.matchmaking-status');
@@ -6543,7 +6556,7 @@
             this.isSpectator = true;
 
             // Show spectator notification
-            this.showNotification('Watching as spectator');
+            this.showNotification(t('errors.watchingSpectator', {}, 'Watching as spectator'));
 
             // If game state exists, sync the game view
             if (gameState) {
@@ -6562,7 +6575,7 @@
             await this.presenceManager.setupPresence();
 
             // Show notification
-            this.showNotification('Rejoined game');
+            this.showNotification(t('errors.rejoinedGame', {}, 'Rejoined game'));
 
             // Start multiplayer game with existing state
             const gameData = {
@@ -7832,7 +7845,7 @@
                 if (this.gameTimeRemaining === 120 && !this.timerWarningShown) {
                     this.timerWarningShown = true;
                     timerEl.classList.add('warning');
-                    this.renderer.flashMessage('⚠️ 2 minutes remaining!', 3000);
+                    this.renderer.flashMessage(t('dhihaEi.twoMinutesRemaining', {}, '⚠️ 2 minutes remaining!'), 3000);
                 }
 
                 // Critical at 30 seconds
@@ -7840,7 +7853,7 @@
                     this.timerCriticalShown = true;
                     timerEl.classList.remove('warning');
                     timerEl.classList.add('critical');
-                    this.renderer.flashMessage('⚠️ 30 seconds remaining!', 2000);
+                    this.renderer.flashMessage(t('dhihaEi.thirtySecondsRemaining', {}, '⚠️ 30 seconds remaining!'), 2000);
                 }
 
                 // Time's up
@@ -8321,19 +8334,26 @@
             }
 
             // Show scores from local player's perspective
+            const roundScoreLabel = t('results.roundScore', {}, 'Round Score');
+            const yourTeamLabel = t('results.yourTeam', {}, 'Your Team');
+            const opponentsLabel = t('results.opponents', {}, 'Opponents');
+            const tensLabel = t('results.tens', {}, 'tens');
+            const tricksLabel = t('results.tricks', {}, 'tricks');
+            const matchScoreLabel = t('results.matchScore', {}, 'Match Score');
+
             const text = result.message + bonusText +
-                `\n\nRound Score:\nYour Team: ${state.tensCollected[localTeam]} tens, ${state.tricksWon[localTeam]} tricks\nOpponents: ${state.tensCollected[opponentTeam]} tens, ${state.tricksWon[opponentTeam]} tricks` +
-                `\n\nMatch Score: You ${state.matchPoints[localTeam]} - ${state.matchPoints[opponentTeam]} Opp`;
+                `\n\n${roundScoreLabel}:\n${yourTeamLabel}: ${state.tensCollected[localTeam]} ${tensLabel}, ${state.tricksWon[localTeam]} ${tricksLabel}\n${opponentsLabel}: ${state.tensCollected[opponentTeam]} ${tensLabel}, ${state.tricksWon[opponentTeam]} ${tricksLabel}` +
+                `\n\n${matchScoreLabel}: ${yourTeamLabel} ${state.matchPoints[localTeam]} - ${state.matchPoints[opponentTeam]} ${opponentsLabel}`;
 
             // In multiplayer, show ready check for next round
             if (this.isMultiplayerMode) {
                 // Store the round winner for when all players are ready
                 this.lastRoundWinner = result.winner;
-                await this.renderer.showMessage(title, text, 'Ready for Next Round');
+                await this.renderer.showMessage(title, text, t('results.readyForNextRound', {}, 'Ready for Next Round'));
                 this.showReadyForNextRound();
             } else {
                 // AI game - show options for next round or end game
-                const choice = await this.renderer.showMessageWithOptions(title, text, 'Next Round', 'End Game');
+                const choice = await this.renderer.showMessageWithOptions(title, text, t('results.nextRound', {}, 'Next Round'), t('results.endGame', {}, 'End Game'));
                 if (choice === 'primary') {
                     this.startNextRound(result.winner);
                 } else {
@@ -8365,16 +8385,19 @@
             // Determine winner
             let title;
             if (team0Score > team1Score) {
-                title = 'You Won!';
+                title = t('results.youWon', {}, 'You Won!');
             } else if (team1Score > team0Score) {
-                title = 'You Lost!';
+                title = t('results.youLost', {}, 'You Lost!');
             } else {
-                title = 'Tie Game!';
+                title = t('results.tieGame', {}, 'Tie Game!');
             }
 
-            const scoreMessage = `Final Score:\n\nYour Team (${team0Players.join(' & ')}): ${team0Score}\nOpponents (${team1Players.join(' & ')}): ${team1Score}`;
+            const finalScoreLabel = t('results.finalScore', {}, 'Final Score');
+            const yourTeamLabel = t('results.yourTeam', {}, 'Your Team');
+            const opponentsLabel = t('results.opponents', {}, 'Opponents');
+            const scoreMessage = `${finalScoreLabel}:\n\n${yourTeamLabel} (${team0Players.join(' & ')}): ${team0Score}\n${opponentsLabel} (${team1Players.join(' & ')}): ${team1Score}`;
 
-            await this.renderer.showMessage(title, scoreMessage, 'Back to Menu');
+            await this.renderer.showMessage(title, scoreMessage, t('results.backToMenu', {}, 'Back to Menu'));
             this.showLobby();
         }
 
@@ -8386,7 +8409,7 @@
             }
 
             // Show waiting message
-            this.renderer.flashMessage('Waiting for all players to be ready...', 0);
+            this.renderer.flashMessage(t('results.waitingForPlayers', {}, 'Waiting for all players to be ready...'), 0);
         }
 
         // Called when all players are ready for next round (from server)
@@ -8458,12 +8481,13 @@
             }
 
             // Build final score message
-            let scoreMessage = `${playerName} has ${reasonText}.\n\n`;
-            scoreMessage += `Final Score:\n\n`;
-            scoreMessage += `Team 1 (${team0Players.join(' & ')}): ${team0Score}\n`;
-            scoreMessage += `Team 2 (${team1Players.join(' & ')}): ${team1Score}`;
+            const reasonTranslated = reason === 'disconnected' ? t('results.disconnected', {}, 'disconnected') : t('results.leftTheGame', {}, 'left the game');
+            let scoreMessage = t('results.playerLeft', { name: playerName, reason: reasonTranslated }, `${playerName} has ${reasonText}.`) + `\n\n`;
+            scoreMessage += `${t('results.finalScore', {}, 'Final Score')}:\n\n`;
+            scoreMessage += `${t('waitingRoom.teamA', {}, 'Team A')} (${team0Players.join(' & ')}): ${team0Score}\n`;
+            scoreMessage += `${t('waitingRoom.teamB', {}, 'Team B')} (${team1Players.join(' & ')}): ${team1Score}`;
 
-            await this.renderer.showMessage('Game Ended', scoreMessage, 'Leave Game');
+            await this.renderer.showMessage(t('results.gameEnded', {}, 'Game Ended'), scoreMessage, t('results.leaveGame', {}, 'Leave Game'));
 
             // Clean up and return to lobby
             await this.cleanupMultiplayer();
@@ -8482,23 +8506,24 @@
             const localTeamWon = winner === localTeam;
 
             let title, text;
+            const finalScoreLabel = t('results.finalScore', {}, 'Final Score');
 
             if (localTeamWon) {
-                title = 'MATCH WON!';
-                text = `Congratulations! You won the match!\n\nFinal Score: ${points[localTeam]} - ${points[opponentTeam]}`;
+                title = t('results.matchWon', {}, 'MATCH WON!');
+                text = `${t('results.congratsWon', {}, 'Congratulations! You won the match!')}\n\n${finalScoreLabel}: ${points[localTeam]} - ${points[opponentTeam]}`;
             } else {
-                title = 'MATCH LOST';
-                text = `The opponents won the match.\n\nFinal Score: ${points[localTeam]} - ${points[opponentTeam]}`;
+                title = t('results.matchLost', {}, 'MATCH LOST');
+                text = `${t('results.opponentsWonMatch', {}, 'The opponents won the match.')}\n\n${finalScoreLabel}: ${points[localTeam]} - ${points[opponentTeam]}`;
             }
 
             if (this.isMultiplayerMode) {
                 // In multiplayer, return to lobby after match
-                text += '\n\nReturning to lobby...';
-                await this.renderer.showMessage(title, text, 'OK');
+                text += `\n\n${t('results.returningToLobby', {}, 'Returning to lobby...')}`;
+                await this.renderer.showMessage(title, text, t('game.ok', {}, 'OK'));
                 await this.cleanupMultiplayer();
                 this.showLobby();
             } else {
-                await this.renderer.showMessage(title, text, 'New Match');
+                await this.renderer.showMessage(title, text, t('results.newMatch', {}, 'New Match'));
                 this.startNewMatch();
             }
         }
