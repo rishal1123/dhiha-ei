@@ -214,10 +214,10 @@
 
     <!-- Initialize i18n -->
     <script>
-        // Initialize internationalization
+        // Initialize internationalization with first-use language prompt
         document.addEventListener('DOMContentLoaded', async () => {
             if (typeof I18n !== 'undefined') {
-                await I18n.init();
+                await I18n.initWithPrompt();
                 I18n.createLanguageSwitcher('lang-switcher-container');
             }
         });

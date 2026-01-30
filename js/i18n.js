@@ -23,6 +23,20 @@ const I18n = (function() {
     const changeCallbacks = [];
 
     /**
+     * Check if this is the user's first visit
+     */
+    function isFirstVisit() {
+        return !localStorage.getItem('thaasbai_language_selected');
+    }
+
+    /**
+     * Mark that user has selected a language
+     */
+    function markLanguageSelected() {
+        localStorage.setItem('thaasbai_language_selected', 'true');
+    }
+
+    /**
      * Initialize i18n - load saved language preference and translations
      */
     async function init() {
@@ -34,6 +48,13 @@ const I18n = (function() {
 
         // Load translations for current language
         await loadLanguage(currentLang);
+
+        // Also preload the other language for quick switching
+        for (const lang of Object.keys(LANGUAGES)) {
+            if (lang !== currentLang && !translations[lang]) {
+                loadLanguage(lang); // Load in background
+            }
+        }
 
         // Apply language direction
         applyLanguageDirection();
@@ -277,18 +298,81 @@ const I18n = (function() {
         });
     }
 
+    /**
+     * Show first-use language selection prompt
+     * Returns a promise that resolves when user selects a language
+     */
+    function showLanguagePrompt() {
+        return new Promise((resolve) => {
+            // Create modal overlay
+            const modal = document.createElement('div');
+            modal.id = 'language-select-modal';
+            modal.className = 'lang-select-modal';
+            modal.innerHTML = `
+                <div class="lang-select-content">
+                    <div class="lang-select-header">
+                        <h2>Select Language</h2>
+                        <p>ބަސް އިޚްތިޔާރު ކުރައްވާ</p>
+                    </div>
+                    <div class="lang-select-options">
+                        ${Object.entries(LANGUAGES).map(([code, lang]) => `
+                            <button class="lang-select-btn" data-lang="${code}">
+                                <span class="lang-select-native">${lang.nativeName}</span>
+                                <span class="lang-select-name">${lang.name}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Add click handlers
+            modal.querySelectorAll('.lang-select-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const lang = btn.getAttribute('data-lang');
+                    await setLanguage(lang);
+                    markLanguageSelected();
+
+                    // Animate out
+                    modal.classList.add('fade-out');
+                    setTimeout(() => {
+                        modal.remove();
+                        resolve(lang);
+                    }, 300);
+                });
+            });
+        });
+    }
+
+    /**
+     * Initialize with first-use prompt if needed
+     */
+    async function initWithPrompt() {
+        await init();
+
+        if (isFirstVisit()) {
+            await showLanguagePrompt();
+        }
+
+        return currentLang;
+    }
+
     // Public API
     return {
         init,
+        initWithPrompt,
         t,
         setLanguage,
         getLanguage,
         getLanguages,
         isRTL,
+        isFirstVisit,
         updateAllTranslations,
         onLanguageChange,
         offLanguageChange,
-        createLanguageSwitcher
+        createLanguageSwitcher,
+        showLanguagePrompt
     };
 })();
 

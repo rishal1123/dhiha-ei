@@ -1652,3 +1652,182 @@ body.rtl .back-btn::before {
         font-size: 14px;
     }
 }
+
+/* ==========================================================================
+   FIRST-USE LANGUAGE SELECTION MODAL
+   ========================================================================== */
+
+.lang-select-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: langModalFadeIn 0.3s ease-out;
+}
+
+.lang-select-modal.fade-out {
+    animation: langModalFadeOut 0.3s ease-out forwards;
+}
+
+@keyframes langModalFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes langModalFadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+.lang-select-content {
+    background: linear-gradient(145deg, rgba(10, 20, 32, 0.98), rgba(6, 12, 24, 0.98));
+    border: 2px solid var(--ocean-turquoise);
+    border-radius: 16px;
+    padding: 32px 40px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    animation: langContentSlideIn 0.4s ease-out;
+}
+
+@keyframes langContentSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.lang-select-header h2 {
+    color: var(--sunset-gold);
+    font-size: clamp(24px, 4vw, 32px);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.lang-select-header p {
+    color: var(--ocean-turquoise);
+    font-size: clamp(18px, 3vw, 24px);
+    margin-bottom: 24px;
+    font-family: 'MV Faseyha', 'MV Boli', 'Faruma', sans-serif;
+    direction: rtl;
+}
+
+.lang-select-options {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.lang-select-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 20px 32px;
+    background: rgba(64, 224, 208, 0.1);
+    border: 2px solid var(--ocean-turquoise);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-light);
+}
+
+.lang-select-btn:hover {
+    background: rgba(64, 224, 208, 0.25);
+    border-color: var(--sunset-gold);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(64, 224, 208, 0.3);
+}
+
+.lang-select-btn:active {
+    transform: translateY(0);
+}
+
+.lang-select-native {
+    font-size: clamp(22px, 3.5vw, 28px);
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+.lang-select-btn[data-lang="dv"] .lang-select-native {
+    font-family: 'MV Faseyha', 'MV Boli', 'Faruma', sans-serif;
+}
+
+.lang-select-name {
+    font-size: clamp(12px, 2vw, 14px);
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Mobile adjustments for language modal */
+@media (max-width: 480px) {
+    .lang-select-content {
+        padding: 24px 20px;
+    }
+
+    .lang-select-header h2 {
+        font-size: 22px;
+    }
+
+    .lang-select-header p {
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+
+    .lang-select-btn {
+        padding: 16px 24px;
+    }
+
+    .lang-select-native {
+        font-size: 20px;
+    }
+}
+
+/* Landscape phone adjustments */
+@media (max-height: 500px) {
+    .lang-select-content {
+        padding: 16px 24px;
+    }
+
+    .lang-select-header h2 {
+        font-size: 20px;
+        margin-bottom: 4px;
+    }
+
+    .lang-select-header p {
+        font-size: 16px;
+        margin-bottom: 16px;
+    }
+
+    .lang-select-options {
+        flex-direction: row;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .lang-select-btn {
+        padding: 12px 24px;
+        flex: 1;
+        max-width: 160px;
+    }
+
+    .lang-select-native {
+        font-size: 18px;
+    }
+}
