@@ -1801,11 +1801,11 @@ def handle_start_digu_game(data):
         return
 
     room = digu_rooms[room_id]
-    min_players = 2
+    min_players = 4
 
     # Verify minimum players and all ready
     if len(room['players']) < min_players:
-        emit('error', {'message': f'Need at least {min_players} players to start'})
+        emit('error', {'message': f'Need {min_players} players to start'})
         return
 
     all_ready = all(p.get('ready', False) for p in room['players'].values())

@@ -766,6 +766,8 @@
         }
 
         async createRoom(hostName, maxPlayers = 4) {
+            console.log('[DiGuLobbyManager] createRoom called, hostName:', hostName, 'maxPlayers:', maxPlayers);
+            console.log('[DiGuLobbyManager] socket:', !!socket, 'isConnected:', isConnected);
             if (!socket || !isConnected) {
                 throw new Error('Not connected to server');
             }
@@ -775,10 +777,12 @@
 
             return new Promise((resolve, reject) => {
                 const timeout = setTimeout(() => {
+                    console.log('[DiGuLobbyManager] Room creation timeout');
                     reject(new Error('Room creation timeout'));
                 }, 10000);
 
                 socket.once('digu_room_created', (data) => {
+                    console.log('[DiGuLobbyManager] digu_room_created received:', data);
                     clearTimeout(timeout);
                     this.currentRoomId = data.roomId;
                     this.currentPosition = data.position;
@@ -3974,6 +3978,7 @@
             // Digu game components
             this.currentGameType = window.currentGame || null; // 'dhiha-ei' or 'digu'
             this.selectedGame = window.currentGame || null; // Initialize from window.currentGame
+            console.log('[UIManager] Initialized - currentGameType:', this.currentGameType, 'selectedGame:', this.selectedGame);
             this.diguGame = null;
             this.diguSelectedCards = [];
             this.diguActiveMeldSlot = null;
@@ -4266,12 +4271,17 @@
             // Quick Match button
             const quickMatchBtn = document.getElementById('quick-match-btn');
             if (quickMatchBtn) {
-                quickMatchBtn.addEventListener('click', () => {
+                quickMatchBtn.addEventListener('click', async () => {
                     console.log('Quick match clicked, selectedGame:', this.selectedGame);
-                    if (this.selectedGame === 'digu') {
-                        this.handleDiguQuickMatch();
-                    } else {
-                        this.handleQuickMatch();
+                    try {
+                        if (this.selectedGame === 'digu') {
+                            await this.handleDiguQuickMatch();
+                        } else {
+                            await this.handleQuickMatch();
+                        }
+                    } catch (error) {
+                        console.error('Quick match error:', error);
+                        this.showError(error.message || 'Failed to start quick match');
                     }
                 });
             } else {
@@ -4297,12 +4307,17 @@
             // Create Room button
             const createRoomBtn = document.getElementById('create-room-btn');
             if (createRoomBtn) {
-                createRoomBtn.addEventListener('click', () => {
+                createRoomBtn.addEventListener('click', async () => {
                     console.log('Create room clicked, selectedGame:', this.selectedGame);
-                    if (this.selectedGame === 'digu') {
-                        this.handleDiguCreateRoom();
-                    } else {
-                        this.handleCreateRoom();
+                    try {
+                        if (this.selectedGame === 'digu') {
+                            await this.handleDiguCreateRoom();
+                        } else {
+                            await this.handleCreateRoom();
+                        }
+                    } catch (error) {
+                        console.error('Create room error:', error);
+                        this.showError(error.message || 'Failed to create room');
                     }
                 });
             } else {
@@ -6867,20 +6882,28 @@
         // ===========================================
 
         async handleDiguQuickMatch() {
+            console.log('[Digu] handleDiguQuickMatch called, playerName:', this.playerName);
             if (!this.playerName) {
+                console.log('[Digu] No player name, showing name input');
                 this.showNameInput((name) => this.joinDiguMatchmakingQueue(name));
                 return;
             }
+            console.log('[Digu] Joining matchmaking queue with name:', this.playerName);
             await this.joinDiguMatchmakingQueue(this.playerName);
         }
 
         async joinDiguMatchmakingQueue(playerName) {
+            console.log('[Digu] joinDiguMatchmakingQueue called with playerName:', playerName);
             try {
+                console.log('[Digu] isMultiplayerAvailable:', isMultiplayerAvailable());
                 if (!isMultiplayerAvailable()) {
+                    console.log('[Digu] Initializing multiplayer...');
                     if (!initializeMultiplayer()) {
+                        console.error('[Digu] Failed to initialize multiplayer');
                         this.showError('Could not connect to server');
                         return;
                     }
+                    console.log('[Digu] Waiting for connection...');
                     await new Promise((resolve, reject) => {
                         const timeout = setTimeout(() => reject(new Error('Connection timeout')), 5000);
                         const checkConnection = () => {
@@ -6893,10 +6916,13 @@
                         };
                         checkConnection();
                     });
+                    console.log('[Digu] Connected!');
                 }
 
+                console.log('[Digu] Showing matchmaking screen...');
                 this.showDiguMatchmakingScreen();
                 this.setupDiguMatchmakingListeners();
+                console.log('[Digu] Emitting join_digu_queue...');
                 socket.emit('join_digu_queue', { playerName });
 
             } catch (error) {
@@ -7000,20 +7026,28 @@
         }
 
         async handleDiguCreateRoom() {
+            console.log('[Digu] handleDiguCreateRoom called, playerName:', this.playerName);
             if (!this.playerName) {
+                console.log('[Digu] No player name, showing name input');
                 this.showNameInput((name) => this.createDiguRoom(name));
                 return;
             }
+            console.log('[Digu] Creating room with name:', this.playerName);
             await this.createDiguRoom(this.playerName);
         }
 
         async createDiguRoom(playerName) {
+            console.log('[Digu] createDiguRoom called with playerName:', playerName);
             try {
+                console.log('[Digu] isMultiplayerAvailable:', isMultiplayerAvailable());
                 if (!isMultiplayerAvailable()) {
+                    console.log('[Digu] Initializing multiplayer...');
                     if (!initializeMultiplayer()) {
+                        console.error('[Digu] Failed to initialize multiplayer');
                         this.showError('Could not connect to server');
                         return;
                     }
+                    console.log('[Digu] Waiting for connection...');
                     await new Promise((resolve, reject) => {
                         const timeout = setTimeout(() => reject(new Error('Connection timeout')), 5000);
                         const checkConnection = () => {
@@ -7026,8 +7060,10 @@
                         };
                         checkConnection();
                     });
+                    console.log('[Digu] Connected!');
                 }
 
+                console.log('[Digu] Creating DiGuLobbyManager...');
                 this.diguLobbyManager = new DiGuLobbyManager();
 
                 this.diguLobbyManager.onPlayersChanged = (players) => {
@@ -7191,13 +7227,13 @@
                 }
             });
 
-            // Update start button state for host
+            // Update start button state for host - requires all 4 players
             if (this.diguLobbyManager && this.diguLobbyManager.isHost()) {
                 const playerCount = Object.keys(players).length;
                 const allReady = Object.values(players).every(p => p.ready);
                 const startBtn = document.getElementById('digu-start-game-btn');
                 if (startBtn) {
-                    startBtn.disabled = playerCount < 2 || !allReady;
+                    startBtn.disabled = playerCount < 4 || !allReady;
                 }
             }
         }
