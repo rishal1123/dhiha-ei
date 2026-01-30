@@ -4952,22 +4952,22 @@
             let text = '';
             switch (phase) {
                 case 'draw':
-                    text = 'Draw a card';
+                    text = t('digu.drawCard', {}, 'Draw a card');
                     phaseEl.classList.add('draw-phase');
                     break;
                 case 'meld':
-                    text = 'Discard';
+                    text = t('game.discard', {}, 'Discard');
                     phaseEl.classList.add('meld-phase');
                     break;
                 case 'discard':
-                    text = 'Discard a card';
+                    text = t('digu.discardCard', {}, 'Discard a card');
                     phaseEl.classList.add('discard-phase');
                     break;
                 case 'gameover':
-                    text = 'Game Over';
+                    text = t('results.title', {}, 'Game Over');
                     break;
                 default:
-                    text = 'Waiting...';
+                    text = t('common.waiting', {}, 'Waiting...');
             }
 
             phaseEl.textContent = text;
