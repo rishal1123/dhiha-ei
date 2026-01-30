@@ -325,9 +325,15 @@
 }
 
 .digu-player.bottom .digu-player-hand .card:hover { transform: translateY(-8px); z-index: 10; }
-.digu-player.bottom .digu-player-hand .card.selected { transform: translateY(-12px); box-shadow: 0 0 8px var(--sunset-gold); }
-.digu-player.bottom .digu-player-hand .card.meld-set { box-shadow: 0 0 6px rgba(255, 215, 0, 0.7); border-color: rgba(255, 215, 0, 0.8); }
-.digu-player.bottom .digu-player-hand .card.meld-run { box-shadow: 0 0 6px rgba(64, 224, 208, 0.7); border-color: rgba(64, 224, 208, 0.8); }
+.digu-player.bottom .digu-player-hand .card.selected { transform: translateY(-12px); box-shadow: 0 0 8px var(--sunset-gold) !important; }
+.digu-player.bottom .digu-player-hand .card.meld-set {
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.8), 0 0 16px rgba(255, 215, 0, 0.4) !important;
+    border: 2px solid rgba(255, 215, 0, 0.9) !important;
+}
+.digu-player.bottom .digu-player-hand .card.meld-run {
+    box-shadow: 0 0 8px rgba(64, 224, 208, 0.8), 0 0 16px rgba(64, 224, 208, 0.4) !important;
+    border: 2px solid rgba(64, 224, 208, 0.9) !important;
+}
 .digu-player.bottom .digu-player-hand .card.meld-end { margin-right: 8px; }
 .digu-player.bottom .digu-player-hand .card.dragging { opacity: 0.4; }
 
