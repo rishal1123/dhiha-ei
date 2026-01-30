@@ -264,33 +264,36 @@
 
         <!-- Lobby Overlay -->
         <div id="lobby-overlay">
+            <!-- Language Switcher -->
+            <div id="lang-switcher-container"></div>
+
             <div id="lobby-content">
                 <!-- Game Lobby -->
                 <div id="game-lobby">
                     <div class="lobby-header">
-                        <h2 class="lobby-title">Dhiha Ei</h2>
+                        <h2 class="lobby-title" data-i18n="dhihaEi.title">Dhiha Ei</h2>
                     </div>
-                    <p class="lobby-subtitle">Maldivian Card Game</p>
+                    <p class="lobby-subtitle" data-i18n="home.dhihaEiDesc">Maldivian Card Game</p>
 
                     <!-- Main Menu -->
                     <div id="lobby-menu" class="d-flex flex-column gap-2">
-                        <button id="play-ai-btn" class="btn btn-warning btn-lg fw-bold w-100">Play vs AI</button>
-                        <div class="lobby-divider"><span>or play online</span></div>
+                        <button id="play-ai-btn" class="btn btn-warning btn-lg fw-bold w-100" data-i18n="lobby.playAI">Play vs AI</button>
+                        <div class="lobby-divider"><span data-i18n="lobby.orPlayOnline">or play online</span></div>
                         <div class="online-buttons d-flex gap-2 flex-wrap">
-                            <button id="quick-match-btn" class="btn btn-warning flex-fill">Quick Match</button>
-                            <button id="create-room-btn" class="btn btn-outline-light flex-fill">Create Room</button>
+                            <button id="quick-match-btn" class="btn btn-warning flex-fill" data-i18n="lobby.quickMatch">Quick Match</button>
+                            <button id="create-room-btn" class="btn btn-outline-light flex-fill" data-i18n="lobby.createRoom">Create Room</button>
                         </div>
                         <div class="join-section d-flex gap-2">
-                            <input type="text" id="room-code-input" class="form-control flex-fill" placeholder="Room Code" maxlength="6"
+                            <input type="text" id="room-code-input" class="form-control flex-fill" data-i18n-placeholder="lobby.codePlaceholder" placeholder="Room Code" maxlength="6"
                                 autocomplete="off">
-                            <button id="join-room-btn" class="btn btn-outline-light">Join</button>
+                            <button id="join-room-btn" class="btn btn-outline-light" data-i18n="lobby.joinRoom">Join</button>
                         </div>
                         <button id="back-to-games" class="btn btn-secondary w-100"
-                            onclick="window.location.href='index.html'">&#8592; Back</button>
+                            onclick="window.location.href='index.html'"><span data-i18n="common.back">Back</span></button>
 
                         <!-- Matchmaking Sponsor -->
                         <div id="lobby-matchmaking-sponsor" class="lobby-sponsor">
-                            <span class="lobby-sponsor-label">Sponsored by</span>
+                            <span class="lobby-sponsor-label" data-i18n="sponsors.sponsoredBy">Sponsored by</span>
                             <div class="lobby-sponsor-logo">
                                 <!-- Sponsor logo will be inserted dynamically -->
                             </div>
@@ -301,18 +304,18 @@
                 <!-- Matchmaking Queue -->
                 <div id="matchmaking-screen" class="hidden">
                     <div class="matchmaking-content">
-                        <h3>Finding Players...</h3>
+                        <h3 data-i18n="matchmaking.searching">Finding Players...</h3>
                         <div class="matchmaking-spinner"></div>
                         <div class="matchmaking-status">
-                            <span id="queue-count">0</span> / 4 players
+                            <span id="queue-count">0</span> / 4 <span data-i18n="common.players">players</span>
                         </div>
-                        <p class="matchmaking-hint">Game will start automatically when 4 players join</p>
-                        <button id="cancel-queue-btn" class="btn btn-secondary">Cancel</button>
+                        <p class="matchmaking-hint" data-i18n="matchmaking.autoStart">Game will start automatically when 4 players join</p>
+                        <button id="cancel-queue-btn" class="btn btn-secondary" data-i18n="common.cancel">Cancel</button>
 
                         <!-- Sponsor Area -->
                         <div id="matchmaking-sponsor" class="lobby-sponsor"
                             onclick="console.log('SPONSOR CLICKED'); window.showSponsorPopup ? window.showSponsorPopup('matchmaking') : alert('Function not found')">
-                            <span class="lobby-sponsor-label">Sponsored by</span>
+                            <span class="lobby-sponsor-label" data-i18n="sponsors.sponsoredBy">Sponsored by</span>
                             <div class="lobby-sponsor-logo">
                                 <img src="icons/ooredoo-logo.svg" width="120" height="48" alt="Ooredoo">
                             </div>
@@ -323,62 +326,62 @@
                 <!-- Waiting Room -->
                 <div id="waiting-room" class="hidden">
                     <div class="room-header">
-                        <h3>Room Code</h3>
+                        <h3 data-i18n="waitingRoom.roomCode">Room Code</h3>
                         <div id="room-code-display"></div>
-                        <button id="copy-code-btn" class="btn btn-sm btn-outline-light" title="Copy code">Copy</button>
+                        <button id="copy-code-btn" class="btn btn-sm btn-outline-light" title="Copy code" data-i18n="common.copy">Copy</button>
                     </div>
 
                     <div id="player-slots">
                         <div class="team-column" data-team="0">
-                            <div class="team-label">Team A</div>
+                            <div class="team-label" data-i18n="waitingRoom.teamA">Team A</div>
                             <div class="player-slot" data-position="0" data-team="0">
-                                <span class="slot-status">Waiting...</span>
+                                <span class="slot-status" data-i18n="common.waiting">Waiting...</span>
                                 <span class="slot-name"></span>
                                 <span class="slot-ready"></span>
                                 <button class="swap-btn hidden" title="Move to Team B">&#8594;</button>
                             </div>
                             <div class="player-slot" data-position="2" data-team="0">
-                                <span class="slot-status">Waiting...</span>
+                                <span class="slot-status" data-i18n="common.waiting">Waiting...</span>
                                 <span class="slot-name"></span>
                                 <span class="slot-ready"></span>
                                 <button class="swap-btn hidden" title="Move to Team B">&#8594;</button>
                             </div>
                         </div>
                         <div class="team-column" data-team="1">
-                            <div class="team-label">Team B</div>
+                            <div class="team-label" data-i18n="waitingRoom.teamB">Team B</div>
                             <div class="player-slot" data-position="1" data-team="1">
                                 <button class="swap-btn hidden" title="Move to Team A">&#8592;</button>
-                                <span class="slot-status">Waiting...</span>
+                                <span class="slot-status" data-i18n="common.waiting">Waiting...</span>
                                 <span class="slot-name"></span>
                                 <span class="slot-ready"></span>
                             </div>
                             <div class="player-slot" data-position="3" data-team="1">
                                 <button class="swap-btn hidden" title="Move to Team A">&#8592;</button>
-                                <span class="slot-status">Waiting...</span>
+                                <span class="slot-status" data-i18n="common.waiting">Waiting...</span>
                                 <span class="slot-name"></span>
                                 <span class="slot-ready"></span>
                             </div>
                         </div>
                     </div>
 
-                    <p id="host-team-hint" class="host-hint hidden">As host, click arrows to move players between teams
+                    <p id="host-team-hint" class="host-hint hidden" data-i18n="waitingRoom.hostHint">As host, click arrows to move players between teams
                     </p>
 
                     <div id="waiting-room-actions" class="d-flex flex-column gap-2">
-                        <button id="ready-btn" class="btn btn-outline-light w-100">Ready</button>
-                        <button id="start-game-btn" class="btn btn-warning w-100 hidden">Start Game</button>
-                        <button id="leave-room-btn" class="btn btn-secondary w-100">Leave Room</button>
+                        <button id="ready-btn" class="btn btn-outline-light w-100" data-i18n="waitingRoom.readyBtn">Ready</button>
+                        <button id="start-game-btn" class="btn btn-warning w-100 hidden" data-i18n="waitingRoom.startGame">Start Game</button>
+                        <button id="leave-room-btn" class="btn btn-secondary w-100" data-i18n="waitingRoom.leaveRoom">Leave Room</button>
                     </div>
 
                     <div id="connection-status">
                         <span class="status-dot"></span>
-                        <span class="status-text">Connected</span>
+                        <span class="status-text" data-i18n="common.connected">Connected</span>
                     </div>
 
                     <!-- Sponsor Area -->
                     <div id="waiting-room-sponsor" class="lobby-sponsor"
                         onclick="console.log('SPONSOR CLICKED'); window.showSponsorPopup ? window.showSponsorPopup('waiting_room') : alert('Function not found')">
-                        <span class="lobby-sponsor-label">Sponsored by</span>
+                        <span class="lobby-sponsor-label" data-i18n="sponsors.sponsoredBy">Sponsored by</span>
                         <div class="lobby-sponsor-logo">
                             <img src="icons/ooredoo-logo.svg" width="120" height="48" alt="Ooredoo">
                         </div>
@@ -387,11 +390,11 @@
 
                 <!-- Name Input Modal -->
                 <div id="name-input-modal" class="hidden">
-                    <h3>Enter Your Name</h3>
-                    <input type="text" id="player-name-input" class="form-control" placeholder="Your name" maxlength="10" autocomplete="off">
+                    <h3 data-i18n="lobby.enterName">Enter Your Name</h3>
+                    <input type="text" id="player-name-input" class="form-control" data-i18n-placeholder="lobby.namePlaceholder" placeholder="Your name" maxlength="10" autocomplete="off">
                     <div class="modal-actions d-flex gap-2 mt-3">
-                        <button id="name-cancel-btn" class="btn btn-secondary flex-fill">Cancel</button>
-                        <button id="name-confirm-btn" class="btn btn-warning flex-fill">Confirm</button>
+                        <button id="name-cancel-btn" class="btn btn-secondary flex-fill" data-i18n="common.cancel">Cancel</button>
+                        <button id="name-confirm-btn" class="btn btn-warning flex-fill" data-i18n="common.confirm">Confirm</button>
                     </div>
                 </div>
 
@@ -432,6 +435,9 @@
         <!-- Dhiha Ei game bundle (self-contained) -->
         <script src="js/dhiha-ei-bundle.js?v=1"></script>
 
+        <!-- Internationalization (i18n) -->
+        <script src="js/i18n.js?v=1"></script>
+
         <!-- PWA Install Handler -->
         <script>
             let deferredPrompt;
@@ -469,6 +475,17 @@
                 const prompt = document.getElementById('install-prompt');
                 if (prompt) prompt.classList.add('hidden');
             }
+        </script>
+
+        <!-- Initialize i18n -->
+        <script>
+            // Initialize internationalization
+            document.addEventListener('DOMContentLoaded', async () => {
+                if (typeof I18n !== 'undefined') {
+                    await I18n.init();
+                    I18n.createLanguageSwitcher('lang-switcher-container');
+                }
+            });
         </script>
     </div><!-- end viewport-wrapper -->
 </body>

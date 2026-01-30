@@ -1445,3 +1445,210 @@ html.mobile input, html.mobile select, html.mobile textarea {
         padding: 6px 10px;
     }
 }
+
+/* ==========================================================================
+   LANGUAGE SWITCHER & RTL SUPPORT
+   ========================================================================== */
+
+/* Language Switcher */
+.language-switcher {
+    position: relative;
+    display: inline-block;
+}
+
+.lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(64, 224, 208, 0.15);
+    border: 1px solid var(--ocean-turquoise);
+    border-radius: 6px;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.lang-btn:hover {
+    background: rgba(64, 224, 208, 0.3);
+}
+
+.lang-icon {
+    font-size: 16px;
+}
+
+.lang-current {
+    font-weight: 500;
+}
+
+.lang-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: rgba(10, 20, 32, 0.98);
+    border: 1px solid var(--ocean-turquoise);
+    border-radius: 6px;
+    overflow: hidden;
+    z-index: 1001;
+    min-width: 120px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.lang-dropdown.hidden {
+    display: none;
+}
+
+.lang-option {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    font-size: 14px;
+}
+
+.lang-option:hover {
+    background: rgba(64, 224, 208, 0.2);
+}
+
+.lang-option.active {
+    background: rgba(64, 224, 208, 0.3);
+    color: var(--sunset-gold);
+    font-weight: 600;
+}
+
+/* Language Switcher Container Positioning */
+#lang-switcher-container {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 1002;
+}
+
+/* RTL Support for Lobby */
+#lobby-overlay #lang-switcher-container {
+    position: absolute;
+}
+
+/* ==========================================================================
+   RTL (Right-to-Left) STYLES
+   ========================================================================== */
+
+/* RTL Base */
+body.rtl {
+    direction: rtl;
+    text-align: right;
+}
+
+/* RTL Dhivehi Font */
+body.rtl {
+    font-family: 'MV Faseyha', 'MV Boli', 'Faruma', 'Segoe UI', Roboto, sans-serif;
+}
+
+/* RTL adjustments for specific elements */
+body.rtl .lang-dropdown {
+    right: auto;
+    left: 0;
+}
+
+body.rtl .lang-option {
+    text-align: right;
+}
+
+body.rtl #lang-switcher-container {
+    right: auto;
+    left: 12px;
+}
+
+/* RTL Game Cards */
+body.rtl .game-cards {
+    flex-direction: row-reverse;
+}
+
+/* RTL Lobby Menu */
+body.rtl .join-section {
+    flex-direction: row-reverse;
+}
+
+body.rtl #room-code-input {
+    text-align: center;
+}
+
+/* RTL Player Slots */
+body.rtl .team-column {
+    text-align: right;
+}
+
+body.rtl .player-slot {
+    flex-direction: row-reverse;
+}
+
+body.rtl .swap-btn {
+    transform: scaleX(-1);
+}
+
+/* RTL Result Modal */
+body.rtl .result-player-header {
+    flex-direction: row-reverse;
+}
+
+body.rtl .game-score-row,
+body.rtl .match-stats-row {
+    flex-direction: row-reverse;
+}
+
+/* RTL Draw Notification */
+body.rtl .digu-draw-notification {
+    text-align: right;
+}
+
+/* RTL Sponsor Callout */
+body.rtl .sponsor-callout {
+    text-align: right;
+}
+
+body.rtl .sponsor-callout-close {
+    right: auto;
+    left: 3px;
+}
+
+/* RTL Buttons maintain layout */
+body.rtl .btn,
+body.rtl button {
+    direction: ltr;
+}
+
+body.rtl .btn span,
+body.rtl button span {
+    direction: rtl;
+}
+
+/* RTL Back button arrow */
+body.rtl .back-btn::before {
+    content: '←';
+    margin-left: 6px;
+    margin-right: 0;
+}
+
+/* Mobile RTL adjustments */
+@media (max-width: 768px) {
+    body.rtl #lang-switcher-container {
+        top: 8px;
+        left: 8px;
+        right: auto;
+    }
+
+    body.rtl .lang-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    body.rtl .lang-icon {
+        font-size: 14px;
+    }
+}
