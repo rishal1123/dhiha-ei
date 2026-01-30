@@ -76,6 +76,11 @@
                         <i class="bi bi-broadcast me-1"></i>Active Sponsors
                     </button>
                 </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#logs-tab">
+                        <i class="bi bi-journal-text me-1"></i>Logs
+                    </button>
+                </li>
             </ul>
 
             <!-- Tab Content -->
@@ -140,6 +145,50 @@
                     <h4 class="mb-3">Currently Active Sponsors</h4>
                     <div class="row g-4" id="active-sponsors-grid">
                         <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- Logs Tab -->
+                <div class="tab-pane fade" id="logs-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="mb-0">System Logs</h4>
+                        <div class="d-flex gap-2">
+                            <select class="form-select form-select-sm" id="log-level-filter" style="width: auto;">
+                                <option value="all">All Levels</option>
+                                <option value="error">Errors</option>
+                                <option value="warn">Warnings</option>
+                                <option value="info">Info</option>
+                                <option value="debug">Debug</option>
+                            </select>
+                            <select class="form-select form-select-sm" id="log-category-filter" style="width: auto;">
+                                <option value="all">All Categories</option>
+                                <option value="multiplayer">Multiplayer</option>
+                                <option value="game">Game</option>
+                                <option value="sponsor">Sponsor</option>
+                                <option value="ui">UI</option>
+                                <option value="system">System</option>
+                            </select>
+                            <button class="btn btn-outline-primary btn-sm" onclick="refreshLogs()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="clearLogs()">
+                                <i class="bi bi-trash me-1"></i>Clear Logs
+                            </button>
+                            <button class="btn btn-outline-success btn-sm" onclick="exportLogs()">
+                                <i class="bi bi-download me-1"></i>Export
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card bg-dark">
+                        <div class="card-body p-0">
+                            <div id="logs-container" class="logs-container" style="height: 500px; overflow-y: auto; font-family: monospace; font-size: 12px;">
+                                <!-- Logs will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-muted small">
+                        <span id="log-count">0</span> log entries |
+                        <span id="log-storage-size">0 KB</span> storage used
                     </div>
                 </div>
             </div>
@@ -1334,6 +1383,119 @@
         }
 
         // Auto-refresh removed for localStorage version (no need to poll)
+
+        // =====================================================
+        // LOGS MANAGEMENT
+        // =====================================================
+
+        const LOGS_STORAGE_KEY = 'thaasbai_logs';
+        const MAX_LOGS = 1000; // Maximum number of logs to keep
+
+        // Get logs from localStorage
+        function getLogs() {
+            try {
+                const stored = localStorage.getItem(LOGS_STORAGE_KEY);
+                return stored ? JSON.parse(stored) : [];
+            } catch (e) {
+                console.error('Error loading logs:', e);
+                return [];
+            }
+        }
+
+        // Refresh logs display
+        function refreshLogs() {
+            const logs = getLogs();
+            const container = document.getElementById('logs-container');
+            const levelFilter = document.getElementById('log-level-filter').value;
+            const categoryFilter = document.getElementById('log-category-filter').value;
+
+            // Filter logs
+            let filteredLogs = logs;
+            if (levelFilter !== 'all') {
+                filteredLogs = filteredLogs.filter(log => log.level === levelFilter);
+            }
+            if (categoryFilter !== 'all') {
+                filteredLogs = filteredLogs.filter(log => log.category === categoryFilter);
+            }
+
+            // Sort by timestamp (newest first)
+            filteredLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            // Render logs
+            if (filteredLogs.length === 0) {
+                container.innerHTML = '<div class="p-4 text-center text-muted">No logs found</div>';
+            } else {
+                container.innerHTML = filteredLogs.map(log => {
+                    const levelColors = {
+                        error: 'text-danger',
+                        warn: 'text-warning',
+                        info: 'text-info',
+                        debug: 'text-secondary'
+                    };
+                    const levelColor = levelColors[log.level] || 'text-light';
+                    const time = new Date(log.timestamp).toLocaleString();
+                    const details = log.details ? `<div class="text-muted ms-4" style="white-space: pre-wrap;">${escapeHtml(JSON.stringify(log.details, null, 2))}</div>` : '';
+
+                    return `
+                        <div class="log-entry p-2 border-bottom border-secondary">
+                            <span class="text-muted">[${time}]</span>
+                            <span class="badge bg-secondary ms-1">${log.category || 'system'}</span>
+                            <span class="${levelColor} fw-bold ms-1">[${log.level.toUpperCase()}]</span>
+                            <span class="ms-1">${escapeHtml(log.message)}</span>
+                            ${details}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Update counts
+            document.getElementById('log-count').textContent = filteredLogs.length + ' of ' + logs.length;
+
+            // Calculate storage size
+            const storageSize = new Blob([localStorage.getItem(LOGS_STORAGE_KEY) || '']).size;
+            document.getElementById('log-storage-size').textContent = (storageSize / 1024).toFixed(2) + ' KB';
+        }
+
+        // Clear all logs
+        function clearLogs() {
+            if (!confirm('Are you sure you want to clear all logs?')) return;
+
+            localStorage.removeItem(LOGS_STORAGE_KEY);
+            refreshLogs();
+            showMessage('admin-message', 'All logs cleared', 'success');
+        }
+
+        // Export logs as JSON
+        function exportLogs() {
+            const logs = getLogs();
+            const jsonStr = JSON.stringify(logs, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `thaasbai_logs_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showMessage('admin-message', 'Logs exported successfully', 'success');
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            if (typeof text !== 'string') return text;
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Add filter event listeners
+        document.getElementById('log-level-filter').addEventListener('change', refreshLogs);
+        document.getElementById('log-category-filter').addEventListener('change', refreshLogs);
+
+        // Load logs when logs tab is shown
+        document.querySelector('[data-bs-target="#logs-tab"]').addEventListener('shown.bs.tab', refreshLogs);
     </script>
 </body>
 </html>

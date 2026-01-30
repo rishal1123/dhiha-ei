@@ -57,6 +57,75 @@
     });
 
     // ============================================
+    // LOGGING SYSTEM
+    // ============================================
+
+    const LOGS_STORAGE_KEY = 'thaasbai_logs';
+    const MAX_LOGS = 1000;
+
+    class Logger {
+        static levels = { error: 0, warn: 1, info: 2, debug: 3 };
+        static currentLevel = 'debug'; // Set to 'info' in production
+
+        static log(level, category, message, details = null) {
+            // Check log level
+            if (Logger.levels[level] > Logger.levels[Logger.currentLevel]) return;
+
+            // Create log entry
+            const entry = {
+                timestamp: new Date().toISOString(),
+                level,
+                category,
+                message,
+                details,
+                url: window.location.pathname,
+                userAgent: navigator.userAgent.substring(0, 100)
+            };
+
+            // Console output
+            const consoleMethod = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log';
+            console[consoleMethod](`[${category}] ${message}`, details || '');
+
+            // Store to localStorage
+            try {
+                let logs = [];
+                const stored = localStorage.getItem(LOGS_STORAGE_KEY);
+                if (stored) {
+                    logs = JSON.parse(stored);
+                }
+
+                // Add new entry
+                logs.push(entry);
+
+                // Trim to max logs (keep newest)
+                if (logs.length > MAX_LOGS) {
+                    logs = logs.slice(-MAX_LOGS);
+                }
+
+                localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs));
+            } catch (e) {
+                console.error('Failed to store log:', e);
+            }
+        }
+
+        static error(category, message, details) {
+            Logger.log('error', category, message, details);
+        }
+
+        static warn(category, message, details) {
+            Logger.log('warn', category, message, details);
+        }
+
+        static info(category, message, details) {
+            Logger.log('info', category, message, details);
+        }
+
+        static debug(category, message, details) {
+            Logger.log('debug', category, message, details);
+        }
+    }
+
+    // ============================================
     // AUTO-SCALING FOR ALL SCREEN SIZES
     // Base resolution: 2020x1080 (187.04 x 100 scale units)
     // Elements scale proportionally via dynamic --scale CSS variable
@@ -271,12 +340,13 @@
     // Initialize WebSocket connection
     function initializeMultiplayer() {
         if (typeof io === 'undefined') {
-            console.warn('Socket.IO not loaded - multiplayer disabled');
+            Logger.warn('multiplayer', 'Socket.IO not loaded - multiplayer disabled');
             return false;
         }
 
         try {
             const serverUrl = getServerUrl();
+            Logger.info('multiplayer', 'Connecting to server', { url: serverUrl });
             socket = io(serverUrl, {
                 transports: ['websocket', 'polling'],
                 reconnection: true,
@@ -285,17 +355,17 @@
             });
 
             socket.on('connect', () => {
-                console.log('Connected to server');
+                Logger.info('multiplayer', 'Connected to server');
                 isConnected = true;
             });
 
             socket.on('connected', (data) => {
                 currentUserId = data.sid;
-                console.log('Session ID:', currentUserId);
+                Logger.info('multiplayer', 'Session established', { sessionId: currentUserId });
             });
 
             socket.on('disconnect', (reason) => {
-                console.log('Disconnected from server:', reason);
+                Logger.warn('multiplayer', 'Disconnected from server', { reason });
                 isConnected = false;
                 // Notify any listeners about disconnection
                 if (onConnectionStatusChanged) {
@@ -304,7 +374,7 @@
             });
 
             socket.on('reconnect', (attemptNumber) => {
-                console.log('Reconnected to server after', attemptNumber, 'attempts');
+                Logger.info('multiplayer', 'Reconnected to server', { attempts: attemptNumber });
                 isConnected = true;
                 if (onConnectionStatusChanged) {
                     onConnectionStatusChanged(true, 'reconnected');
@@ -312,11 +382,11 @@
             });
 
             socket.on('reconnect_attempt', (attemptNumber) => {
-                console.log('Reconnection attempt', attemptNumber);
+                Logger.debug('multiplayer', 'Reconnection attempt', { attempt: attemptNumber });
             });
 
             socket.on('reconnect_failed', () => {
-                console.error('Failed to reconnect to server');
+                Logger.error('multiplayer', 'Failed to reconnect to server');
                 if (onConnectionStatusChanged) {
                     onConnectionStatusChanged(false, 'reconnect_failed');
                 }
@@ -4176,6 +4246,7 @@
         }
 
         setupLobbyEventListeners() {
+            console.log('[UIManager] setupLobbyEventListeners called');
             // Game Selection - Dhiha Ei card
             const dhihaEiCard = document.querySelector('.game-card[data-game="dhiha-ei"]');
             if (dhihaEiCard) {
@@ -4208,13 +4279,19 @@
             }
 
             // Quick Match button
-            document.getElementById('quick-match-btn').addEventListener('click', () => {
-                if (this.selectedGame === 'digu') {
-                    this.handleDiguQuickMatch();
-                } else {
-                    this.handleQuickMatch();
-                }
-            });
+            const quickMatchBtn = document.getElementById('quick-match-btn');
+            if (quickMatchBtn) {
+                quickMatchBtn.addEventListener('click', () => {
+                    console.log('Quick match clicked, selectedGame:', this.selectedGame);
+                    if (this.selectedGame === 'digu') {
+                        this.handleDiguQuickMatch();
+                    } else {
+                        this.handleQuickMatch();
+                    }
+                });
+            } else {
+                console.error('quick-match-btn not found');
+            }
 
             // Cancel Queue button (Dhiha Ei)
             const cancelQueueBtn = document.getElementById('cancel-queue-btn');
@@ -4233,33 +4310,48 @@
             }
 
             // Create Room button
-            document.getElementById('create-room-btn').addEventListener('click', () => {
-                if (this.selectedGame === 'digu') {
-                    this.handleDiguCreateRoom();
-                } else {
-                    this.handleCreateRoom();
-                }
-            });
+            const createRoomBtn = document.getElementById('create-room-btn');
+            if (createRoomBtn) {
+                createRoomBtn.addEventListener('click', () => {
+                    console.log('Create room clicked, selectedGame:', this.selectedGame);
+                    if (this.selectedGame === 'digu') {
+                        this.handleDiguCreateRoom();
+                    } else {
+                        this.handleCreateRoom();
+                    }
+                });
+            } else {
+                console.error('create-room-btn not found');
+            }
 
             // Join Room button
-            document.getElementById('join-room-btn').addEventListener('click', () => {
-                if (this.selectedGame === 'digu') {
-                    this.handleDiguJoinRoom();
-                } else {
-                    this.handleJoinRoom();
-                }
-            });
-
-            // Room code input - handle Enter key
-            document.getElementById('room-code-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
+            const joinRoomBtn = document.getElementById('join-room-btn');
+            if (joinRoomBtn) {
+                joinRoomBtn.addEventListener('click', () => {
+                    console.log('Join room clicked, selectedGame:', this.selectedGame);
                     if (this.selectedGame === 'digu') {
                         this.handleDiguJoinRoom();
                     } else {
                         this.handleJoinRoom();
                     }
-                }
-            });
+                });
+            } else {
+                console.error('join-room-btn not found');
+            }
+
+            // Room code input - handle Enter key
+            const roomCodeInput = document.getElementById('room-code-input');
+            if (roomCodeInput) {
+                roomCodeInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        if (this.selectedGame === 'digu') {
+                            this.handleDiguJoinRoom();
+                        } else {
+                            this.handleJoinRoom();
+                        }
+                    }
+                });
+            }
 
             // Copy room code button (Dhiha Ei)
             const copyCodeBtn = document.getElementById('copy-code-btn');
@@ -4560,6 +4652,7 @@
         // ============================================
 
         startDiguGame(numPlayers) {
+            Logger.info('game', 'Starting Digu game', { numPlayers });
             this.currentGameType = 'digu';
             this.diguNumPlayers = numPlayers;
 
@@ -6200,7 +6293,9 @@
                 };
 
                 // Create room
+                Logger.info('multiplayer', 'Creating room', { playerName });
                 const { roomId, position } = await this.lobbyManager.createRoom(playerName);
+                Logger.info('multiplayer', 'Room created', { roomId, position });
 
                 // Show waiting room
                 this.showWaitingRoom(roomId);
@@ -6210,7 +6305,7 @@
                 await this.presenceManager.setupPresence();
 
             } catch (error) {
-                console.error('Error creating room:', error);
+                Logger.error('multiplayer', 'Error creating room', { error: error.message });
                 this.showError(error.message || 'Failed to create room');
             }
         }

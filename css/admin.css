@@ -182,3 +182,52 @@
 .preview-slot-waiting.active:hover {
     transform: translateX(-50%) scale(1.05);
 }
+
+/* =================================================================
+   Logs Tab Styles
+   ================================================================= */
+
+.logs-container {
+    background: #0d1117;
+    border-radius: 0 0 8px 8px;
+}
+
+.log-entry {
+    border-left: 3px solid transparent;
+    transition: background 0.2s;
+}
+
+.log-entry:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.log-entry .badge {
+    font-size: 0.65rem;
+    font-weight: normal;
+}
+
+/* Log level indicators */
+.log-entry:has(.text-danger) {
+    border-left-color: #dc3545;
+}
+
+.log-entry:has(.text-warning) {
+    border-left-color: #ffc107;
+}
+
+.log-entry:has(.text-info) {
+    border-left-color: #0dcaf0;
+}
+
+/* Filter dropdowns */
+#log-level-filter,
+#log-category-filter {
+    background: rgba(0,0,0,0.3);
+    border-color: rgba(255,255,255,0.2);
+    color: #fff;
+}
+
+#log-level-filter option,
+#log-category-filter option {
+    background: #1a1a1a;
+}

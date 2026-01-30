@@ -8,7 +8,19 @@ services:
       - "5002:5002"
     environment:
       - PORT=5002
+      - ADMIN_PASSWORD=thaasbai2024
+      - MAX_CONNECTIONS_PER_IP=10
+      - CONNECTION_RATE_LIMIT=5
     restart: unless-stopped
+    # Resource limits for ~1000 concurrent players
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5002/')"]
       interval: 30s
@@ -17,3 +29,9 @@ services:
       start_period: 5s
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

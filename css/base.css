@@ -436,12 +436,12 @@ body {
 
 #lobby-content {
     background: rgba(10, 18, 28, 0.97);
-    padding: 24px;
+    padding: 24px 40px;
     border-radius: 16px;
     border: 2px solid var(--ocean-turquoise);
     text-align: center;
-    width: 100%;
-    max-width: 450px;
+    width: auto;
+    max-width: 90vw;
     color: var(--text-light);
 }
 
@@ -465,8 +465,8 @@ body {
 .game-cards {
     display: flex;
     justify-content: center;
-    flex-wrap: wrap;
-    gap: 24px;
+    flex-wrap: nowrap;
+    gap: 30px;
     margin-top: 20px;
 }
 
@@ -474,8 +474,9 @@ body {
     background: linear-gradient(145deg, rgba(12, 24, 36, 0.97), rgba(6, 16, 26, 0.97));
     border: 2px solid var(--ocean-turquoise);
     border-radius: 16px;
-    padding: 20px;
-    width: 220px;
+    padding: 24px 30px;
+    min-width: 200px;
+    max-width: 280px;
     text-align: center;
     transition: all 0.3s ease;
     cursor: pointer;
@@ -496,32 +497,32 @@ body {
 
 .coming-soon-badge {
     position: absolute;
-    top: calc(1 * var(--scale));
-    right: calc(-3 * var(--scale));
+    top: 10px;
+    right: -30px;
     background: var(--coral-red);
     color: white;
-    padding: calc(0.3 * var(--scale)) calc(3 * var(--scale));
-    font-size: clamp(10px, calc(1.2 * var(--scale)), 14px);
+    padding: 4px 35px;
+    font-size: 11px;
     font-weight: bold;
     transform: rotate(35deg);
     text-transform: uppercase;
 }
 
 .game-card-icon {
-    font-size: clamp(48px, calc(6 * var(--scale)), 80px);
-    margin-bottom: calc(1 * var(--scale));
+    font-size: 48px;
+    margin-bottom: 8px;
 }
 
 .game-card-title {
-    font-size: clamp(20px, calc(2.5 * var(--scale)), 32px);
+    font-size: 22px;
     color: var(--sunset-gold);
-    margin-bottom: calc(0.5 * var(--scale));
+    margin-bottom: 6px;
 }
 
 .game-card-desc {
-    font-size: clamp(12px, calc(1.4 * var(--scale)), 18px);
+    font-size: 13px;
     color: rgba(255, 255, 255, 0.7);
-    margin-bottom: calc(1.5 * var(--scale));
+    margin-bottom: 12px;
     line-height: 1.4;
 }
 
@@ -1068,13 +1069,12 @@ html, body {
     position: relative;
 }
 
-/* Large screens (1920px+) - add 50px padding on each side */
-@media screen and (min-width: 1920px) {
-    #game-container,
-    #digu-game-board {
-        padding-left: 50px;
-        padding-right: 50px;
-    }
+/* Add 50px padding on each side for game area */
+#game-container,
+#digu-game-board {
+    padding-left: 50px;
+    padding-right: 50px;
+    box-sizing: border-box;
 }
 
 /* Mobile touch enhancements */

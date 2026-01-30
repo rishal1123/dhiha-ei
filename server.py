@@ -2,6 +2,11 @@
 Thaasbai - Multiplayer Game Server
 Python WebSocket server using Flask-SocketIO
 Supports: Dhiha Ei, Digu
+
+Optimized for ~1000 concurrent players with:
+- Eventlet async mode for better concurrency
+- Connection limits per IP
+- Rate limiting for socket events
 """
 
 import os
@@ -10,11 +15,97 @@ import string
 import time
 import json
 import threading
+from collections import defaultdict
+from functools import wraps
+
+# Try to use eventlet for better concurrency (handles 3x more connections)
+try:
+    import eventlet
+    eventlet.monkey_patch()
+    ASYNC_MODE = 'eventlet'
+    print("Using eventlet async mode (optimized for high concurrency)")
+except ImportError:
+    ASYNC_MODE = 'threading'
+    print("Eventlet not available, falling back to threading mode")
+
 from flask import Flask, send_from_directory, request, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
 
 app = Flask(__name__, static_folder='.', static_url_path='')
+
+# ===========================================
+# RATE LIMITING & CONNECTION MANAGEMENT
+# ===========================================
+
+# Connection limits
+MAX_CONNECTIONS_PER_IP = 10  # Max concurrent connections from single IP
+CONNECTION_RATE_LIMIT = 5    # Max new connections per second per IP
+
+# Rate limiting for socket events (events per minute)
+RATE_LIMITS = {
+    'create_room': 5,
+    'join_room': 10,
+    'join_queue': 10,
+    'card_played': 120,      # ~2 per second during game
+    'digu_draw_card': 60,
+    'digu_discard_card': 60,
+    'digu_declare': 10,
+    'default': 60
+}
+
+# Track connections and rates per IP
+ip_connections = defaultdict(int)  # IP -> connection count
+ip_connection_times = defaultdict(list)  # IP -> list of connection timestamps
+event_rate_tracking = defaultdict(lambda: defaultdict(list))  # sid -> event -> timestamps
+
+def get_client_ip():
+    """Get client IP, handling proxies"""
+    if request.headers.get('X-Forwarded-For'):
+        return request.headers.get('X-Forwarded-For').split(',')[0].strip()
+    return request.remote_addr or '127.0.0.1'
+
+def check_connection_limit(ip):
+    """Check if IP has exceeded connection limit"""
+    if ip_connections[ip] >= MAX_CONNECTIONS_PER_IP:
+        return False
+
+    # Check connection rate
+    now = time.time()
+    ip_connection_times[ip] = [t for t in ip_connection_times[ip] if now - t < 1]
+    if len(ip_connection_times[ip]) >= CONNECTION_RATE_LIMIT:
+        return False
+
+    return True
+
+def rate_limit(event_name):
+    """Decorator to rate limit socket events"""
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            sid = request.sid
+            now = time.time()
+
+            # Get rate limit for this event
+            limit = RATE_LIMITS.get(event_name, RATE_LIMITS['default'])
+            window = 60  # 1 minute window
+
+            # Clean old timestamps and check rate
+            event_rate_tracking[sid][event_name] = [
+                t for t in event_rate_tracking[sid][event_name] if now - t < window
+            ]
+
+            if len(event_rate_tracking[sid][event_name]) >= limit:
+                print(f"Rate limit exceeded for {event_name} by {sid}")
+                emit('error', {'message': 'Rate limit exceeded. Please slow down.'})
+                return
+
+            # Record this event
+            event_rate_tracking[sid][event_name].append(now)
+
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
 
 # Admin config
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'thaasbai2024')
@@ -112,7 +203,16 @@ def save_sponsors(sponsors):
 # In-memory sponsor cache
 sponsors_cache = load_sponsors()
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+
+# SocketIO with optimized settings
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    async_mode=ASYNC_MODE,
+    ping_timeout=20,         # Faster timeout detection
+    ping_interval=10,        # More frequent pings
+    max_http_buffer_size=1e6 # 1MB max message size
+)
 
 # In-memory storage for rooms and players
 rooms = {}  # Dhiha Ei rooms
@@ -519,6 +619,51 @@ def activate_campaign(campaign_id):
     })
 
 # ===========================================
+# SERVER STATISTICS (for monitoring)
+# ===========================================
+
+@app.route('/api/admin/server-stats', methods=['GET'])
+def get_server_stats():
+    """Get server statistics for monitoring (admin only)"""
+    password = request.args.get('password')
+    if password != ADMIN_PASSWORD:
+        return jsonify({'error': 'Invalid password'}), 401
+
+    # Calculate active games
+    dhiha_ei_playing = sum(1 for r in rooms.values() if r['metadata']['status'] == 'playing')
+    digu_playing = sum(1 for r in digu_rooms.values() if r['metadata']['status'] == 'playing')
+
+    return jsonify({
+        'connections': {
+            'total': len(player_sessions),
+            'uniqueIPs': len(ip_connections),
+            'perIP': dict(ip_connections)
+        },
+        'rooms': {
+            'dhihaEi': {
+                'total': len(rooms),
+                'playing': dhiha_ei_playing,
+                'waiting': len(rooms) - dhiha_ei_playing
+            },
+            'digu': {
+                'total': len(digu_rooms),
+                'playing': digu_playing,
+                'waiting': len(digu_rooms) - digu_playing
+            }
+        },
+        'matchmaking': {
+            'dhihaEiQueue': len(matchmaking_queue),
+            'diguQueue': len(digu_matchmaking_queue)
+        },
+        'config': {
+            'asyncMode': ASYNC_MODE,
+            'maxConnectionsPerIP': MAX_CONNECTIONS_PER_IP,
+            'connectionRateLimit': CONNECTION_RATE_LIMIT
+        },
+        'timestamp': time.time()
+    })
+
+# ===========================================
 # STATISTICS API
 # ===========================================
 
@@ -674,12 +819,44 @@ def get_customer_total_stats(customer_id):
 
 @socketio.on('connect')
 def handle_connect():
-    print(f'Client connected: {request.sid}')
-    emit('connected', {'sid': request.sid})
+    ip = get_client_ip()
+    sid = request.sid
+
+    # Check connection limits
+    if not check_connection_limit(ip):
+        print(f'Connection rejected for {ip} (limit exceeded)')
+        return False  # Reject connection
+
+    # Track connection
+    ip_connections[ip] += 1
+    ip_connection_times[ip].append(time.time())
+
+    # Store IP in session for cleanup on disconnect
+    if sid not in player_sessions:
+        player_sessions[sid] = {}
+    player_sessions[sid]['_ip'] = ip
+
+    print(f'Client connected: {sid} from {ip} (total from IP: {ip_connections[ip]})')
+    emit('connected', {'sid': sid})
 
 @socketio.on('disconnect')
 def handle_disconnect():
     sid = request.sid
+
+    # Clean up IP tracking
+    if sid in player_sessions and '_ip' in player_sessions[sid]:
+        ip = player_sessions[sid]['_ip']
+        ip_connections[ip] = max(0, ip_connections[ip] - 1)
+        # Clean up if no more connections
+        if ip_connections[ip] == 0:
+            del ip_connections[ip]
+            if ip in ip_connection_times:
+                del ip_connection_times[ip]
+
+    # Clean up rate limiting data
+    if sid in event_rate_tracking:
+        del event_rate_tracking[sid]
+
     print(f'Client disconnected: {sid}')
 
     # Remove from Dhiha Ei matchmaking queue if present
@@ -773,6 +950,7 @@ def handle_disconnect():
         del player_sessions[sid]
 
 @socketio.on('create_room')
+@rate_limit('create_room')
 def handle_create_room(data):
     sid = request.sid
     player_name = data.get('playerName', 'Player')
@@ -814,6 +992,7 @@ def handle_create_room(data):
     })
 
 @socketio.on('join_room')
+@rate_limit('join_room')
 def handle_join_room(data):
     sid = request.sid
     room_id = data.get('roomId', '').upper().strip()
@@ -1049,6 +1228,7 @@ def handle_start_game(data):
     }, room=room_id)
 
 @socketio.on('card_played')
+@rate_limit('card_played')
 def handle_card_played(data):
     sid = request.sid
 
@@ -1056,8 +1236,11 @@ def handle_card_played(data):
         return
 
     session = player_sessions[sid]
-    room_id = session['roomId']
-    position = session['position']
+    room_id = session.get('roomId')
+    position = session.get('position')
+
+    if room_id is None:
+        return
 
     card = data.get('card')
 
@@ -1348,6 +1531,7 @@ def broadcast_queue_status():
         }, to=player['sid'])
 
 @socketio.on('join_queue')
+@rate_limit('join_queue')
 def handle_join_queue(data):
     sid = request.sid
     player_name = data.get('playerName', 'Player')
@@ -1413,6 +1597,7 @@ def get_digu_room_state(room_id):
     }
 
 @socketio.on('create_digu_room')
+@rate_limit('create_room')
 def handle_create_digu_room(data):
     """Create a new Digu room (2-4 players)"""
     sid = request.sid
@@ -1464,6 +1649,7 @@ def handle_create_digu_room(data):
     })
 
 @socketio.on('join_digu_room')
+@rate_limit('join_room')
 def handle_join_digu_room(data):
     """Join an existing Digu room"""
     sid = request.sid
@@ -1641,6 +1827,7 @@ def handle_start_digu_game(data):
     }, room=room_id)
 
 @socketio.on('digu_draw_card')
+@rate_limit('digu_draw_card')
 def handle_digu_draw_card(data):
     """Player draws a card from stock or discard"""
     sid = request.sid
@@ -1668,6 +1855,7 @@ def handle_digu_draw_card(data):
     }, room=room_id, include_self=False)
 
 @socketio.on('digu_discard_card')
+@rate_limit('digu_discard_card')
 def handle_digu_discard_card(data):
     """Player discards a card"""
     sid = request.sid
@@ -1693,6 +1881,7 @@ def handle_digu_discard_card(data):
     }, room=room_id, include_self=False)
 
 @socketio.on('digu_declare')
+@rate_limit('digu_declare')
 def handle_digu_declare(data):
     """Player declares Digu"""
     sid = request.sid
@@ -1813,6 +2002,7 @@ def broadcast_digu_queue_status():
         }, to=player['sid'])
 
 @socketio.on('join_digu_queue')
+@rate_limit('join_queue')
 def handle_join_digu_queue(data):
     """Join the Digu matchmaking queue"""
     sid = request.sid
