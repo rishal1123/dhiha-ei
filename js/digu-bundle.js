@@ -2148,6 +2148,7 @@
         }
 
         // Find the best meld arrangement to minimize unmelded penalty
+        // Uses same logic as findAllValidMelds for consistency with highlighting
         findBestMeldArrangement() {
             const cards = this.hand.slice(0, 10);
             if (cards.length < 10) {
@@ -2158,116 +2159,76 @@
                 };
             }
 
-            // All possible meld structures to try (including partial melds)
-            // Format: [meld1Size, meld2Size, meld3Size] where 0 means no meld
-            const structures = [
-                // Full 10-card structures (winning hands)
-                [4, 3, 3], [3, 4, 3], [3, 3, 4],
-                [4, 4, 2], [4, 2, 4], [2, 4, 4], // 4+4+2 not valid but check anyway
-                [5, 3, 2], [5, 2, 3], [3, 5, 2], [2, 5, 3], [3, 2, 5], [2, 3, 5],
-                [5, 5, 0], [5, 0, 5], [0, 5, 5],
-                [6, 4, 0], [6, 0, 4], [4, 6, 0], [0, 6, 4], [4, 0, 6], [0, 4, 6],
-                [6, 3, 1], [6, 1, 3], [3, 6, 1], [1, 6, 3], [3, 1, 6], [1, 3, 6],
-                [7, 3, 0], [7, 0, 3], [3, 7, 0], [0, 7, 3], [3, 0, 7], [0, 3, 7],
-                // 9-card structures (3+3+3)
-                [3, 3, 3],
-                // 7-card structures (4+3 or 3+4)
-                [4, 3, 0], [4, 0, 3], [3, 4, 0], [0, 4, 3], [3, 0, 4], [0, 3, 4],
-                // 6-card structures (3+3)
-                [3, 3, 0], [3, 0, 3], [0, 3, 3],
-                // 4-card structures (single 4-card meld)
-                [4, 0, 0], [0, 4, 0], [0, 0, 4],
-                // 3-card structures (single 3-card meld)
-                [3, 0, 0], [0, 3, 0], [0, 0, 3],
-            ];
+            // Find all valid melds using the same approach as highlighting
+            // Scan for valid melds of size 3 and 4 at consecutive positions
+            const validMelds = [];
 
-            let bestResult = {
-                melds: [],
-                unmeldedCards: cards,
-                unmeldedValue: DiGuRules.getHandValue(cards),
-                structure: [0, 0, 0]
-            };
+            // Prioritize larger melds first (4-card melds before 3-card melds)
+            for (let size = 4; size >= 3; size--) {
+                for (let start = 0; start <= 10 - size; start++) {
+                    // Check if this position overlaps with existing meld
+                    const overlaps = validMelds.some(m =>
+                        (start >= m.start && start < m.start + m.length) ||
+                        (start + size > m.start && start + size <= m.start + m.length) ||
+                        (start <= m.start && start + size >= m.start + m.length)
+                    );
+                    if (overlaps) continue;
 
-            for (const structure of structures) {
-                const [s1, s2, s3] = structure;
+                    const group = cards.slice(start, start + size);
 
-                // Skip invalid structures (must add up to <= 10)
-                if (s1 + s2 + s3 > 10) continue;
-
-                let pos = 0;
-                const melds = [];
-                const meldedIndices = new Set();
-                let validMeldValue = 0;
-
-                // Check each meld slot
-                for (let i = 0; i < 3; i++) {
-                    const size = structure[i];
-                    if (size > 0 && pos + size <= 10) {
-                        const meldCards = cards.slice(pos, pos + size);
-                        const isValid = DiGuRules.isValidMeld(meldCards);
-                        melds.push({
-                            cards: meldCards,
-                            valid: isValid,
-                            startIndex: pos
-                        });
-                        if (isValid) {
-                            for (let j = pos; j < pos + size; j++) {
-                                meldedIndices.add(j);
-                            }
-                            validMeldValue += meldCards.reduce((sum, c) => sum + DiGuRules.getCardValue(c), 0);
-                        }
-                        pos += size;
+                    // Check if valid set or run
+                    if (DiGuRules.isValidSet(group) || DiGuRules.isValidRun(group)) {
+                        validMelds.push({ start, length: size, cards: group });
                     }
-                }
-
-                // Calculate unmelded value
-                let unmeldedValue = 0;
-                const unmeldedCards = [];
-                for (let i = 0; i < cards.length; i++) {
-                    if (!meldedIndices.has(i)) {
-                        unmeldedValue += DiGuRules.getCardValue(cards[i]);
-                        unmeldedCards.push(cards[i]);
-                    }
-                }
-
-                // Keep best arrangement (lowest unmelded value)
-                if (unmeldedValue < bestResult.unmeldedValue) {
-                    bestResult = {
-                        melds,
-                        unmeldedCards,
-                        unmeldedValue,
-                        structure,
-                        validMeldValue
-                    };
                 }
             }
 
-            return bestResult;
+            // Sort by start position
+            validMelds.sort((a, b) => a.start - b.start);
+
+            // Build result from found melds
+            const meldedIndices = new Set();
+            const melds = [];
+            let validMeldValue = 0;
+
+            for (const meld of validMelds) {
+                melds.push({
+                    cards: meld.cards,
+                    valid: true,
+                    startIndex: meld.start
+                });
+                for (let j = meld.start; j < meld.start + meld.length; j++) {
+                    meldedIndices.add(j);
+                }
+                validMeldValue += meld.cards.reduce((sum, c) => sum + DiGuRules.getCardValue(c), 0);
+            }
+
+            // Calculate unmelded cards and value
+            let unmeldedValue = 0;
+            const unmeldedCards = [];
+            for (let i = 0; i < cards.length; i++) {
+                if (!meldedIndices.has(i)) {
+                    unmeldedValue += DiGuRules.getCardValue(cards[i]);
+                    unmeldedCards.push(cards[i]);
+                }
+            }
+
+            return {
+                melds,
+                unmeldedCards,
+                unmeldedValue,
+                structure: validMelds.map(m => m.length),
+                validMeldValue
+            };
         }
 
         // Get detailed meld information for end-game display
+        // Uses same logic as findAllValidMelds for consistency with highlighting
         getMeldDetails() {
             const cards = this.hand.slice(0, 10);
             const meldDetails = [];
 
-            // First check if there's a complete winning structure
-            const winningResult = this.getMeldsFromHand();
-            if (winningResult.valid !== false && winningResult.structure) {
-                const [s1, s2, s3] = winningResult.structure;
-                const meld1 = cards.slice(0, s1);
-                const meld2 = cards.slice(s1, s1 + s2);
-                const meld3 = cards.slice(s1 + s2, 10);
-
-                if (DiGuRules.isValidMeld(meld1) && DiGuRules.isValidMeld(meld2) && DiGuRules.isValidMeld(meld3)) {
-                    // All melds valid - return winning structure
-                    meldDetails.push({ cards: meld1, valid: true, type: this.getMeldType(meld1) });
-                    meldDetails.push({ cards: meld2, valid: true, type: this.getMeldType(meld2) });
-                    meldDetails.push({ cards: meld3, valid: true, type: this.getMeldType(meld3) });
-                    return meldDetails;
-                }
-            }
-
-            // Find best partial meld arrangement
+            // Use findBestMeldArrangement which now uses the same logic as highlighting
             const bestArrangement = this.findBestMeldArrangement();
 
             // Add valid melds from best arrangement
