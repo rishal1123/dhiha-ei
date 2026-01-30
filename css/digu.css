@@ -635,12 +635,12 @@
 
 /* Phase Indicator */
 #digu-phase {
-    padding: 6px 16px;
+    padding: 4px 12px;
     background: linear-gradient(145deg, rgba(10, 20, 30, 0.95), rgba(20, 40, 60, 0.9));
-    border: 2px solid var(--ocean-turquoise);
-    border-radius: 6px;
+    border: 1px solid var(--ocean-turquoise);
+    border-radius: 5px;
     color: var(--ocean-turquoise);
-    font-size: clamp(12px, 1.4vw, 18px);
+    font-size: clamp(8px, 1vw, 13px);
     font-weight: 600;
     text-transform: uppercase;
     z-index: 10;
