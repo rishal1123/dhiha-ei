@@ -108,8 +108,9 @@
 
     /* Smaller sponsor columns on mobile */
     .drink-item, .food-item {
-        width: clamp(25px, 80%, 40px);
-        height: clamp(60px, 50%, 100px);
+        width: 100%;
+        max-width: 100%;
+        height: clamp(50px, 40%, 80px);
     }
 
     /* Compact score panels on mobile - 70% */
@@ -138,17 +139,18 @@
         font-size: 9px;
     }
 
-    /* Food and drink sponsors - 70% */
+    /* Food and drink sponsors - scaled to fit */
     .sponsor-column {
-        min-width: 56px;
-        min-height: 56px;
+        min-width: 40px;
+        min-height: 50px;
+        padding: 2px;
     }
 
     .sponsor-column > img,
     #drink-sponsor > img,
     #food-sponsor > img {
-        max-width: 91px;
-        max-height: 91px;
+        max-width: 100%;
+        max-height: 70px;
     }
 
     /* Message overlay - landscape phone optimization */
@@ -240,13 +242,6 @@
     margin-bottom: 5px;
 }
 
-.player-area.partner .player-label {
-    background: linear-gradient(135deg, rgba(34, 139, 34, 0.8), rgba(0, 100, 0, 0.7));
-}
-
-.player-area.opponent .player-label {
-    background: linear-gradient(135deg, rgba(227, 93, 93, 0.8), rgba(180, 60, 60, 0.7));
-}
 
 .human-label {
     background: linear-gradient(135deg, rgba(255, 215, 0, 0.9), rgba(218, 165, 32, 0.8));
@@ -254,7 +249,7 @@
     font-weight: 600;
 }
 
-/* Player Avatars */
+/* Player Avatars - Team colors on border */
 .player-avatar {
     width: 40px;
     height: 40px;
@@ -263,7 +258,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid var(--ocean-turquoise);
+    border: 3px solid var(--ocean-turquoise);
     margin-bottom: 5px;
     position: relative;
 }
@@ -271,10 +266,20 @@
 .avatar-icon {
     font-size: clamp(16px, 2vw, 24px);
     font-weight: bold;
+    color: var(--text-light);
 }
 
-.player-area.partner .avatar-icon { color: var(--palm-green); }
-.player-area.opponent .avatar-icon { color: var(--coral-red); }
+/* Team A (You + Partner) - Turquoise border */
+.player-area.partner .player-avatar {
+    border-color: var(--ocean-turquoise);
+    box-shadow: 0 0 8px rgba(64, 224, 208, 0.5);
+}
+
+/* Team B (Opponents) - Red border */
+.player-area.opponent .player-avatar {
+    border-color: var(--coral-red);
+    box-shadow: 0 0 8px rgba(227, 93, 93, 0.5);
+}
 
 .avatar-cards {
     position: absolute;
@@ -531,6 +536,21 @@
     z-index: 10;
 }
 
+/* Glow animation when it's the player's turn */
+#player-bottom.active-turn .card,
+#player-bottom.active-turn .card-svg {
+    animation: yourTurnGlow 1.5s ease-in-out infinite !important;
+}
+
+@keyframes yourTurnGlow {
+    0%, 100% {
+        box-shadow: 0 2px 10px rgba(255, 215, 0, 0.5), 0 0 15px rgba(255, 215, 0, 0.3);
+    }
+    50% {
+        box-shadow: 0 2px 20px rgba(255, 215, 0, 0.9), 0 0 30px rgba(255, 215, 0, 0.6);
+    }
+}
+
 .card.playable {
     cursor: pointer;
     box-shadow: 0 0 8px rgba(64, 224, 208, 0.8), 0 0 16px rgba(64, 224, 208, 0.6);
@@ -594,18 +614,20 @@
 .sponsor-column {
     cursor: pointer;
     width: 100%;
+    max-width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    padding: 4px;
+    box-sizing: border-box;
 }
 
 .drink-item, .food-item {
     width: 100%;
-    height: clamp(80px, 60%, 150px);
-    max-width: 130px;
-    max-height: 130px;
+    max-width: 100%;
+    height: clamp(60px, 50%, 100px);
     background: rgba(255, 255, 255, 0.1);
     border: 1px dashed rgba(255, 255, 255, 0.3);
     border-radius: 6px;
@@ -620,10 +642,16 @@
     border-color: var(--ocean-turquoise);
 }
 
-.drink-item img, .food-item img { max-width: 90%; max-height: 90%; object-fit: contain; }
+.drink-item img, .food-item img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
 #table-sponsor { opacity: 0.8; z-index: 10; }
 #table-sponsor:hover { opacity: 1; }
+
+#table-sponsor img {
+    max-width: 150px;
+    max-height: 60px;
+    object-fit: contain;
+}
 
 /* Inline Game Buttons */
 #new-game-btn,
@@ -712,8 +740,7 @@
    ========================================================================== */
 
 /* Standalone PWA mode */
-html.standalone #game-board,
-html.ios-standalone #game-board {
+html.standalone #game-board {
     position: absolute;
     top: 0;
     left: 0;

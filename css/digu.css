@@ -203,12 +203,12 @@
     50% { box-shadow: 0 0 15px var(--sunset-gold); }
 }
 
-/* Avatar */
+/* Avatar - Team colors on border */
 .digu-avatar-icon {
     width: 40px;
     height: 40px;
     background: linear-gradient(135deg, rgba(27, 40, 56, 0.95), rgba(0, 105, 148, 0.85));
-    border: 2px solid var(--ocean-turquoise);
+    border: 3px solid var(--ocean-turquoise);
     border-radius: 50%;
     margin-bottom: 5px;
     /* Center the character text inside the avatar */
@@ -221,32 +221,21 @@
     text-transform: uppercase;
 }
 
+/* Team A (You + Partner) - Turquoise border */
+.digu-player.team-a .digu-avatar-icon {
+    border-color: var(--ocean-turquoise);
+    box-shadow: 0 0 8px rgba(64, 224, 208, 0.5);
+}
+
+/* Team B (Opponents) - Red border */
+.digu-player.team-b .digu-avatar-icon {
+    border-color: #ff6666;
+    box-shadow: 0 0 8px rgba(255, 100, 100, 0.5);
+}
+
 .digu-player.current-turn .digu-avatar-icon {
     border-color: var(--sunset-gold);
     box-shadow: 0 0 8px var(--sunset-gold);
-}
-
-/* Team Labels */
-.digu-team-label {
-    font-size: clamp(8px, 0.9vw, 11px);
-    text-transform: uppercase;
-    font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 4px;
-        margin-bottom: 5px;
-    
-}
-
-.digu-player.team-a .digu-team-label {
-    background: rgba(64, 224, 208, 0.3);
-    color: var(--ocean-turquoise);
-    border: 1px solid var(--ocean-turquoise);
-}
-
-.digu-player.team-b .digu-team-label {
-    background: rgba(255, 100, 100, 0.3);
-    color: #ff8888;
-    border: 1px solid #ff6666;
 }
 
 /* Shuffle Count */
@@ -337,6 +326,23 @@
 .digu-player.bottom .digu-player-hand .card.meld-end { margin-right: 8px; }
 .digu-player.bottom .digu-player-hand .card.dragging { opacity: 0.4; }
 
+/* Glow animation when it's the player's turn */
+#digu-player-0.current-turn .digu-player-hand .card,
+#digu-player-0.current-turn .digu-player-hand .card-svg,
+.digu-player.bottom.current-turn .digu-player-hand .card,
+.digu-player.bottom.current-turn .digu-player-hand .card-svg {
+    animation: yourTurnGlow 1.5s ease-in-out infinite !important;
+}
+
+@keyframes yourTurnGlow {
+    0%, 100% {
+        box-shadow: 0 2px 10px rgba(255, 215, 0, 0.5), 0 0 15px rgba(255, 215, 0, 0.3);
+    }
+    50% {
+        box-shadow: 0 2px 20px rgba(255, 215, 0, 0.9), 0 0 30px rgba(255, 215, 0, 0.6);
+    }
+}
+
 /* Mobile: reduce sizes */
 @media screen and (max-width: 768px), (max-height: 500px) {
     /* Player 0 cards - 90% */
@@ -353,22 +359,23 @@
         height: clamp(76px, 10vw, 113px);
     }
 
-    /* Food and drink sponsors - 70% */
+    /* Food and drink sponsors - scaled to fit */
     .sponsor-column {
-        min-width: 56px;
-        min-height: 56px;
+        min-width: 50px;
+        min-height: 50px;
+        padding: 2px;
     }
 
     .sponsor-column > img,
     #drink-sponsor > img,
     #food-sponsor > img {
-        max-width: 91px;
-        max-height: 91px;
+        max-width: 100%;
+        max-height: 70px;
     }
 
     .drink-item, .food-item {
-        max-width: 91px;
-        max-height: 91px;
+        max-width: 100%;
+        height: clamp(50px, 40%, 80px);
     }
 
     /* Player details - 70% */
@@ -655,30 +662,23 @@
 .sponsor-column {
     cursor: pointer;
     width: 100%;
-    min-width: 80px;
-    min-height: 80px;
+    max-width: 100%;
+    min-height: 60px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    overflow: visible;
-}
-
-.sponsor-label {
-    display: block;
-    font-size: clamp(9px, 1vw, 12px);
-    color: rgba(255, 255, 255, 0.5);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
+    overflow: hidden;
+    padding: 4px;
+    box-sizing: border-box;
 }
 
 /* Style for dynamically inserted sponsor images */
 .sponsor-column > img,
 #drink-sponsor > img,
 #food-sponsor > img {
-    max-width: 130px;
-    max-height: 130px;
+    max-width: 100%;
+    max-height: 100px;
     width: auto;
     height: auto;
     object-fit: contain;
@@ -686,9 +686,8 @@
 
 .drink-item, .food-item {
     width: 100%;
-    height: clamp(80px, 60%, 150px);
-    max-width: 130px;
-    max-height: 130px;
+    max-width: 100%;
+    height: clamp(60px, 50%, 100px);
     background: rgba(255, 255, 255, 0.1);
     border: 1px dashed rgba(255, 255, 255, 0.3);
     border-radius: 6px;
@@ -703,20 +702,21 @@
     border-color: var(--ocean-turquoise);
 }
 
-.drink-item img, .food-item img { max-width: 90%; max-height: 90%; object-fit: contain; }
+.drink-item img, .food-item img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
 #table-sponsor { z-index: 10; }
 
-
 #table-sponsor img {
-    max-width: 200px;
-    max-height: 80px;
+    max-width: 150px;
+    max-height: 60px;
     object-fit: contain;
 }
 
 #table-sponsor .sponsor-logo img {
     width: 100%;
     height: 100%;
+    max-width: 150px;
+    max-height: 60px;
     object-fit: contain;
 }
 
@@ -762,7 +762,7 @@
 .digu-draw-notification .draw-card.red { color: #d32f2f; }
 .digu-draw-notification .draw-card.black { color: #212121; }
 
-/* Result Modal */
+/* Result Modal - fits within 1920x1080 */
 #digu-result-modal {
     position: fixed;
     inset: 0;
@@ -780,9 +780,10 @@
     background: linear-gradient(145deg, rgba(6, 12, 18, 0.98), rgba(10, 20, 32, 0.98));
     border: 2px solid var(--sunset-gold);
     border-radius: 12px;
-    padding: 16px;
-    max-width: 90vw;
-    max-height: 90vh;
+    padding: 20px;
+    width: 100%;
+    max-width: 800px;
+    max-height: calc(100vh - 40px);
     overflow-y: auto;
 }
 
@@ -804,12 +805,23 @@
 .game-score-row { display: flex; justify-content: space-between; padding: 4px 8px; color: var(--text-light); }
 .game-score-row.winner { color: var(--palm-green); font-weight: 600; }
 
-#digu-result-players { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+#digu-result-players {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+@media (max-width: 600px) {
+    #digu-result-players {
+        grid-template-columns: 1fr;
+    }
+}
 
 .result-player-row {
     background: rgba(0, 0, 0, 0.3);
     border-radius: 6px;
-    padding: 8px;
+    padding: 10px;
 }
 
 .result-player-row.winner { border: 1px solid var(--palm-green); background: rgba(76, 175, 80, 0.1); }

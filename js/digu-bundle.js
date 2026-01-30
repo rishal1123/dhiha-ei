@@ -8,18 +8,16 @@
     'use strict';
 
     // ============================================
-    // MOBILE PWA DETECTION AND SETUP (iOS & Android)
+    // MOBILE PWA DETECTION AND SETUP
     // ============================================
 
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const isAndroid = /Android/.test(navigator.userAgent);
-    const isMobile = isIOS || isAndroid || /webOS|BlackBerry|Opera Mini|IEMobile/.test(navigator.userAgent);
-    const isStandalone = window.navigator.standalone === true ||
-                         window.matchMedia('(display-mode: standalone)').matches ||
+    const isMobile = isAndroid || /webOS|BlackBerry|Opera Mini|IEMobile/.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
                          window.matchMedia('(display-mode: fullscreen)').matches;
     const isMobilePWA = isMobile && isStandalone;
 
-    // Apply mobile PWA fixes for both iOS and Android
+    // Apply mobile PWA fixes
     if (isMobile) {
         // Prevent bounce/rubber-banding
         document.addEventListener('touchmove', function(e) {
@@ -42,20 +40,16 @@
 
         // Add device classes for CSS targeting
         document.documentElement.classList.add('mobile');
-        if (isIOS) {
-            document.documentElement.classList.add('ios');
-        }
         if (isAndroid) {
             document.documentElement.classList.add('android');
         }
         if (isStandalone) {
             document.documentElement.classList.add('standalone');
-            if (isIOS) document.documentElement.classList.add('ios-standalone');
             if (isAndroid) document.documentElement.classList.add('android-standalone');
         }
     }
 
-    // Prevent context menu on long press (iOS/Android)
+    // Prevent context menu on long press
     document.addEventListener('contextmenu', function(e) {
         if (e.target.closest('.card, .pile, button, .clickable')) {
             e.preventDefault();
@@ -140,7 +134,7 @@
     // Try to lock orientation to landscape
     async function lockLandscape() {
         try {
-            // Try Screen Orientation API (works in fullscreen on most browsers, NOT iOS)
+            // Try Screen Orientation API (works in fullscreen on most browsers)
             if (screen.orientation && screen.orientation.lock) {
                 await screen.orientation.lock('landscape');
                 console.log('[Orientation] Locked to landscape');
@@ -152,7 +146,7 @@
         return false;
     }
 
-    // Request fullscreen and lock orientation (Android only, iOS doesn't support this)
+    // Request fullscreen and lock orientation
     async function requestFullscreenLandscape() {
         const elem = document.documentElement;
         try {

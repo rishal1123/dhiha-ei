@@ -10,12 +10,6 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
 
-    <!-- iOS PWA settings - landscape orientation -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Thaasbai">
-    <meta name="apple-mobile-web-app-orientations" content="landscape">
-
     <!-- Android PWA settings -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#001825">
@@ -30,55 +24,9 @@
     <!-- Prevent text size adjustment -->
     <meta name="format-detection" content="telephone=no">
 
-    <!-- iOS icons -->
-    <link rel="apple-touch-icon" href="icons/icon-180x180.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120x120.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167x167.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png">
-    <link rel="apple-touch-icon-precomposed" href="icons/icon-180x180.png">
-
-    <!-- Safari Pinned Tab Icon -->
-    <link rel="mask-icon" href="icons/icon.svg" color="#006994">
-
     <!-- Standard favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
-
-    <!-- Splash screens for iOS (landscape orientation) -->
-    <!-- iPhone 15 Pro Max -->
-    <link rel="apple-touch-startup-image" href="splash/splash-iphone-15-pro-max-2796x1290.png"
-        media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
-    <!-- iPhone 14/13/12 -->
-    <link rel="apple-touch-startup-image" href="splash/splash-iphone-14-13-12-2532x1170.png"
-        media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
-    <!-- iPhone 11 Pro/X -->
-    <link rel="apple-touch-startup-image" href="splash/splash-iphone-11-pro-x-2436x1125.png"
-        media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
-    <!-- iPhone 11/XR -->
-    <link rel="apple-touch-startup-image" href="splash/splash-iphone-11-xr-1792x828.png"
-        media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
-    <!-- iPhone SE/8 -->
-    <link rel="apple-touch-startup-image" href="splash/splash-iphone-se-8-1334x750.png"
-        media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
-    <!-- iPad Pro 12.9" -->
-    <link rel="apple-touch-startup-image" href="splash/splash-ipad-pro-12.9-2732x2048.png"
-        media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
-    <!-- iPad Pro 11" -->
-    <link rel="apple-touch-startup-image" href="splash/splash-ipad-pro-11-2388x1668.png"
-        media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
-    <!-- iPad Air -->
-    <link rel="apple-touch-startup-image" href="splash/splash-ipad-air-2360x1640.png"
-        media="(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
-    <!-- iPad 10.2" -->
-    <link rel="apple-touch-startup-image" href="splash/splash-ipad-10.2-2160x1620.png"
-        media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
-    <!-- iPad mini -->
-    <link rel="apple-touch-startup-image" href="splash/splash-ipad-mini-2266x1488.png"
-        media="(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
-    <!-- iPad 9.7" -->
-    <link rel="apple-touch-startup-image" href="splash/splash-ipad-9.7-2048x1536.png"
-        media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
 
     <title>Dhiha Ei - Thaasbai</title>
     <!-- Bootstrap CSS -->
@@ -176,7 +124,7 @@
 
             <!-- Dhiha Ei Game Board - Bootstrap Grid -->
             <main id="game-board" class="container-fluid p-0">
-                <!-- Row 1: Score Panel | Partner | Match Points -->
+                <!-- Row 1: Score Panel | Top Player | Match Points -->
                 <div class="row" style="height: 15%;">
                     <div class="col text-start">
                         <div id="score-panel" class="d-flex gap-2">
@@ -217,7 +165,6 @@
                                 <div class="avatar-cards"><span class="card-count">13</span></div>
                             </div>
                             <div class="player-hand" id="hand-top"></div>
-                            <div class="player-label">Partner</div>
                             <div class="shuffle-count" id="shuffle-count-2">Shuffle: 0</div>
                         </div>
                     </div>
@@ -241,7 +188,6 @@
                                 <div class="avatar-cards"><span class="card-count">13</span></div>
                             </div>
                             <div class="player-hand" id="hand-left"></div>
-                            <div class="player-label">Opponent</div>
                             <div class="shuffle-count" id="shuffle-count-1">Shuffle: 0</div>
                         </div>
                     </div>
@@ -279,7 +225,6 @@
                                 <div class="avatar-cards"><span class="card-count">13</span></div>
                             </div>
                             <div class="player-hand" id="hand-right"></div>
-                            <div class="player-label">Opponent</div>
                             <div class="shuffle-count" id="shuffle-count-3">Shuffle: 0</div>
                         </div>
                     </div>

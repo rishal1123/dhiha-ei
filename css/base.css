@@ -36,13 +36,10 @@
     /* Text multiplier for better readability */
     --text-mult: 1.6;
 
-    /* ===== Apple PWA Human Interface Guidelines ===== */
-    /* All values in scale units for proper scaling */
-
     /* Touch targets: minimum 44pt (44px at 1x) = 4.1 scale units */
     --touch-target-min: calc(4.1 * var(--scale));
 
-    /* Typography (Apple HIG minimums) */
+    /* Typography */
     /* Body text: 17pt preferred = 1.6 scale units */
     --font-body: calc(1.6 * var(--scale));
     /* Caption/small: 11pt minimum = 1 scale unit */
@@ -52,7 +49,7 @@
     /* Large title: 34pt = 3.15 scale units */
     --font-large-title: calc(3.15 * var(--scale));
 
-    /* Spacing (Apple HIG standard margins) */
+    /* Spacing */
     /* Standard margin: 16pt = 1.5 scale units */
     --spacing-standard: calc(1.5 * var(--scale));
     /* Compact margin: 8pt = 0.75 scale units */
@@ -60,7 +57,7 @@
     /* Large margin: 20pt = 1.85 scale units */
     --spacing-large: calc(1.85 * var(--scale));
 
-    /* Corner radius (Apple HIG) */
+    /* Corner radius */
     /* Small: 6pt = 0.56 scale units */
     --radius-small: calc(0.56 * var(--scale));
     /* Medium: 10pt = 0.93 scale units */
@@ -76,23 +73,17 @@
 }
 
 body {
-    /* Apple HIG: System font stack for native feel */
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    /* System font stack for native feel */
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background-color: var(--night-blue);
     min-height: 100vh;
     overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Apple HIG: Body text 17pt minimum */
     font-size: var(--font-body);
-    /* Apple HIG: Optimal line height for readability */
     line-height: 1.4;
-    /* Apple HIG: Letter spacing for legibility */
     letter-spacing: -0.01em;
-    /* Smooth font rendering */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Full-screen background - fills entire viewport */
@@ -445,25 +436,25 @@ body {
 
 #lobby-content {
     background: rgba(10, 18, 28, 0.97);
-    padding: calc(3 * var(--scale));
-    border-radius: calc(1.5 * var(--scale));
-    border: calc(0.2 * var(--scale)) solid var(--ocean-turquoise);
+    padding: 24px;
+    border-radius: 16px;
+    border: 2px solid var(--ocean-turquoise);
     text-align: center;
-    min-width: calc(35 * var(--scale));
-    max-width: calc(50 * var(--scale));
+    width: 100%;
+    max-width: 450px;
     color: var(--text-light);
 }
 
 .lobby-title {
-    font-size: clamp(32px, calc(4 * var(--scale)), 56px);
+    font-size: clamp(28px, 4vw, 42px);
     color: var(--sunset-gold);
-    margin-bottom: calc(0.5 * var(--scale));
+    margin-bottom: 8px;
 }
 
 .lobby-subtitle {
-    font-size: clamp(18px, calc(2.2 * var(--scale)), 28px);
+    font-size: clamp(16px, 2vw, 22px);
     color: var(--ocean-turquoise);
-    margin-bottom: calc(2 * var(--scale));
+    margin-bottom: 20px;
 }
 
 /* Game Selection Screen */
@@ -474,18 +465,17 @@ body {
 .game-cards {
     display: flex;
     justify-content: center;
-    gap: calc(3 * var(--scale));
-    margin-top: calc(2 * var(--scale));
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-top: 20px;
 }
 
 .game-card {
     background: linear-gradient(145deg, rgba(12, 24, 36, 0.97), rgba(6, 16, 26, 0.97));
     border: 2px solid var(--ocean-turquoise);
-    border-radius: calc(1.5 * var(--scale));
-    padding: calc(2 * var(--scale));
-    width: calc(20 * var(--scale));
-    min-width: 180px;
-    max-width: 280px;
+    border-radius: 16px;
+    padding: 20px;
+    width: 220px;
     text-align: center;
     transition: all 0.3s ease;
     cursor: pointer;
@@ -602,14 +592,14 @@ body {
 #lobby-menu {
     display: flex;
     flex-direction: column;
-    gap: calc(1 * var(--scale));
+    gap: 12px;
 }
 
 .lobby-btn {
-    padding: calc(1 * var(--scale)) calc(2 * var(--scale));
+    padding: 12px 24px;
     border: none;
-    border-radius: calc(0.8 * var(--scale));
-    font-size: clamp(18px, calc(2.2 * var(--scale)), 28px);
+    border-radius: 8px;
+    font-size: clamp(16px, 2vw, 20px);
     cursor: pointer;
     transition: all 0.2s ease;
     background: rgba(64, 224, 208, 0.2);
@@ -855,49 +845,53 @@ body {
 
 #message-content {
     background: linear-gradient(145deg, var(--night-blue), var(--ocean-deep));
-    padding: calc(2.5 * var(--scale));
-    border-radius: calc(1.5 * var(--scale));
-    border: calc(0.2 * var(--scale)) solid var(--ocean-turquoise);
+    padding: 24px;
+    border-radius: 16px;
+    border: 2px solid var(--ocean-turquoise);
     text-align: center;
     color: var(--text-light);
-    max-width: calc(40 * var(--scale));
+    width: 100%;
+    max-width: 500px;
+    margin: 16px;
 }
 
 #message-title {
-    font-size: clamp(26px, calc(3.2 * var(--scale)), 44px);
+    font-size: clamp(22px, 3vw, 36px);
     color: var(--sunset-gold);
-    margin-bottom: calc(1 * var(--scale));
+    margin-bottom: 12px;
 }
 
 #message-text {
-    font-size: clamp(18px, calc(2.2 * var(--scale)), 28px);
-    margin-bottom: calc(1.5 * var(--scale));
+    font-size: clamp(14px, 2vw, 20px);
+    margin-bottom: 16px;
+    white-space: pre-line;
 }
 
 #message-buttons {
     display: flex;
-    gap: calc(1 * var(--scale));
+    gap: 12px;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
 #message-button {
-    padding: calc(0.8 * var(--scale)) calc(2 * var(--scale));
+    padding: 10px 24px;
     background: linear-gradient(145deg, var(--ocean-turquoise), var(--lagoon));
     border: none;
-    border-radius: calc(0.8 * var(--scale));
+    border-radius: 8px;
     color: var(--night-blue);
-    font-size: clamp(17px, calc(2 * var(--scale)), 26px);
+    font-size: clamp(14px, 2vw, 18px);
     font-weight: 600;
     cursor: pointer;
 }
 
 #message-button-secondary {
-    padding: calc(0.8 * var(--scale)) calc(2 * var(--scale));
+    padding: 10px 24px;
     background: linear-gradient(145deg, var(--coral-pink), var(--coral-red));
     border: none;
-    border-radius: calc(0.8 * var(--scale));
+    border-radius: 8px;
     color: var(--text-light);
-    font-size: clamp(17px, calc(2 * var(--scale)), 26px);
+    font-size: clamp(14px, 2vw, 18px);
     font-weight: 600;
     cursor: pointer;
 }
@@ -988,10 +982,10 @@ body {
 }
 
 /* ==========================================================================
-   iOS Safe Area Support
+   Safe Area Support
    ========================================================================== */
 
-/* Support for iOS notch and home indicator */
+/* Support for notch and home indicator */
 @supports (padding: env(safe-area-inset-top)) {
     body {
         /* Apply safe area padding to body */
@@ -1032,7 +1026,7 @@ body {
     touch-action: manipulation;
 }
 
-/* Apple HIG: 44x44pt minimum touch targets (using scaled variable) */
+/* 44x44pt minimum touch targets (using scaled variable) */
 .lobby-btn,
 #controls button,
 .game-select-btn,
@@ -1052,7 +1046,7 @@ button,
     cursor: pointer;
 }
 
-/* Touch feedback for buttons (Apple HIG: visual response within 100ms) */
+/* Touch feedback for buttons */
 .lobby-btn:active,
 #controls button:active,
 .game-select-btn:active:not(:disabled),
@@ -1062,7 +1056,7 @@ button,
     transition: transform 0.1s ease, opacity 0.1s ease;
 }
 
-/* Prevent pull-to-refresh on iOS */
+/* Prevent pull-to-refresh on mobile */
 html, body {
     overscroll-behavior: none;
 }
@@ -1085,7 +1079,7 @@ html, body {
 
 /* Mobile touch enhancements */
 @media (pointer: coarse) {
-    /* iOS PWA button touch feedback */
+    /* PWA button touch feedback */
     button, .clickable, [role="button"] {
         -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
@@ -1107,14 +1101,9 @@ html, body {
 }
 
 /* ============================================
-   MOBILE PWA SPECIFIC STYLES (iOS & Android)
+   MOBILE PWA SPECIFIC STYLES
    ============================================ */
 
-/* Mobile device - smoother rendering */
-html.mobile {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
 
 /* Standalone PWA mode */
 html.standalone #game-container {
@@ -1122,7 +1111,7 @@ html.standalone #game-container {
     min-height: -webkit-fill-available;
 }
 
-/* iOS PWA Landscape Mode Fixes */
+/* PWA Landscape Mode Fixes */
 html.standalone #viewport-wrapper {
     width: 100vw;
     height: 100vh;
@@ -1148,27 +1137,6 @@ html.standalone #game-background {
     width: 100vw;
     height: 100vh;
     height: -webkit-fill-available;
-}
-
-/* iOS Standalone - Fix for landscape display issues */
-html.ios-standalone body {
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-}
-
-html.ios-standalone #viewport-wrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
 }
 
 /* Ensure cards are touchable on mobile */

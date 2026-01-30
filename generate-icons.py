@@ -5,16 +5,11 @@ from PIL import Image, ImageDraw, ImageFont
 import os
 import math
 
-# Icon sizes needed for PWA and App Store
+# Icon sizes needed for PWA
 ICON_SIZES = [
     16, 32,           # Favicon
     72, 96, 128, 144, # Android/Chrome
-    120,              # iPhone
-    152,              # iPad
-    167,              # iPad Pro
-    180,              # iPhone Retina
     192, 384, 512,    # PWA Required
-    1024,             # App Store
 ]
 
 def create_gradient(size, color1, color2):
