@@ -752,8 +752,12 @@
 
             // Players changed
             socket.on('digu_players_changed', (data) => {
+                console.log('digu_players_changed received:', data);
                 if (this.onPlayersChanged) {
+                    console.log('Calling onPlayersChanged callback');
                     this.onPlayersChanged(data.players);
+                } else {
+                    console.warn('onPlayersChanged callback not set!');
                 }
             });
 

@@ -1045,6 +1045,7 @@ def handle_join_room(data):
     })
 
     # Notify others in room
+    print(f'Emitting players_changed to room {room_id}: {room["players"]}')
     emit('players_changed', {'players': room['players']}, room=room_id, include_self=False)
 
 @socketio.on('leave_room')
@@ -1707,6 +1708,7 @@ def handle_join_digu_room(data):
     })
 
     # Notify others in room
+    print(f'Emitting digu_players_changed to room {room_id}: {room["players"]}')
     emit('digu_players_changed', {'players': room['players']}, room=room_id, include_self=False)
 
 @socketio.on('leave_digu_room')
