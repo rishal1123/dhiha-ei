@@ -7552,6 +7552,45 @@
             this.updateDiguDisplay();
         }
 
+        // Show Digu game board for multiplayer
+        showDiguGameBoard(numPlayers) {
+            this.currentGameType = 'digu';
+            this.diguNumPlayers = numPlayers;
+
+            // Hide lobby
+            this.hideLobby();
+
+            // Hide Thaasbai board (if exists), show Digu board
+            const gameBoard = document.getElementById('game-board');
+            if (gameBoard) gameBoard.classList.add('hidden');
+            const diguBoard = document.getElementById('digu-game-board');
+            if (diguBoard) {
+                diguBoard.classList.remove('hidden');
+                diguBoard.classList.add('multiplayer-mode');
+            }
+
+            // Hide Dhiha Ei specific elements
+            const superiorSuit = document.getElementById('superior-suit-display');
+            if (superiorSuit) superiorSuit.classList.add('hidden');
+
+            // Trigger rescale now that game board is visible
+            window.dispatchEvent(new Event('resize'));
+
+            // Bind game events
+            this.diguGame.onStateChange = (state) => this.updateDiguDisplay();
+            this.diguGame.onCardDrawn = (card, source) => this.onDiguCardDrawn(card, source);
+            this.diguGame.onCardDiscarded = (card, player) => this.onDiguCardDiscarded(card, player);
+            this.diguGame.onGameOver = (result) => this.onDiguGameOver(result);
+            this.diguGame.onPhaseChange = (phase) => this.updateDiguPhase(phase);
+            this.diguGame.onTurnChange = (playerIndex) => this.updateDiguTurn(playerIndex);
+
+            // Reset UI state
+            this.diguSelectedCards = [];
+            this.diguActiveMeldSlot = null;
+            this.diguRoundsPlayed = 0;
+            this.diguGameStarted = true;
+        }
+
         handleRemoteDiguDraw(source, cardData, position) {
             if (!this.diguGame) return;
 
