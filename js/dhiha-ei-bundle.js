@@ -7136,7 +7136,14 @@
         }
 
         updateDiguPlayerSlots(players) {
-            const slots = document.querySelectorAll('.digu-player-slot');
+            // Query within Digu waiting room to avoid selecting Dhiha Ei slots
+            const container = document.getElementById('digu-player-slots');
+            if (!container) {
+                console.error('digu-player-slots container not found');
+                return;
+            }
+            const slots = container.querySelectorAll('.player-slot');
+            console.log('updateDiguPlayerSlots called with players:', players, 'found slots:', slots.length);
 
             slots.forEach(slot => {
                 const position = parseInt(slot.dataset.position);
