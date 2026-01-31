@@ -1525,7 +1525,9 @@ def handle_confirm_match():
 def broadcast_queue_status():
     """Broadcast current queue count to all waiting players"""
     count = len(matchmaking_queue)
+    print(f'Broadcasting queue_update to {count} players in queue')
     for player in matchmaking_queue:
+        print(f'  Emitting queue_update to {player["name"]} (sid: {player["sid"]}): count={count}')
         socketio.emit('queue_update', {
             'playersInQueue': count,
             'playersNeeded': 4 - count

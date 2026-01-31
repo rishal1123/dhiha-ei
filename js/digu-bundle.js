@@ -6175,17 +6175,25 @@
         }
 
         setupMatchmakingListeners() {
-            if (!socket) return;
+            if (!socket) {
+                console.error('setupMatchmakingListeners: socket not available');
+                return;
+            }
+
+            // Clean up any existing listeners first to prevent duplication
+            this.cleanupMatchmakingListeners();
+
+            console.log('Setting up matchmaking listeners on socket:', socket.id);
 
             // Queue joined confirmation
             socket.on('queue_joined', (data) => {
-                console.log('Joined queue:', data);
+                console.log('queue_joined received:', data);
                 this.updateQueueCount(data.playersInQueue);
             });
 
             // Queue updates
             socket.on('queue_update', (data) => {
-                console.log('Queue update:', data);
+                console.log('queue_update received:', data);
                 this.updateQueueCount(data.playersInQueue);
             });
 
