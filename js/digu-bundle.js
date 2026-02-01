@@ -7030,15 +7030,23 @@
         }
 
         setupDiguMatchmakingListeners() {
-            if (!socket) return;
+            if (!socket) {
+                console.error('[DIGU QUEUE DEBUG] socket not available');
+                return;
+            }
+
+            console.log('[DIGU QUEUE DEBUG] Setting up Digu matchmaking listeners');
+            console.log('[DIGU QUEUE DEBUG] Socket connected:', socket.connected);
+            console.log('[DIGU QUEUE DEBUG] Socket ID:', socket.id);
 
             socket.on('digu_queue_joined', (data) => {
-                console.log('Joined Digu queue:', data);
+                console.log('[DIGU QUEUE DEBUG] digu_queue_joined received:', data);
                 this.updateDiguQueueCount(data.playersInQueue);
             });
 
             socket.on('digu_queue_update', (data) => {
-                console.log('Digu queue update:', data);
+                console.log('[DIGU QUEUE DEBUG] digu_queue_update received:', data);
+                console.log('[DIGU QUEUE DEBUG] Calling updateDiguQueueCount with:', data.playersInQueue);
                 this.updateDiguQueueCount(data.playersInQueue);
             });
 

@@ -6040,24 +6040,27 @@
 
         setupMatchmakingListeners() {
             if (!socket) {
-                console.error('setupMatchmakingListeners: socket not available');
+                console.error('[QUEUE DEBUG] setupMatchmakingListeners: socket not available');
                 return;
             }
 
             // Clean up any existing listeners first to prevent duplication
             this.cleanupMatchmakingListeners();
 
-            console.log('Setting up matchmaking listeners on socket:', socket.id);
+            console.log('[QUEUE DEBUG] Setting up matchmaking listeners');
+            console.log('[QUEUE DEBUG] Socket connected:', socket.connected);
+            console.log('[QUEUE DEBUG] Socket ID:', socket.id);
 
             // Queue joined confirmation
             socket.on('queue_joined', (data) => {
-                console.log('queue_joined received:', data);
+                console.log('[QUEUE DEBUG] queue_joined received:', data);
                 this.updateQueueCount(data.playersInQueue);
             });
 
             // Queue updates
             socket.on('queue_update', (data) => {
-                console.log('queue_update received:', data);
+                console.log('[QUEUE DEBUG] queue_update received:', data);
+                console.log('[QUEUE DEBUG] Calling updateQueueCount with:', data.playersInQueue);
                 this.updateQueueCount(data.playersInQueue);
             });
 

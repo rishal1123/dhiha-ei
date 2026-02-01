@@ -4,7 +4,7 @@
  */
 
 // IMPORTANT: Increment this version to trigger update
-const CACHE_VERSION = 188;
+const CACHE_VERSION = 189;
 const CACHE_NAME = `thaasbai-v${CACHE_VERSION}`;
 const OFFLINE_URL = '/';
 
