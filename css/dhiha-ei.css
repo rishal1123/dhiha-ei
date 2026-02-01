@@ -76,135 +76,6 @@
     flex-shrink: 0;
 }
 
-/* Mobile/PWA specific adjustments */
-@media screen and (max-width: 768px), (max-height: 500px) {
-    #game-board {
-        font-size: clamp(10px, 2vw, 14px);
-    }
-
-    /* Adjust row heights for mobile */
-    #game-board > .row:first-child {
-        height: 12% !important;
-    }
-
-    #game-board > .row:nth-child(2) {
-        height: 58% !important;
-    }
-
-    #game-board > .row:last-of-type {
-        height: 30% !important;
-    }
-
-    /* Player details - 70% */
-    .player-avatar {
-        width: 28px;
-        height: 28px;
-    }
-
-    .avatar-icon {
-        font-size: clamp(11px, 1.4vw, 17px);
-    }
-
-    .avatar-cards {
-        width: 13px;
-        height: 13px;
-    }
-
-    .card-count {
-        font-size: 7px;
-    }
-
-    .player-label {
-        padding: 3px 8px;
-        font-size: clamp(8px, 0.84vw, 11px);
-    }
-
-    .shuffle-count {
-        padding: 2px 6px;
-        font-size: clamp(7px, 0.84vw, 10px);
-    }
-
-    /* Smaller sponsor columns on mobile */
-    .drink-item, .food-item {
-        width: 100%;
-        max-width: 100%;
-        height: clamp(50px, 40%, 80px);
-    }
-
-    /* Compact score panels on mobile - 70% */
-    .team-score {
-        padding: 4px 8px;
-        min-width: auto;
-    }
-
-    .team-label {
-        font-size: clamp(8px, 0.98vw, 11px);
-    }
-
-    .tens-count span:last-child,
-    .tricks-count span:last-child {
-        font-size: clamp(13px, 1.54vw, 20px);
-    }
-
-    #match-points-panel {
-        padding: 6px 10px;
-    }
-
-    /* Compact inline buttons on mobile */
-    #new-game-btn,
-    #menu-btn {
-        padding: 3px 6px;
-        font-size: 9px;
-    }
-
-    /* Food and drink sponsors - scaled to fit */
-    .sponsor-column {
-        min-width: 40px;
-        min-height: 50px;
-        padding: 2px;
-    }
-
-    .sponsor-column > img,
-    #drink-sponsor > img,
-    #food-sponsor > img {
-        max-width: 100%;
-        max-height: 70px;
-    }
-
-    /* Message overlay - landscape phone optimization */
-    #message-overlay {
-        padding: 8px;
-    }
-
-    #message-content {
-        padding: 12px 16px;
-        max-height: 95vh;
-        font-size: 12px;
-    }
-
-    #message-content h2,
-    #message-title {
-        font-size: 16px;
-        margin-bottom: 8px;
-    }
-
-    #message-text {
-        font-size: 13px;
-        margin-bottom: 10px;
-    }
-
-    #message-buttons {
-        gap: 8px;
-    }
-
-    #message-buttons .btn,
-    #message-button,
-    #message-button-secondary {
-        padding: 0.4rem 0.8rem !important;
-        font-size: 0.8rem !important;
-    }
-}
-
 /* Oval Table - centered on play area (Row 2: starts at 15%, height 55%, center at 42.5%) */
 #game-board::before {
     content: '';
@@ -750,7 +621,7 @@
 }
 
 /* ==========================================================================
-   PWA & Mobile Optimizations
+   PWA & Display Optimizations
    ========================================================================== */
 
 /* Standalone PWA mode */
@@ -760,65 +631,6 @@ html.standalone #game-board {
     left: 0;
     width: 100%;
     height: 100%;
-}
-
-/* Landscape mobile adjustments */
-@media screen and (orientation: landscape) and (max-height: 500px) {
-    /* Compact player info */
-    .player-label {
-        padding: 2px 8px;
-        font-size: 11px;
-    }
-
-    .shuffle-count {
-        font-size: 9px;
-        padding: 1px 6px;
-    }
-
-    /* Compact score panels */
-    .team-score {
-        padding: 4px 8px;
-    }
-
-    #match-points-panel {
-        padding: 4px 8px;
-    }
-
-    /* Compact superior suit */
-    #superior-suit-display {
-        padding: 4px 8px;
-        font-size: 12px;
-    }
-
-    /* Smaller cards on landscape mobile */
-    #player-bottom .card,
-    #hand-bottom .card {
-        width: clamp(40px, 7vw, 60px);
-        height: clamp(56px, 9.8vw, 84px);
-        margin-left: -10px;
-    }
-
-    /* Compact buttons */
-    #new-game-btn,
-    #menu-btn {
-        padding: 4px 8px;
-        font-size: 10px;
-    }
-}
-
-/* Touch-friendly adjustments */
-@media (pointer: coarse) {
-    /* Ensure cards are easy to tap */
-    #player-bottom .card,
-    #hand-bottom .card {
-        min-width: 40px;
-        min-height: 56px;
-    }
-
-    /* Touch feedback */
-    .card.playable:active {
-        transform: scale(0.95);
-    }
 }
 
 /* High DPI displays */
