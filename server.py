@@ -2040,7 +2040,11 @@ def handle_start_digu_game(data):
     room['gameState'] = data.get('gameState', {})
     room['hands'] = data.get('hands', {})
 
-    print(f'Digu game started in room {room_id} with {len(room["players"])} players')
+    # Store stock and discard piles server-side for synchronization
+    room['stockPile'] = data.get('stockPile', [])
+    room['discardPile'] = data.get('discardPile', [])
+
+    print(f'Digu game started in room {room_id} with {len(room["players"])} players, stock: {len(room["stockPile"])} cards')
 
     emit('digu_game_started', {
         'gameState': room['gameState'],
@@ -2064,17 +2068,36 @@ def handle_digu_draw_card(data):
     room_id = session['roomId']
     position = session['position']
 
+    if room_id not in digu_rooms:
+        return
+
+    room = digu_rooms[room_id]
     source = data.get('source')  # 'stock' or 'discard'
-    card = data.get('card')  # The card drawn (for discard pile)
+    card = None
 
-    print(f'Digu card drawn in room {room_id}: from {source} by position {position}')
+    if source == 'stock':
+        # Pop card from server-side stock pile
+        if room.get('stockPile') and len(room['stockPile']) > 0:
+            card = room['stockPile'].pop(0)  # Take from front (like shift)
+            print(f'Digu card drawn from stock in room {room_id}: {card} by position {position}, remaining: {len(room["stockPile"])}')
+        else:
+            print(f'Digu stock pile empty in room {room_id}')
+            return
+    elif source == 'discard':
+        # Pop card from server-side discard pile
+        if room.get('discardPile') and len(room['discardPile']) > 0:
+            card = room['discardPile'].pop()  # Take from top (last item)
+            print(f'Digu card drawn from discard in room {room_id}: {card} by position {position}')
+        else:
+            print(f'Digu discard pile empty in room {room_id}')
+            return
 
-    # Broadcast to all other players in room
-    emit('digu_remote_card_drawn', {
+    # Broadcast the SPECIFIC card to ALL players (including the one who drew)
+    emit('digu_card_drawn', {
         'source': source,
         'card': card,
         'position': position
-    }, room=room_id, include_self=False)
+    }, room=room_id)
 
 @socketio.on('digu_discard_card')
 @rate_limit('digu_discard_card')
@@ -2092,9 +2115,18 @@ def handle_digu_discard_card(data):
     room_id = session['roomId']
     position = session['position']
 
+    if room_id not in digu_rooms:
+        return
+
+    room = digu_rooms[room_id]
     card = data.get('card')
 
-    print(f'Digu card discarded in room {room_id}: {card} by position {position}')
+    # Add to server-side discard pile
+    if 'discardPile' not in room:
+        room['discardPile'] = []
+    room['discardPile'].append(card)
+
+    print(f'Digu card discarded in room {room_id}: {card} by position {position}, discard size: {len(room["discardPile"])}')
 
     # Broadcast to all other players in room
     emit('digu_remote_card_discarded', {

@@ -927,7 +927,15 @@
             if (!activeSocket || !this.currentRoomId) return;
 
             return new Promise((resolve, reject) => {
-                activeSocket.emit('start_digu_game', { gameState, hands });
+                // Send stock and discard piles separately for server-side management
+                const stockPile = gameState.stockPile || [];
+                const discardPile = gameState.discardPile || [];
+                activeSocket.emit('start_digu_game', {
+                    gameState,
+                    hands,
+                    stockPile: stockPile.map(c => ({ suit: c.suit, rank: c.rank })),
+                    discardPile: discardPile.map(c => ({ suit: c.suit, rank: c.rank }))
+                });
 
                 const timeout = setTimeout(() => {
                     reject(new Error('Start game timeout'));
@@ -1007,6 +1015,7 @@
             this.onGameStateChanged = null;
             this.onMatchStarted = null;
             this.onRemoteGameOver = null;
+            this.onServerCardDrawn = null; // New: server-authoritative card draw
             this.isListening = false;
             this._activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
         }
@@ -1016,7 +1025,15 @@
             if (this.isListening || !activeSocket) return;
             this.isListening = true;
 
-            // Listen for remote card draws
+            // Listen for server-authoritative card draws (goes to ALL players)
+            activeSocket.on('digu_card_drawn', (data) => {
+                console.log('[DIGU] Server card drawn:', data);
+                if (this.onServerCardDrawn) {
+                    this.onServerCardDrawn(data.source, data.card, data.position);
+                }
+            });
+
+            // Listen for remote card draws (legacy, for backwards compatibility)
             activeSocket.on('digu_remote_card_drawn', (data) => {
                 console.log('Remote card drawn:', data);
                 if (this.onRemoteCardDrawn) {
@@ -1065,6 +1082,7 @@
         stopListening() {
             const activeSocket = this._activeSocket;
             if (activeSocket) {
+                activeSocket.off('digu_card_drawn');
                 activeSocket.off('digu_remote_card_drawn');
                 activeSocket.off('digu_remote_card_discarded');
                 activeSocket.off('digu_remote_declare');
@@ -1075,15 +1093,22 @@
             this.isListening = false;
         }
 
-        async broadcastCardDraw(source, card, position) {
+        // Request a card draw from the server (server will send card to all clients)
+        async requestCardDraw(source, position) {
             const activeSocket = this._activeSocket;
             if (!activeSocket) return;
 
+            console.log(`[DIGU] Requesting card draw: source=${source}, position=${position}`);
             activeSocket.emit('digu_draw_card', {
                 source: source,
-                card: card ? { suit: card.suit, rank: card.rank } : null,
                 position: position
             });
+        }
+
+        // Legacy - kept for backwards compatibility
+        async broadcastCardDraw(source, card, position) {
+            // Now just calls requestCardDraw - server determines the card
+            this.requestCardDraw(source, position);
         }
 
         async broadcastCardDiscard(card, position) {
@@ -5174,17 +5199,21 @@
 
             if (this.diguGame.gamePhase !== 'draw') return;
 
+            // In multiplayer, send request to server and wait for authoritative response
+            if (this.isDiguMultiplayer && this.diguSyncManager) {
+                const position = this.diguGame.localPlayerPosition;
+                // Request draw from server - server will send digu_card_drawn to all clients
+                this.diguSyncManager.requestCardDraw(source, position);
+                // Don't draw locally - wait for server response
+                return;
+            }
+
+            // Single player mode - draw locally
             let drawnCard = null;
             if (source === 'stock') {
                 drawnCard = this.diguGame.drawFromStock();
             } else {
                 drawnCard = this.diguGame.drawFromDiscard();
-            }
-
-            // Broadcast to multiplayer
-            if (this.isDiguMultiplayer && this.diguSyncManager) {
-                const position = this.diguGame.localPlayerPosition;
-                this.diguSyncManager.broadcastCardDraw(source, drawnCard, position);
             }
 
             this.updateDiguDisplay();
@@ -7659,8 +7688,16 @@
         setupDiguSyncListeners() {
             if (!this.diguSyncManager) return;
 
+            // Server-authoritative card draw (goes to ALL players)
+            this.diguSyncManager.onServerCardDrawn = (source, card, position) => {
+                this.handleServerDiguDraw(source, card, position);
+            };
+
+            // Legacy remote card drawn (backwards compatibility)
             this.diguSyncManager.onRemoteCardDrawn = (source, card, position) => {
-                this.handleRemoteDiguDraw(source, card, position);
+                // Only handle if we didn't get it from server-authoritative event
+                // This should rarely be called now
+                console.log('[DIGU] Legacy remote card drawn (ignoring - using server event)');
             };
 
             this.diguSyncManager.onRemoteCardDiscarded = (card, position) => {
@@ -7794,37 +7831,50 @@
             this.diguGameStarted = true;
         }
 
-        handleRemoteDiguDraw(source, cardData, position) {
-            if (!this.diguGame) return;
+        // Server-authoritative card draw - handles ALL players including the one who drew
+        handleServerDiguDraw(source, cardData, position) {
+            if (!this.diguGame || !cardData) return;
 
-            // Remote player drew a card - use the SPECIFIC card sent by the server
-            if (source === 'stock' && cardData) {
-                // Find and remove the specific card from stock pile (don't just pop!)
-                const card = new Card(cardData.suit, cardData.rank);
+            const localPos = this.diguGame.localPlayerPosition;
+            const isLocalPlayer = position === localPos;
+            const card = new Card(cardData.suit, cardData.rank);
+
+            console.log(`[DIGU] Server draw: ${source}, card: ${card.suit} ${card.rank}, position: ${position}, isLocal: ${isLocalPlayer}`);
+
+            // Remove card from appropriate pile
+            if (source === 'stock') {
                 const cardIndex = this.diguGame.stockPile.findIndex(
                     c => c.suit === card.suit && c.rank === card.rank
                 );
                 if (cardIndex !== -1) {
                     this.diguGame.stockPile.splice(cardIndex, 1);
-                } else {
-                    console.warn('[DIGU] Card not found in stock pile:', cardData);
                 }
-                if (this.diguGame.players[position]) {
-                    this.diguGame.players[position].addCard(card);
-                }
-            } else if (source === 'discard' && cardData) {
-                const card = new Card(cardData.suit, cardData.rank);
-                // Remove from discard
+            } else if (source === 'discard') {
                 this.diguGame.discardPile = this.diguGame.discardPile.filter(
                     c => !(c.suit === card.suit && c.rank === card.rank)
                 );
-                if (this.diguGame.players[position]) {
-                    this.diguGame.players[position].addCard(card);
-                }
             }
 
+            // Add card to player's hand
+            if (this.diguGame.players[position]) {
+                this.diguGame.players[position].addCard(card);
+            }
+
+            // Update game phase
             this.diguGame.gamePhase = 'meld';
+
+            // Show notification
+            this.showDiguDrawNotification(card, source);
+
+            // Update display
             this.updateDiguDisplay();
+            this.updateDiguPhase('meld');
+        }
+
+        // Legacy handler - kept for backwards compatibility
+        handleRemoteDiguDraw(source, cardData, position) {
+            // Deprecated - now using handleServerDiguDraw
+            console.log('[DIGU] Legacy handleRemoteDiguDraw called - should use server event');
         }
 
         handleRemoteDiguDiscard(cardData, position) {
