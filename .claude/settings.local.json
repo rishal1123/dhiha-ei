@@ -27,7 +27,32 @@
       "Bash(python generate-icons.py:*)",
       "Bash(where:*)",
       "Bash(powershell -Command \"\\(Get-Content css/styles.css | Select-String -Pattern ''}'' -AllMatches\\).Matches.Count\")",
-      "Bash(start http://127.0.0.1:8000/)"
+      "Bash(start http://127.0.0.1:8000/)",
+      "Bash(timeout:*)",
+      "Bash(powershell -Command:*)",
+      "WebFetch(domain:127.0.0.1)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Bash(git merge:*)",
+      "Bash(python -m http.server:*)",
+      "Bash(node --check:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(ls:*)",
+      "Read(//d/Claude/Thaasbai/**)",
+      "Bash(npx http-server:*)",
+      "Bash(del \"d:\\\\Claude\\\\Thaasbai\\\\generate-splash.py\")",
+      "Bash(grep:*)",
+      "Bash(python:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(git -C \"D:\\\\Claude\\\\Thaasbai\" add js/multiplayer.js server.py service-worker.js)",
+      "Bash(git -C \"D:\\\\Claude\\\\Thaasbai\" commit -m \"$\\(cat <<''EOF''\nKeep client connected for 30 seconds when tab is inactive\n\n- Add visibility change detection in multiplayer.js\n- Send keepalive ping every 5 seconds while tab is hidden\n- Stop keepalive after 30 seconds of inactivity\n- Add ping_keepalive handler on server\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C \"D:\\\\Claude\\\\Thaasbai\" push)",
+      "Bash(git -C \"D:\\\\Claude\\\\Thaasbai\" add js/multiplayer.js service-worker.js)",
+      "Bash(git -C \"D:\\\\Claude\\\\Thaasbai\" commit -m \"$\\(cat <<''EOF''\nRefactor multiplayer module with unified extensible framework\n\n- Add GAME_CONFIGS registry for easy game additions\n- Create BaseLobbyManager with generic room management\n- Create BaseSyncManager as base for game sync\n- DhihaEiSyncManager and DiGuSyncManager extend base\n- Add factory functions: createLobby\\(\\), createSyncManager\\(\\)\n- Add getAvailableGames\\(\\) to list registered games\n- Maintain backward compatibility with legacy class names\n- Adding new games: register config + create sync manager\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C \"D:\\\\Claude\\\\Thaasbai\" add js/digu-bundle.js service-worker.js)",
+      "Bash(git -C \"D:\\\\Claude\\\\Thaasbai\" commit -m \"$\\(cat <<''EOF''\nFix Digu waiting screen socket and animation issues\n\n- Use global Multiplayer module socket when available\n- Add inline spinner styles as fallback for animation\n- Fix socket reference in matchmaking listeners and emit\n- Add better logging for debugging queue events\n- Prevent duplicate socket connections\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C \"D:\\\\Claude\\\\Thaasbai\" status)"
     ]
   }
 }
