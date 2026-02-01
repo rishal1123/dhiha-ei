@@ -4840,8 +4840,10 @@
                 if (handEl) {
                     handEl.innerHTML = '';
 
-                    if (i === 0) {
-                        // Human player - show face up cards with drag-and-drop
+                    // In multiplayer, show local player's cards; in single player, show player 0
+                    const localPos = this.isDiguMultiplayer ? this.diguGame.localPlayerPosition : 0;
+                    if (i === localPos) {
+                        // Local player - show face up cards with drag-and-drop
                         // Find all valid consecutive melds (3 or 4 cards) anywhere in hand
                         const validMelds = this.findAllValidMelds(player.hand);
                         const meldResult = player.getMeldsFromHand();
