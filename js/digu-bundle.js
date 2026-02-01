@@ -7797,10 +7797,19 @@
         handleRemoteDiguDraw(source, cardData, position) {
             if (!this.diguGame) return;
 
-            // Remote player drew a card
-            if (source === 'stock') {
-                const card = this.diguGame.stockPile.pop();
-                if (card && this.diguGame.players[position]) {
+            // Remote player drew a card - use the SPECIFIC card sent by the server
+            if (source === 'stock' && cardData) {
+                // Find and remove the specific card from stock pile (don't just pop!)
+                const card = new Card(cardData.suit, cardData.rank);
+                const cardIndex = this.diguGame.stockPile.findIndex(
+                    c => c.suit === card.suit && c.rank === card.rank
+                );
+                if (cardIndex !== -1) {
+                    this.diguGame.stockPile.splice(cardIndex, 1);
+                } else {
+                    console.warn('[DIGU] Card not found in stock pile:', cardData);
+                }
+                if (this.diguGame.players[position]) {
                     this.diguGame.players[position].addCard(card);
                 }
             } else if (source === 'discard' && cardData) {
@@ -7814,7 +7823,7 @@
                 }
             }
 
-            this.diguGame.phase = 'discard';
+            this.diguGame.gamePhase = 'meld';
             this.updateDiguDisplay();
         }
 
@@ -7831,9 +7840,10 @@
 
             // Move to next player
             this.diguGame.currentPlayerIndex = (position + 1) % this.diguGame.numPlayers;
-            this.diguGame.phase = 'draw';
+            this.diguGame.gamePhase = 'draw';
 
             this.updateDiguDisplay();
+            this.updateDiguPhase('draw');
         }
 
         handleRemoteDiguDeclare(position, meldsData, isValid) {
