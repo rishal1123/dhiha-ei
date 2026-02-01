@@ -159,33 +159,26 @@
                                     </div>
                                 </div>
 
-                                <!-- Row 2: Left Player | Drink Sponsor | Stock | Center | Discard | Food Sponsor | Right Player -->
+                                <!-- Row 2: Drink Sponsor | Player 1 | Stock | Center | Discard | Player 3 | Food Sponsor -->
                                 <div class="row" style="height: 55%;">
-                                    <div class="col-2 ">
-                                        <div class="row h-100">
-                                            <div
-                                                class="col-6 col-md-12 d-flex justify-content-center align-items-center">
-                                                <div class="sponsor-column" id="drink-sponsor">
-                                                    <div class="drink-item"></div>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="col-6 col-md-12 d-flex justify-content-center align-items-center">
-                                                <div id="digu-player-1"
-                                                    class="digu-player left team-b d-flex flex-column align-items-center">
-                                                    <div class="digu-avatar">
-                                                        <div class="digu-avatar-icon"></div>
-                                                    </div>
-                                                    <div class="digu-player-label">Player 2</div>
-                                                    <div class="digu-shuffle-count" id="digu-shuffle-count-1">Shuffle: 0
-                                                    </div>
-                                                </div>
-                                            </div>
-
+                                    <div class="col-1 d-flex justify-content-center align-items-center">
+                                        <div class="sponsor-column" id="drink-sponsor">
+                                            <div class="drink-item"></div>
                                         </div>
                                     </div>
 
-                                    <div class="col d-flex align-items-center justify-content-end">
+                                    <div class="col-auto d-flex flex-column align-items-center justify-content-center">
+                                        <div id="digu-player-1"
+                                            class="digu-player left team-b d-flex flex-column align-items-center">
+                                            <div class="digu-avatar">
+                                                <div class="digu-avatar-icon"></div>
+                                            </div>
+                                            <div class="digu-player-label">Player 2</div>
+                                            <div class="digu-shuffle-count" id="digu-shuffle-count-1">Shuffle: 0</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-auto d-flex align-items-center justify-content-center px-2">
                                         <div id="digu-stock" class="digu-pile clickable" title="Draw from deck"></div>
                                     </div>
                                     <div class="col d-flex flex-column align-items-center justify-content-center">
@@ -200,31 +193,26 @@
                                         <button id="digu-btn" class="btn btn-warning fw-bold text-uppercase hidden"
                                             disabled>DIGU!</button>
                                     </div>
-                                    <div class="col d-flex align-items-center justify-content-start">
+                                    <div class="col-auto d-flex align-items-center justify-content-center px-2">
                                         <div id="digu-discard" class="digu-pile clickable" title="Draw from discard">
                                             <div class="discard-card" id="digu-discard-top"></div>
                                         </div>
                                     </div>
-                                    <div class="col-2 ">
-                                        <div class="row h-100">
-                                            <div
-                                                class="col-6 col-md-12 d-flex justify-content-center align-items-center">
-                                                <div class="sponsor-column" id="food-sponsor">
-                                                    <div class="food-item"></div>
-                                                </div>
+
+                                    <div class="col-auto d-flex flex-column align-items-center justify-content-center">
+                                        <div id="digu-player-3"
+                                            class="digu-player right team-b d-flex flex-column align-items-center">
+                                            <div class="digu-avatar">
+                                                <div class="digu-avatar-icon"></div>
                                             </div>
-                                            <div
-                                                class="col-6 col-md-12 d-flex justify-content-center align-items-center">
-                                                <div id="digu-player-3"
-                                                    class="digu-player right team-b d-flex flex-column align-items-center">
-                                                    <div class="digu-avatar">
-                                                        <div class="digu-avatar-icon"></div>
-                                                    </div>
-                                                    <div class="digu-player-label">Player 4</div>
-                                                    <div class="digu-shuffle-count" id="digu-shuffle-count-3">Shuffle: 0
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <div class="digu-player-label">Player 4</div>
+                                            <div class="digu-shuffle-count" id="digu-shuffle-count-3">Shuffle: 0</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-1 d-flex justify-content-center align-items-center">
+                                        <div class="sponsor-column" id="food-sponsor">
+                                            <div class="food-item"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -501,7 +489,7 @@
         <!-- Multiplayer module (shared) -->
         <script src="js/multiplayer.js?v=1"></script>
         <!-- Digu game bundle (self-contained) -->
-        <script src="js/digu-bundle.js?v=17"></script>
+        <script src="js/digu-bundle.js?v=18"></script>
         <!-- Digu-specific rendering module -->
         <script src="js/digu.js?v=2"></script>
 
