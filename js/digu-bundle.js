@@ -547,17 +547,26 @@
         async createRoom(hostName) {
             const activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
             const connected = isMultiplayerAvailable();
+            console.log('[LobbyManager] createRoom called, hostName:', hostName);
+            console.log('[LobbyManager] activeSocket:', !!activeSocket, 'connected:', connected);
             if (!activeSocket || !connected) {
                 throw new Error('Not connected to server');
             }
 
+            // Setup listeners BEFORE emitting to avoid race condition
+            this.setupSocketListeners();
+
             return new Promise((resolve, reject) => {
-                activeSocket.emit('create_room', { playerName: hostName });
+                const timeout = setTimeout(() => {
+                    console.log('[LobbyManager] Room creation timeout');
+                    reject(new Error('Room creation timeout'));
+                }, 10000);
 
                 activeSocket.once('room_created', (data) => {
+                    console.log('[LobbyManager] room_created received:', data);
+                    clearTimeout(timeout);
                     this.currentRoomId = data.roomId;
                     this.currentPosition = data.position;
-                    this.setupSocketListeners();
 
                     if (this.onPlayersChanged) {
                         this.onPlayersChanged(data.players);
@@ -567,28 +576,36 @@
                 });
 
                 activeSocket.once('error', (data) => {
+                    clearTimeout(timeout);
                     reject(new Error(data.message));
                 });
+
+                activeSocket.emit('create_room', { playerName: hostName });
             });
         }
 
         async joinRoom(roomId, playerName) {
             const activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
             const connected = isMultiplayerAvailable();
+            console.log('[LobbyManager] joinRoom called, roomId:', roomId);
             if (!activeSocket || !connected) {
                 throw new Error('Not connected to server');
             }
 
+            // Setup listeners BEFORE emitting to avoid race condition
+            this.setupSocketListeners();
+
             return new Promise((resolve, reject) => {
-                activeSocket.emit('join_room', {
-                    roomId: roomId.toUpperCase().trim(),
-                    playerName
-                });
+                const timeout = setTimeout(() => {
+                    console.log('[LobbyManager] Room join timeout');
+                    reject(new Error('Room join timeout'));
+                }, 10000);
 
                 activeSocket.once('room_joined', (data) => {
+                    console.log('[LobbyManager] room_joined received:', data);
+                    clearTimeout(timeout);
                     this.currentRoomId = data.roomId;
                     this.currentPosition = data.position;
-                    this.setupSocketListeners();
 
                     if (this.onPlayersChanged) {
                         this.onPlayersChanged(data.players);
@@ -602,7 +619,13 @@
                 });
 
                 activeSocket.once('error', (data) => {
+                    clearTimeout(timeout);
                     reject(new Error(data.message));
+                });
+
+                activeSocket.emit('join_room', {
+                    roomId: roomId.toUpperCase().trim(),
+                    playerName
                 });
             });
         }
@@ -795,6 +818,7 @@
             this.currentPosition = null;
             this.maxPlayers = 4;
             this.onPlayersChanged = null;
+            this.onPositionChanged = null;
             this.onGameStart = null;
             this.onError = null;
             this.gameStartData = null;
@@ -834,6 +858,27 @@
                 console.log('digu_player_left:', data);
                 if (this.onPlayersChanged) {
                     this.onPlayersChanged(data.players);
+                }
+            });
+
+            // Position changed (after swap)
+            activeSocket.on('digu_position_changed', (data) => {
+                console.log('digu_position_changed received:', data);
+                // Update our position if we were moved
+                if (data.players) {
+                    for (let i = 0; i < 4; i++) {
+                        const player = data.players[i];
+                        if (player && player.oderId === currentUserId) {
+                            this.currentPosition = i;
+                            break;
+                        }
+                    }
+                }
+                if (this.onPlayersChanged) {
+                    this.onPlayersChanged(data.players);
+                }
+                if (this.onPositionChanged) {
+                    this.onPositionChanged(this.currentPosition);
                 }
             });
 
