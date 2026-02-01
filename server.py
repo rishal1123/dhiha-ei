@@ -951,6 +951,11 @@ def handle_connect():
     add_server_log('info', 'connection', f'Client connected', {'sid': sid, 'connectionsFromIP': ip_connections[ip]}, ip)
     emit('connected', {'sid': sid})
 
+@socketio.on('ping_keepalive')
+def handle_keepalive():
+    """Handle keepalive ping from inactive tabs - keeps connection alive for 30 seconds"""
+    pass  # Just receiving the event is enough to keep the connection alive
+
 @socketio.on('disconnect')
 def handle_disconnect():
     sid = request.sid

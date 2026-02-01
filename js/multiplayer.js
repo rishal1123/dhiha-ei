@@ -14,6 +14,12 @@
     let isConnected = false;
     let onConnectionStatusChanged = null;
 
+    // Visibility/keepalive state
+    let keepaliveInterval = null;
+    let hiddenTimestamp = null;
+    const KEEPALIVE_DURATION = 30000; // 30 seconds
+    const KEEPALIVE_INTERVAL = 5000;  // Ping every 5 seconds
+
     // ============================================
     // PRIVATE FUNCTIONS
     // ============================================
@@ -95,6 +101,62 @@
     function isMultiplayerAvailable() {
         return socket && isConnected;
     }
+
+    // ============================================
+    // VISIBILITY CHANGE HANDLING
+    // Keep connection alive for 30 seconds when tab is inactive
+    // ============================================
+
+    function startKeepalive() {
+        if (keepaliveInterval) return;
+
+        console.log('[Multiplayer] Tab hidden - starting keepalive for 30s');
+        hiddenTimestamp = Date.now();
+
+        keepaliveInterval = setInterval(() => {
+            const elapsed = Date.now() - hiddenTimestamp;
+
+            if (elapsed >= KEEPALIVE_DURATION) {
+                // 30 seconds passed, stop keepalive
+                console.log('[Multiplayer] Keepalive duration exceeded, stopping');
+                stopKeepalive();
+                return;
+            }
+
+            // Send ping to keep connection alive
+            if (socket && isConnected) {
+                socket.emit('ping_keepalive');
+            }
+        }, KEEPALIVE_INTERVAL);
+    }
+
+    function stopKeepalive() {
+        if (keepaliveInterval) {
+            clearInterval(keepaliveInterval);
+            keepaliveInterval = null;
+            hiddenTimestamp = null;
+            console.log('[Multiplayer] Keepalive stopped');
+        }
+    }
+
+    function handleVisibilityChange() {
+        if (document.hidden) {
+            // Tab became hidden
+            startKeepalive();
+        } else {
+            // Tab became visible
+            stopKeepalive();
+
+            // Reconnect if disconnected while hidden
+            if (socket && !isConnected) {
+                console.log('[Multiplayer] Tab visible, attempting reconnect');
+                socket.connect();
+            }
+        }
+    }
+
+    // Set up visibility change listener
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // ============================================
     // PRESENCE MANAGER
