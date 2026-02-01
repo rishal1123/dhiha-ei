@@ -791,14 +791,16 @@
         }
 
         setupSocketListeners() {
-            if (!socket) {
+            const activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket) {
                 console.error('DiGuLobbyManager: socket is null');
                 return;
             }
+            this._activeSocket = activeSocket;
             console.log('DiGuLobbyManager: setting up listeners');
 
             // Players changed
-            socket.on('digu_players_changed', (data) => {
+            activeSocket.on('digu_players_changed', (data) => {
                 console.log('digu_players_changed received:', data);
                 if (this.onPlayersChanged) {
                     console.log('Calling onPlayersChanged callback');
@@ -809,7 +811,7 @@
             });
 
             // Game started
-            socket.on('digu_game_started', (data) => {
+            activeSocket.on('digu_game_started', (data) => {
                 console.log('digu_game_started event received:', data);
                 this.gameStartData = data;
                 if (this.onGameStart) {
@@ -818,7 +820,7 @@
             });
 
             // Player left during game
-            socket.on('digu_player_left', (data) => {
+            activeSocket.on('digu_player_left', (data) => {
                 console.log('digu_player_left:', data);
                 if (this.onPlayersChanged) {
                     this.onPlayersChanged(data.players);
@@ -826,7 +828,7 @@
             });
 
             // Error handling
-            socket.on('error', (data) => {
+            activeSocket.on('error', (data) => {
                 if (this.onError) {
                     this.onError(data.message);
                 }
@@ -921,21 +923,22 @@
         }
 
         async startGame(gameState, hands) {
-            if (!socket || !this.currentRoomId) return;
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket || !this.currentRoomId) return;
 
             return new Promise((resolve, reject) => {
-                socket.emit('start_digu_game', { gameState, hands });
+                activeSocket.emit('start_digu_game', { gameState, hands });
 
                 const timeout = setTimeout(() => {
                     reject(new Error('Start game timeout'));
                 }, 5000);
 
-                socket.once('digu_game_started', () => {
+                activeSocket.once('digu_game_started', () => {
                     clearTimeout(timeout);
                     resolve();
                 });
 
-                socket.once('error', (data) => {
+                activeSocket.once('error', (data) => {
                     clearTimeout(timeout);
                     reject(new Error(data.message));
                 });
@@ -943,14 +946,15 @@
         }
 
         async leaveRoom() {
-            if (!socket) return;
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket) return;
 
-            socket.emit('leave_digu_room');
+            activeSocket.emit('leave_digu_room');
 
             // Clean up listeners
-            socket.off('digu_players_changed');
-            socket.off('digu_game_started');
-            socket.off('digu_player_left');
+            activeSocket.off('digu_players_changed');
+            activeSocket.off('digu_game_started');
+            activeSocket.off('digu_player_left');
 
             this.currentRoomId = null;
             this.currentPosition = null;
@@ -1004,14 +1008,16 @@
             this.onMatchStarted = null;
             this.onRemoteGameOver = null;
             this.isListening = false;
+            this._activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
         }
 
         startListening() {
-            if (this.isListening || !socket) return;
+            const activeSocket = this._activeSocket;
+            if (this.isListening || !activeSocket) return;
             this.isListening = true;
 
             // Listen for remote card draws
-            socket.on('digu_remote_card_drawn', (data) => {
+            activeSocket.on('digu_remote_card_drawn', (data) => {
                 console.log('Remote card drawn:', data);
                 if (this.onRemoteCardDrawn) {
                     this.onRemoteCardDrawn(data.source, data.card, data.position);
@@ -1019,7 +1025,7 @@
             });
 
             // Listen for remote card discards
-            socket.on('digu_remote_card_discarded', (data) => {
+            activeSocket.on('digu_remote_card_discarded', (data) => {
                 console.log('Remote card discarded:', data);
                 if (this.onRemoteCardDiscarded) {
                     this.onRemoteCardDiscarded(data.card, data.position);
@@ -1027,7 +1033,7 @@
             });
 
             // Listen for remote Digu declarations
-            socket.on('digu_remote_declare', (data) => {
+            activeSocket.on('digu_remote_declare', (data) => {
                 console.log('Remote Digu declare:', data);
                 if (this.onRemoteDeclare) {
                     this.onRemoteDeclare(data.position, data.melds, data.isValid);
@@ -1035,21 +1041,21 @@
             });
 
             // Listen for game state updates
-            socket.on('digu_state_updated', (data) => {
+            activeSocket.on('digu_state_updated', (data) => {
                 if (this.onGameStateChanged) {
                     this.onGameStateChanged(data.gameState);
                 }
             });
 
             // Listen for new match
-            socket.on('digu_match_started', (data) => {
+            activeSocket.on('digu_match_started', (data) => {
                 if (this.onMatchStarted) {
                     this.onMatchStarted(data.gameState, data.hands);
                 }
             });
 
             // Listen for remote game over
-            socket.on('digu_remote_game_over', (data) => {
+            activeSocket.on('digu_remote_game_over', (data) => {
                 if (this.onRemoteGameOver) {
                     this.onRemoteGameOver(data.results, data.declaredBy);
                 }
@@ -1057,21 +1063,23 @@
         }
 
         stopListening() {
-            if (socket) {
-                socket.off('digu_remote_card_drawn');
-                socket.off('digu_remote_card_discarded');
-                socket.off('digu_remote_declare');
-                socket.off('digu_state_updated');
-                socket.off('digu_match_started');
-                socket.off('digu_remote_game_over');
+            const activeSocket = this._activeSocket;
+            if (activeSocket) {
+                activeSocket.off('digu_remote_card_drawn');
+                activeSocket.off('digu_remote_card_discarded');
+                activeSocket.off('digu_remote_declare');
+                activeSocket.off('digu_state_updated');
+                activeSocket.off('digu_match_started');
+                activeSocket.off('digu_remote_game_over');
             }
             this.isListening = false;
         }
 
         async broadcastCardDraw(source, card, position) {
-            if (!socket) return;
+            const activeSocket = this._activeSocket;
+            if (!activeSocket) return;
 
-            socket.emit('digu_draw_card', {
+            activeSocket.emit('digu_draw_card', {
                 source: source,
                 card: card ? { suit: card.suit, rank: card.rank } : null,
                 position: position
@@ -1079,22 +1087,24 @@
         }
 
         async broadcastCardDiscard(card, position) {
-            if (!socket) return;
+            const activeSocket = this._activeSocket;
+            if (!activeSocket) return;
 
-            socket.emit('digu_discard_card', {
+            activeSocket.emit('digu_discard_card', {
                 card: { suit: card.suit, rank: card.rank },
                 position: position
             });
         }
 
         async broadcastDeclare(melds, isValid, position) {
-            if (!socket) return;
+            const activeSocket = this._activeSocket;
+            if (!activeSocket) return;
 
             const meldsData = melds.map(meld =>
                 meld.map(card => ({ suit: card.suit, rank: card.rank }))
             );
 
-            socket.emit('digu_declare', {
+            activeSocket.emit('digu_declare', {
                 melds: meldsData,
                 isValid: isValid,
                 position: position
@@ -1102,9 +1112,10 @@
         }
 
         async broadcastGameState(state) {
-            if (!socket) return;
+            const activeSocket = this._activeSocket;
+            if (!activeSocket) return;
 
-            socket.emit('digu_update_state', {
+            activeSocket.emit('digu_update_state', {
                 gameState: {
                     currentPlayerIndex: state.currentPlayerIndex,
                     phase: state.phase,
@@ -1115,15 +1126,17 @@
         }
 
         async broadcastGameOver(results) {
-            if (!socket) return;
+            const activeSocket = this._activeSocket;
+            if (!activeSocket) return;
 
-            socket.emit('digu_game_over', {
+            activeSocket.emit('digu_game_over', {
                 results: results
             });
         }
 
         async broadcastNewMatch(gameState, hands) {
-            if (!socket) return;
+            const activeSocket = this._activeSocket;
+            if (!activeSocket) return;
 
             const handsData = {};
             hands.forEach((hand, index) => {
@@ -1133,7 +1146,7 @@
                 }));
             });
 
-            socket.emit('digu_new_match', {
+            activeSocket.emit('digu_new_match', {
                 gameState: gameState,
                 hands: handsData
             });
