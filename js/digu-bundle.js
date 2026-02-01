@@ -7628,22 +7628,25 @@
 
         startDiguGameWithMultiplayer(numPlayers, localPosition, handsData, gameState, playerNames) {
             // Initialize Digu game for multiplayer
-            this.diguGame = new DiGuGame(numPlayers);
+            this.diguGame = new DiGuGame();
+            this.diguGame.numPlayers = numPlayers;
             this.diguGame.isMultiplayer = true;
             this.diguGame.localPlayerPosition = localPosition;
             this.diguGame.syncManager = this.diguSyncManager;
+            this.diguGame.gameOver = false;
+            this.diguGame.scores = Array(numPlayers).fill(0);
 
-            // Set player names
+            // Create players (all human in multiplayer, but only localPosition is controllable)
+            this.diguGame.players = [];
             for (let i = 0; i < numPlayers; i++) {
-                if (this.diguGame.players[i]) {
-                    this.diguGame.players[i].name = playerNames[i] || `Player ${i + 1}`;
-                    this.diguGame.players[i].isHuman = (i === localPosition);
-                }
+                const player = new DiGuPlayer(i, i === localPosition);
+                player.name = playerNames[i] || `Player ${i + 1}`;
+                this.diguGame.players.push(player);
             }
 
             // Set hands from server data
             for (let i = 0; i < numPlayers; i++) {
-                if (handsData[i]) {
+                if (handsData[i] && this.diguGame.players[i]) {
                     const cards = handsData[i].map(c => new Card(c.suit, c.rank));
                     this.diguGame.players[i].setHand(cards);
                 }
