@@ -640,7 +640,7 @@
     border: 1px solid var(--ocean-turquoise);
     border-radius: 5px;
     color: var(--ocean-turquoise);
-    font-size: clamp(8px, 1vw, 13px);
+    font-size: clamp(10.4px, 1.3vw, 16.9px);
     font-weight: 600;
     text-transform: uppercase;
     z-index: 10;
@@ -788,7 +788,7 @@
     border: 1px solid var(--ocean-turquoise);
     border-radius: 5px;
     padding: 5px 13px;
-    font-size: clamp(10px, 1.17vw, 13px);
+    font-size: clamp(12px, 1.4vw, 15.6px);
     color: var(--text-light);
     opacity: 0;
     transition: opacity 0.3s;
