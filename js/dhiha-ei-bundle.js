@@ -564,8 +564,9 @@
         }
 
         async createRoom(hostName) {
-            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
-            if (!activeSocket || !isConnected) {
+            const activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            const connected = isMultiplayerAvailable();
+            if (!activeSocket || !connected) {
                 throw new Error('Not connected to server');
             }
 
@@ -599,8 +600,9 @@
         }
 
         async joinRoom(roomId, playerName) {
-            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
-            if (!activeSocket || !isConnected) {
+            const activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            const connected = isMultiplayerAvailable();
+            if (!activeSocket || !connected) {
                 throw new Error('Not connected to server');
             }
 

@@ -487,21 +487,23 @@
         }
 
         setupSocketListeners() {
-            if (!socket) {
+            const activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket) {
                 console.error('setupSocketListeners called but socket is null!');
                 return;
             }
+            this._activeSocket = activeSocket;
             console.log('setupSocketListeners called, setting up listeners');
 
             // Players changed
-            socket.on('players_changed', (data) => {
+            activeSocket.on('players_changed', (data) => {
                 if (this.onPlayersChanged) {
                     this.onPlayersChanged(data.players);
                 }
             });
 
             // Position changed (after swap)
-            socket.on('position_changed', (data) => {
+            activeSocket.on('position_changed', (data) => {
                 // Update our position if we were moved
                 for (const [sid, pos] of Object.entries(data.players || {})) {
                     if (data.players[this.currentPosition]?.oderId !== currentUserId) {
@@ -523,7 +525,7 @@
             });
 
             // Game started
-            socket.on('game_started', (data) => {
+            activeSocket.on('game_started', (data) => {
                 console.log('game_started event received:', data);
                 this.gameStartData = data;
                 if (this.onGameStart) {
@@ -535,7 +537,7 @@
             });
 
             // Error handling
-            socket.on('error', (data) => {
+            activeSocket.on('error', (data) => {
                 if (this.onError) {
                     this.onError(data.message);
                 }
@@ -543,14 +545,16 @@
         }
 
         async createRoom(hostName) {
-            if (!socket || !isConnected) {
+            const activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            const connected = isMultiplayerAvailable();
+            if (!activeSocket || !connected) {
                 throw new Error('Not connected to server');
             }
 
             return new Promise((resolve, reject) => {
-                socket.emit('create_room', { playerName: hostName });
+                activeSocket.emit('create_room', { playerName: hostName });
 
-                socket.once('room_created', (data) => {
+                activeSocket.once('room_created', (data) => {
                     this.currentRoomId = data.roomId;
                     this.currentPosition = data.position;
                     this.setupSocketListeners();
@@ -562,24 +566,26 @@
                     resolve({ roomId: data.roomId, position: data.position });
                 });
 
-                socket.once('error', (data) => {
+                activeSocket.once('error', (data) => {
                     reject(new Error(data.message));
                 });
             });
         }
 
         async joinRoom(roomId, playerName) {
-            if (!socket || !isConnected) {
+            const activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            const connected = isMultiplayerAvailable();
+            if (!activeSocket || !connected) {
                 throw new Error('Not connected to server');
             }
 
             return new Promise((resolve, reject) => {
-                socket.emit('join_room', {
+                activeSocket.emit('join_room', {
                     roomId: roomId.toUpperCase().trim(),
                     playerName
                 });
 
-                socket.once('room_joined', (data) => {
+                activeSocket.once('room_joined', (data) => {
                     this.currentRoomId = data.roomId;
                     this.currentPosition = data.position;
                     this.setupSocketListeners();
@@ -595,34 +601,36 @@
                     });
                 });
 
-                socket.once('error', (data) => {
+                activeSocket.once('error', (data) => {
                     reject(new Error(data.message));
                 });
             });
         }
 
         async setReady(ready) {
-            if (!socket || this.currentPosition === null) return;
-            socket.emit('set_ready', { ready });
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket || this.currentPosition === null) return;
+            activeSocket.emit('set_ready', { ready });
         }
 
         async startGame(gameState, hands) {
-            if (!socket || !this.currentRoomId) return;
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket || !this.currentRoomId) return;
 
             return new Promise((resolve, reject) => {
-                socket.emit('start_game', { gameState, hands });
+                activeSocket.emit('start_game', { gameState, hands });
 
                 // Game start is handled by game_started event
                 const timeout = setTimeout(() => {
                     reject(new Error('Start game timeout'));
                 }, 5000);
 
-                socket.once('game_started', () => {
+                activeSocket.once('game_started', () => {
                     clearTimeout(timeout);
                     resolve();
                 });
 
-                socket.once('error', (data) => {
+                activeSocket.once('error', (data) => {
                     clearTimeout(timeout);
                     reject(new Error(data.message));
                 });
@@ -630,14 +638,15 @@
         }
 
         async leaveRoom() {
-            if (!socket) return;
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket) return;
 
-            socket.emit('leave_room');
+            activeSocket.emit('leave_room');
 
             // Clean up listeners
-            socket.off('players_changed');
-            socket.off('position_changed');
-            socket.off('game_started');
+            activeSocket.off('players_changed');
+            activeSocket.off('position_changed');
+            activeSocket.off('game_started');
 
             this.currentRoomId = null;
             this.currentPosition = null;
@@ -665,9 +674,10 @@
                 throw new Error('Only host can assign teams');
             }
 
-            if (!socket) return;
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket) return;
 
-            socket.emit('swap_player', { fromPosition });
+            activeSocket.emit('swap_player', { fromPosition });
         }
     }
 
@@ -837,8 +847,10 @@
 
         async createRoom(hostName, maxPlayers = 4) {
             console.log('[DiGuLobbyManager] createRoom called, hostName:', hostName, 'maxPlayers:', maxPlayers);
-            console.log('[DiGuLobbyManager] socket:', !!socket, 'isConnected:', isConnected);
-            if (!socket || !isConnected) {
+            const activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            const connected = isMultiplayerAvailable();
+            console.log('[DiGuLobbyManager] activeSocket:', !!activeSocket, 'connected:', connected);
+            if (!activeSocket || !connected) {
                 throw new Error('Not connected to server');
             }
 
@@ -851,7 +863,7 @@
                     reject(new Error('Room creation timeout'));
                 }, 10000);
 
-                socket.once('digu_room_created', (data) => {
+                activeSocket.once('digu_room_created', (data) => {
                     console.log('[DiGuLobbyManager] digu_room_created received:', data);
                     clearTimeout(timeout);
                     this.currentRoomId = data.roomId;
@@ -865,17 +877,19 @@
                     resolve({ roomId: data.roomId, position: data.position, maxPlayers: data.maxPlayers });
                 });
 
-                socket.once('error', (data) => {
+                activeSocket.once('error', (data) => {
                     clearTimeout(timeout);
                     reject(new Error(data.message));
                 });
 
-                socket.emit('create_digu_room', { playerName: hostName, maxPlayers });
+                activeSocket.emit('create_digu_room', { playerName: hostName, maxPlayers });
             });
         }
 
         async joinRoom(roomId, playerName) {
-            if (!socket || !isConnected) {
+            const activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            const connected = isMultiplayerAvailable();
+            if (!activeSocket || !connected) {
                 throw new Error('Not connected to server');
             }
 
@@ -887,7 +901,7 @@
                     reject(new Error('Room join timeout'));
                 }, 10000);
 
-                socket.once('digu_room_joined', (data) => {
+                activeSocket.once('digu_room_joined', (data) => {
                     clearTimeout(timeout);
                     this.currentRoomId = data.roomId;
                     this.currentPosition = data.position;
@@ -905,12 +919,12 @@
                     });
                 });
 
-                socket.once('error', (data) => {
+                activeSocket.once('error', (data) => {
                     clearTimeout(timeout);
                     reject(new Error(data.message));
                 });
 
-                socket.emit('join_digu_room', {
+                activeSocket.emit('join_digu_room', {
                     roomId: roomId.toUpperCase().trim(),
                     playerName
                 });
@@ -918,8 +932,9 @@
         }
 
         async setReady(ready) {
-            if (!socket || this.currentPosition === null) return;
-            socket.emit('digu_set_ready', { ready });
+            const activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket || this.currentPosition === null) return;
+            activeSocket.emit('digu_set_ready', { ready });
         }
 
         async startGame(gameState, hands) {
@@ -994,9 +1009,10 @@
                 throw new Error('Only host can assign teams');
             }
 
-            if (!socket) return;
+            const activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket) return;
 
-            socket.emit('swap_digu_player', { fromPosition });
+            activeSocket.emit('swap_digu_player', { fromPosition });
         }
     }
 
