@@ -103,6 +103,11 @@
             const consoleMethod = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log';
             console[consoleMethod](`[${category}] ${message}`, details || '');
 
+            // Send errors and warnings to server for admin review
+            if (level === 'error' || level === 'warn') {
+                Logger.sendToServer(entry);
+            }
+
             // Store to localStorage
             try {
                 let logs = [];
@@ -125,6 +130,15 @@
             }
         }
 
+        static sendToServer(entry) {
+            // Send log to server (fire and forget)
+            fetch('/api/log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(entry)
+            }).catch(() => {}); // Ignore errors
+        }
+
         static error(category, message, details) {
             Logger.log('error', category, message, details);
         }
@@ -141,6 +155,22 @@
             Logger.log('debug', category, message, details);
         }
     }
+
+    // Global error handler to catch uncaught errors
+    window.addEventListener('error', (event) => {
+        Logger.error('uncaught', event.message, {
+            filename: event.filename,
+            lineno: event.lineno,
+            colno: event.colno
+        });
+    });
+
+    // Global unhandled promise rejection handler
+    window.addEventListener('unhandledrejection', (event) => {
+        Logger.error('promise', 'Unhandled promise rejection', {
+            reason: String(event.reason)
+        });
+    });
 
     // ============================================
     // AUTO-SCALING FOR ALL SCREEN SIZES
@@ -7018,8 +7048,10 @@
 
                 console.log('[Digu] Showing matchmaking screen...');
                 this.showDiguMatchmakingScreen();
+                // Clean up before setting up new listeners
+                this.cleanupDiguMatchmakingListeners();
                 this.setupDiguMatchmakingListeners();
-                console.log('[Digu] Emitting join_digu_queue...');
+                console.log('[DIGU] Emitting join_digu_queue for:', playerName);
                 socket.emit('join_digu_queue', { playerName });
 
             } catch (error) {
@@ -7102,7 +7134,8 @@
         }
 
         async onDiguMatchFound(data) {
-            console.log('onDiguMatchFound called:', data);
+            console.log('[DIGU] onDiguMatchFound called:', data);
+            console.log('[DIGU] My position:', data.position, 'isHost:', data.position === 0);
             this.cleanupDiguMatchmakingListeners();
 
             // Update UI
@@ -7114,23 +7147,30 @@
             this.diguLobbyManager.currentPosition = data.position;
 
             this.diguLobbyManager.onPlayersChanged = (players) => {
+                console.log('[DIGU] onPlayersChanged callback:', players);
                 this.updateDiguPlayerSlots(players);
             };
 
             this.diguLobbyManager.onGameStart = (gameData) => {
+                console.log('[DIGU] onGameStart callback fired:', gameData);
                 this.onDiguMultiplayerGameStart(gameData);
             };
 
             this.diguLobbyManager.setupSocketListeners();
 
             // Show waiting room briefly then auto-start
+            console.log('[DIGU] Showing waiting room for room:', data.roomId);
             this.showDiguWaitingRoom(data.roomId);
             this.updateDiguPlayerSlots(data.players);
 
             // Quick match auto-starts
+            console.log('[DIGU] Checking if host, isHost():', this.diguLobbyManager.isHost());
             if (this.diguLobbyManager.isHost()) {
+                console.log('[DIGU] I am host, starting game in 1 second...');
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 this.startDiguMultiplayerGame();
+            } else {
+                console.log('[DIGU] I am not host, waiting for game start...');
             }
         }
 

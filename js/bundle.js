@@ -86,6 +86,11 @@
             const consoleMethod = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log';
             console[consoleMethod](`[${category}] ${message}`, details || '');
 
+            // Send errors and warnings to server for admin review
+            if (level === 'error' || level === 'warn') {
+                Logger.sendToServer(entry);
+            }
+
             // Store to localStorage
             try {
                 let logs = [];
@@ -108,6 +113,15 @@
             }
         }
 
+        static sendToServer(entry) {
+            // Send log to server (fire and forget)
+            fetch('/api/log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(entry)
+            }).catch(() => {}); // Ignore errors
+        }
+
         static error(category, message, details) {
             Logger.log('error', category, message, details);
         }
@@ -124,6 +138,22 @@
             Logger.log('debug', category, message, details);
         }
     }
+
+    // Global error handler to catch uncaught errors
+    window.addEventListener('error', (event) => {
+        Logger.error('uncaught', event.message, {
+            filename: event.filename,
+            lineno: event.lineno,
+            colno: event.colno
+        });
+    });
+
+    // Global unhandled promise rejection handler
+    window.addEventListener('unhandledrejection', (event) => {
+        Logger.error('promise', 'Unhandled promise rejection', {
+            reason: String(event.reason)
+        });
+    });
 
     // ============================================
     // AUTO-SCALING FOR ALL SCREEN SIZES

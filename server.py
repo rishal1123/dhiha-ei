@@ -59,6 +59,41 @@ ip_connections = defaultdict(int)  # IP -> connection count
 ip_connection_times = defaultdict(list)  # IP -> list of connection timestamps
 event_rate_tracking = defaultdict(lambda: defaultdict(list))  # sid -> event -> timestamps
 
+# Server-side logging for admin review
+MAX_SERVER_LOGS = 1000  # Keep last 1000 logs
+LOG_RETENTION_DAYS = 7  # Delete logs older than 7 days
+server_logs = []  # List of log entries
+
+def add_server_log(level, category, message, details=None, ip=None):
+    """Add a log entry to server logs"""
+    global server_logs
+
+    entry = {
+        'timestamp': time.strftime('%Y-%m-%dT%H:%M:%S'),
+        'level': level,
+        'category': category,
+        'message': message,
+        'details': details,
+        'ip': ip or 'server',
+        'url': 'server'
+    }
+
+    server_logs.append(entry)
+
+    # Cleanup old logs (older than 7 days)
+    cutoff_time = time.time() - (LOG_RETENTION_DAYS * 24 * 60 * 60)
+    server_logs = [
+        log for log in server_logs
+        if time.mktime(time.strptime(log['timestamp'], '%Y-%m-%dT%H:%M:%S')) > cutoff_time
+    ]
+
+    # Also trim to max size
+    if len(server_logs) > MAX_SERVER_LOGS:
+        server_logs = server_logs[-MAX_SERVER_LOGS:]
+
+    # Print to console as well
+    print(f"[{level.upper()}] [{category}] {message}")
+
 def get_client_ip():
     """Get client IP, handling proxies"""
     if request.headers.get('X-Forwarded-For'):
@@ -108,7 +143,7 @@ def rate_limit(event_name):
     return decorator
 
 # Admin config
-ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'thaasbai2024')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'thaasbai2026')
 SPONSORS_FILE = 'sponsors.json'
 CAMPAIGNS_FILE = 'campaigns.json'
 
@@ -343,6 +378,83 @@ def admin_login():
     if password == ADMIN_PASSWORD:
         return jsonify({'success': True})
     return jsonify({'error': 'Invalid password'}), 401
+
+@app.route('/api/log', methods=['POST'])
+def receive_log():
+    """Receive log entries from clients"""
+    global server_logs
+    data = request.get_json()
+
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    # Create log entry
+    log_entry = {
+        'timestamp': data.get('timestamp', time.strftime('%Y-%m-%dT%H:%M:%S')),
+        'level': data.get('level', 'info'),
+        'category': data.get('category', 'client'),
+        'message': data.get('message', ''),
+        'details': data.get('details'),
+        'url': data.get('url', ''),
+        'ip': get_client_ip(),
+        'userAgent': data.get('userAgent', '')[:100] if data.get('userAgent') else ''
+    }
+
+    # Add to server logs
+    server_logs.append(log_entry)
+
+    # Cleanup old logs (older than 7 days)
+    try:
+        cutoff_time = time.time() - (LOG_RETENTION_DAYS * 24 * 60 * 60)
+        server_logs = [
+            log for log in server_logs
+            if time.mktime(time.strptime(log['timestamp'][:19], '%Y-%m-%dT%H:%M:%S')) > cutoff_time
+        ]
+    except:
+        pass  # Ignore timestamp parsing errors
+
+    # Trim to max size (keep newest)
+    if len(server_logs) > MAX_SERVER_LOGS:
+        server_logs = server_logs[-MAX_SERVER_LOGS:]
+
+    return jsonify({'success': True})
+
+@app.route('/api/admin/logs', methods=['GET'])
+def get_admin_logs():
+    """Get server logs (admin only)"""
+    password = request.args.get('password')
+    if password != ADMIN_PASSWORD:
+        return jsonify({'error': 'Invalid password'}), 401
+
+    # Optional filters
+    level = request.args.get('level')
+    category = request.args.get('category')
+
+    logs = server_logs.copy()
+
+    if level and level != 'all':
+        logs = [l for l in logs if l.get('level') == level]
+    if category and category != 'all':
+        logs = [l for l in logs if l.get('category') == category]
+
+    # Return newest first
+    logs.reverse()
+
+    return jsonify({
+        'logs': logs,
+        'total': len(server_logs)
+    })
+
+@app.route('/api/admin/logs', methods=['DELETE'])
+def clear_admin_logs():
+    """Clear server logs (admin only)"""
+    global server_logs
+    password = request.args.get('password')
+    if password != ADMIN_PASSWORD:
+        return jsonify({'error': 'Invalid password'}), 401
+
+    server_logs = []
+    return jsonify({'success': True, 'message': 'Logs cleared'})
 
 @app.route('/api/admin/upload', methods=['POST'])
 def upload_sponsor_image():
@@ -824,7 +936,7 @@ def handle_connect():
 
     # Check connection limits
     if not check_connection_limit(ip):
-        print(f'Connection rejected for {ip} (limit exceeded)')
+        add_server_log('warn', 'connection', f'Connection rejected (limit exceeded)', {'sid': sid}, ip)
         return False  # Reject connection
 
     # Track connection
@@ -836,28 +948,29 @@ def handle_connect():
         player_sessions[sid] = {}
     player_sessions[sid]['_ip'] = ip
 
-    print(f'Client connected: {sid} from {ip} (total from IP: {ip_connections[ip]})')
+    add_server_log('info', 'connection', f'Client connected', {'sid': sid, 'connectionsFromIP': ip_connections[ip]}, ip)
     emit('connected', {'sid': sid})
 
 @socketio.on('disconnect')
 def handle_disconnect():
     sid = request.sid
+    client_ip = None
 
     # Clean up IP tracking
     if sid in player_sessions and '_ip' in player_sessions[sid]:
-        ip = player_sessions[sid]['_ip']
-        ip_connections[ip] = max(0, ip_connections[ip] - 1)
+        client_ip = player_sessions[sid]['_ip']
+        ip_connections[client_ip] = max(0, ip_connections[client_ip] - 1)
         # Clean up if no more connections
-        if ip_connections[ip] == 0:
-            del ip_connections[ip]
-            if ip in ip_connection_times:
-                del ip_connection_times[ip]
+        if ip_connections[client_ip] == 0:
+            del ip_connections[client_ip]
+            if client_ip in ip_connection_times:
+                del ip_connection_times[client_ip]
 
     # Clean up rate limiting data
     if sid in event_rate_tracking:
         del event_rate_tracking[sid]
 
-    print(f'Client disconnected: {sid}')
+    add_server_log('info', 'connection', f'Client disconnected', {'sid': sid}, client_ip)
 
     # Remove from Dhiha Ei matchmaking queue if present
     global matchmaking_queue
@@ -988,7 +1101,8 @@ def handle_create_room(data):
 
     join_room(room_id)
 
-    print(f'Room {room_id} created by {player_name}')
+    ip = player_sessions[sid].get('_ip') if sid in player_sessions else None
+    add_server_log('info', 'room', f'Room created: {room_id}', {'roomId': room_id, 'playerName': player_name, 'game': 'dhihaei'}, ip)
 
     emit('room_created', {
         'roomId': room_id,
@@ -1040,7 +1154,8 @@ def handle_join_room(data):
 
     join_room(room_id)
 
-    print(f'{player_name} joined room {room_id} at position {position}')
+    ip = player_sessions[sid].get('_ip') if sid in player_sessions else None
+    add_server_log('info', 'room', f'Player joined room: {room_id}', {'roomId': room_id, 'playerName': player_name, 'position': position, 'game': 'dhihaei'}, ip)
 
     # Notify the joining player
     emit('room_joined', {
@@ -1050,7 +1165,6 @@ def handle_join_room(data):
     })
 
     # Notify others in room
-    print(f'Emitting players_changed to room {room_id}: {room["players"]}')
     emit('players_changed', {'players': room['players']}, room=room_id, include_self=False)
 
 @socketio.on('leave_room')
@@ -1225,7 +1339,8 @@ def handle_start_game(data):
     room['gameState'] = data.get('gameState', {})
     room['hands'] = data.get('hands', {})
 
-    print(f'Game started in room {room_id}')
+    ip = player_sessions[sid].get('_ip') if sid in player_sessions else None
+    add_server_log('info', 'game', f'Game started: {room_id}', {'roomId': room_id, 'playerCount': len(room['players']), 'game': 'dhihaei'}, ip)
 
     emit('game_started', {
         'gameState': room['gameState'],
@@ -1395,7 +1510,7 @@ def check_and_start_match():
             # Add player to socket room
             join_room(room_id, sid=player['sid'])
 
-        print(f'Quick match created: Room {room_id} with players {[p["name"] for p in match_players]} - awaiting confirmation')
+        add_server_log('info', 'matchmaking', f'Match found: {room_id}', {'roomId': room_id, 'players': [p['name'] for p in match_players], 'game': 'dhihaei'})
 
         # Notify all matched players - they have 30 seconds to confirm
         for i, player in enumerate(match_players):
@@ -1559,7 +1674,8 @@ def handle_join_queue(data):
         'joinedAt': time.time()
     })
 
-    print(f'{player_name} joined matchmaking queue. Queue size: {len(matchmaking_queue)}')
+    ip = player_sessions.get(sid, {}).get('_ip')
+    add_server_log('info', 'matchmaking', f'Player joined queue', {'playerName': player_name, 'queueSize': len(matchmaking_queue), 'game': 'dhihaei'}, ip)
 
     emit('queue_joined', {
         'playersInQueue': len(matchmaking_queue),
@@ -1647,7 +1763,8 @@ def handle_create_digu_room(data):
 
     join_room(room_id)
 
-    print(f'Digu room {room_id} created by {player_name} (max {max_players} players)')
+    ip = player_sessions[sid].get('_ip') if sid in player_sessions else None
+    add_server_log('info', 'room', f'Room created: {room_id}', {'roomId': room_id, 'playerName': player_name, 'maxPlayers': max_players, 'game': 'digu'}, ip)
 
     emit('digu_room_created', {
         'roomId': room_id,
@@ -2114,7 +2231,8 @@ def handle_join_digu_queue(data):
         'joinedAt': time.time()
     })
 
-    print(f'{player_name} joined Digu matchmaking queue. Queue size: {len(digu_matchmaking_queue)}')
+    ip = player_sessions.get(sid, {}).get('_ip')
+    add_server_log('info', 'matchmaking', f'Player joined queue', {'playerName': player_name, 'queueSize': len(digu_matchmaking_queue), 'game': 'digu'}, ip)
 
     emit('digu_queue_joined', {
         'playersInQueue': len(digu_matchmaking_queue),
@@ -2172,7 +2290,7 @@ def check_and_start_digu_match():
             # Add player to socket room
             join_room(room_id, sid=player['sid'])
 
-        print(f'Digu quick match created: Room {room_id} with players {[p["name"] for p in match_players]}')
+        add_server_log('info', 'matchmaking', f'Match found: {room_id}', {'roomId': room_id, 'players': [p['name'] for p in match_players], 'game': 'digu'})
 
         # Notify all matched players
         for i, player in enumerate(match_players):
@@ -2201,4 +2319,9 @@ def handle_leave_digu_queue():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     print(f'Starting Thaasbai server on port {port}...')
+    add_server_log('info', 'server', f'Server starting on port {port}', {
+        'asyncMode': ASYNC_MODE,
+        'maxConnectionsPerIP': MAX_CONNECTIONS_PER_IP,
+        'connectionRateLimit': CONNECTION_RATE_LIMIT
+    })
     socketio.run(app, host='0.0.0.0', port=port, debug=False, allow_unsafe_werkzeug=True)

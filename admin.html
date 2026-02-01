@@ -1382,50 +1382,48 @@
             loadAllData();
         }
 
-        // Auto-refresh removed for localStorage version (no need to poll)
-
         // =====================================================
-        // LOGS MANAGEMENT
+        // LOGS MANAGEMENT (Server-side logs)
         // =====================================================
 
-        const LOGS_STORAGE_KEY = 'thaasbai_logs';
-        const MAX_LOGS = 1000; // Maximum number of logs to keep
+        let cachedLogs = [];
+        let totalLogs = 0;
 
-        // Get logs from localStorage
-        function getLogs() {
+        // Fetch logs from server
+        async function fetchLogs() {
+            const levelFilter = document.getElementById('log-level-filter').value;
+            const categoryFilter = document.getElementById('log-category-filter').value;
+
             try {
-                const stored = localStorage.getItem(LOGS_STORAGE_KEY);
-                return stored ? JSON.parse(stored) : [];
+                const params = new URLSearchParams({ password: adminPassword });
+                if (levelFilter !== 'all') params.append('level', levelFilter);
+                if (categoryFilter !== 'all') params.append('category', categoryFilter);
+
+                const response = await fetch(`/api/admin/logs?${params}`);
+                if (!response.ok) throw new Error('Failed to fetch logs');
+
+                const data = await response.json();
+                cachedLogs = data.logs || [];
+                totalLogs = data.total || 0;
+                return cachedLogs;
             } catch (e) {
-                console.error('Error loading logs:', e);
+                console.error('Error fetching logs:', e);
                 return [];
             }
         }
 
         // Refresh logs display
-        function refreshLogs() {
-            const logs = getLogs();
+        async function refreshLogs() {
             const container = document.getElementById('logs-container');
-            const levelFilter = document.getElementById('log-level-filter').value;
-            const categoryFilter = document.getElementById('log-category-filter').value;
+            container.innerHTML = '<div class="p-4 text-center text-muted">Loading logs...</div>';
 
-            // Filter logs
-            let filteredLogs = logs;
-            if (levelFilter !== 'all') {
-                filteredLogs = filteredLogs.filter(log => log.level === levelFilter);
-            }
-            if (categoryFilter !== 'all') {
-                filteredLogs = filteredLogs.filter(log => log.category === categoryFilter);
-            }
-
-            // Sort by timestamp (newest first)
-            filteredLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            const logs = await fetchLogs();
 
             // Render logs
-            if (filteredLogs.length === 0) {
+            if (logs.length === 0) {
                 container.innerHTML = '<div class="p-4 text-center text-muted">No logs found</div>';
             } else {
-                container.innerHTML = filteredLogs.map(log => {
+                container.innerHTML = logs.map(log => {
                     const levelColors = {
                         error: 'text-danger',
                         warn: 'text-warning',
@@ -1435,13 +1433,16 @@
                     const levelColor = levelColors[log.level] || 'text-light';
                     const time = new Date(log.timestamp).toLocaleString();
                     const details = log.details ? `<div class="text-muted ms-4" style="white-space: pre-wrap;">${escapeHtml(JSON.stringify(log.details, null, 2))}</div>` : '';
+                    const ipInfo = log.ip ? `<span class="badge bg-dark ms-1">${log.ip}</span>` : '';
 
                     return `
                         <div class="log-entry p-2 border-bottom border-secondary">
                             <span class="text-muted">[${time}]</span>
-                            <span class="badge bg-secondary ms-1">${log.category || 'system'}</span>
+                            <span class="badge bg-secondary ms-1">${log.category || 'client'}</span>
                             <span class="${levelColor} fw-bold ms-1">[${log.level.toUpperCase()}]</span>
+                            ${ipInfo}
                             <span class="ms-1">${escapeHtml(log.message)}</span>
+                            <span class="text-muted ms-1" style="font-size: 0.8em;">${log.url || ''}</span>
                             ${details}
                         </div>
                     `;
@@ -1449,25 +1450,28 @@
             }
 
             // Update counts
-            document.getElementById('log-count').textContent = filteredLogs.length + ' of ' + logs.length;
-
-            // Calculate storage size
-            const storageSize = new Blob([localStorage.getItem(LOGS_STORAGE_KEY) || '']).size;
-            document.getElementById('log-storage-size').textContent = (storageSize / 1024).toFixed(2) + ' KB';
+            document.getElementById('log-count').textContent = logs.length + ' of ' + totalLogs;
+            document.getElementById('log-storage-size').textContent = 'Server logs';
         }
 
         // Clear all logs
-        function clearLogs() {
-            if (!confirm('Are you sure you want to clear all logs?')) return;
+        async function clearLogs() {
+            if (!confirm('Are you sure you want to clear all server logs?')) return;
 
-            localStorage.removeItem(LOGS_STORAGE_KEY);
-            refreshLogs();
-            showMessage('admin-message', 'All logs cleared', 'success');
+            try {
+                const response = await fetch(`/api/admin/logs?password=${adminPassword}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error('Failed to clear logs');
+
+                showMessage('admin-message', 'All logs cleared', 'success');
+                refreshLogs();
+            } catch (e) {
+                showMessage('admin-message', 'Failed to clear logs: ' + e.message, 'danger');
+            }
         }
 
         // Export logs as JSON
-        function exportLogs() {
-            const logs = getLogs();
+        async function exportLogs() {
+            const logs = await fetchLogs();
             const jsonStr = JSON.stringify(logs, null, 2);
             const blob = new Blob([jsonStr], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -1498,9 +1502,9 @@
         let logsRefreshInterval = null;
         document.querySelector('[data-bs-target="#logs-tab"]').addEventListener('shown.bs.tab', () => {
             refreshLogs();
-            // Start auto-refresh every 3 seconds
+            // Start auto-refresh every 5 seconds
             if (logsRefreshInterval) clearInterval(logsRefreshInterval);
-            logsRefreshInterval = setInterval(refreshLogs, 3000);
+            logsRefreshInterval = setInterval(refreshLogs, 5000);
         });
         document.querySelector('[data-bs-target="#logs-tab"]').addEventListener('hidden.bs.tab', () => {
             // Stop auto-refresh when leaving logs tab
