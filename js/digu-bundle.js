@@ -5013,25 +5013,38 @@
 
             phaseEl.classList.remove('draw-phase', 'meld-phase', 'discard-phase');
 
+            // In multiplayer, check if it's our turn
+            let isMyTurn = true;
+            if (this.isDiguMultiplayer && this.diguGame) {
+                isMyTurn = this.diguGame.currentPlayerIndex === this.diguGame.localPlayerPosition;
+            }
+
             let text = '';
-            switch (phase) {
-                case 'draw':
-                    text = t('digu.drawCard', {}, 'Draw a card');
-                    phaseEl.classList.add('draw-phase');
-                    break;
-                case 'meld':
-                    text = t('game.discard', {}, 'Discard');
-                    phaseEl.classList.add('meld-phase');
-                    break;
-                case 'discard':
-                    text = t('digu.discardCard', {}, 'Discard a card');
-                    phaseEl.classList.add('discard-phase');
-                    break;
-                case 'gameover':
-                    text = t('results.title', {}, 'Game Over');
-                    break;
-                default:
-                    text = t('common.waiting', {}, 'Waiting...');
+            if (!isMyTurn && phase !== 'gameover') {
+                // Show whose turn it is
+                const currentPlayer = this.diguGame.players[this.diguGame.currentPlayerIndex];
+                const playerName = currentPlayer ? currentPlayer.name : `Player ${this.diguGame.currentPlayerIndex + 1}`;
+                text = t('game.playerTurn', { player: playerName }, `${playerName}'s turn`);
+            } else {
+                switch (phase) {
+                    case 'draw':
+                        text = t('digu.drawCard', {}, 'Draw a card');
+                        phaseEl.classList.add('draw-phase');
+                        break;
+                    case 'meld':
+                        text = t('game.discard', {}, 'Discard');
+                        phaseEl.classList.add('meld-phase');
+                        break;
+                    case 'discard':
+                        text = t('digu.discardCard', {}, 'Discard a card');
+                        phaseEl.classList.add('discard-phase');
+                        break;
+                    case 'gameover':
+                        text = t('results.title', {}, 'Game Over');
+                        break;
+                    default:
+                        text = t('common.waiting', {}, 'Waiting...');
+                }
             }
 
             phaseEl.textContent = text;
