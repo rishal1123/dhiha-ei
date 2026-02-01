@@ -7704,6 +7704,9 @@
 
             // Update display
             this.updateDiguDisplay();
+
+            // Update phase display (show whose turn it is)
+            this.updateDiguPhase(this.diguGame.phase);
         }
 
         // Show Digu game board for multiplayer
