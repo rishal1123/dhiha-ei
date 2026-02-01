@@ -354,6 +354,19 @@
 
     // Initialize WebSocket connection
     function initializeMultiplayer() {
+        // Use global Multiplayer module if available
+        if (window.Multiplayer && window.Multiplayer.init) {
+            console.log('[Digu] Using global Multiplayer module');
+            if (window.Multiplayer.init()) {
+                socket = window.Multiplayer.getSocket();
+                isConnected = window.Multiplayer.isAvailable();
+                currentUserId = window.Multiplayer.getCurrentUserId();
+                console.log('[Digu] Multiplayer initialized, socket:', socket ? socket.id : 'pending');
+                return true;
+            }
+            // If Multiplayer failed, fall through to local init
+        }
+
         if (typeof io === 'undefined') {
             console.warn('Socket.IO not loaded - multiplayer disabled');
             return false;
@@ -361,6 +374,7 @@
 
         try {
             const serverUrl = getServerUrl();
+            console.log('[Digu] Creating local socket connection to:', serverUrl);
             socket = io(serverUrl, {
                 transports: ['websocket', 'polling'],
                 reconnection: true,
@@ -369,26 +383,25 @@
             });
 
             socket.on('connect', () => {
-                console.log('Connected to server');
+                console.log('[Digu] Connected to server');
                 isConnected = true;
             });
 
             socket.on('connected', (data) => {
                 currentUserId = data.sid;
-                console.log('Session ID:', currentUserId);
+                console.log('[Digu] Session ID:', currentUserId);
             });
 
             socket.on('disconnect', (reason) => {
-                console.log('Disconnected from server:', reason);
+                console.log('[Digu] Disconnected from server:', reason);
                 isConnected = false;
-                // Notify any listeners about disconnection
                 if (onConnectionStatusChanged) {
                     onConnectionStatusChanged(false, reason);
                 }
             });
 
             socket.on('reconnect', (attemptNumber) => {
-                console.log('Reconnected to server after', attemptNumber, 'attempts');
+                console.log('[Digu] Reconnected after', attemptNumber, 'attempts');
                 isConnected = true;
                 if (onConnectionStatusChanged) {
                     onConnectionStatusChanged(true, 'reconnected');
@@ -396,11 +409,11 @@
             });
 
             socket.on('reconnect_attempt', (attemptNumber) => {
-                console.log('Reconnection attempt', attemptNumber);
+                console.log('[Digu] Reconnection attempt', attemptNumber);
             });
 
             socket.on('reconnect_failed', () => {
-                console.error('Failed to reconnect to server');
+                console.error('[Digu] Failed to reconnect');
                 if (onConnectionStatusChanged) {
                     onConnectionStatusChanged(false, 'reconnect_failed');
                 }
@@ -421,6 +434,10 @@
 
     // Check if connected
     function isMultiplayerAvailable() {
+        // Check global Multiplayer first
+        if (window.Multiplayer && window.Multiplayer.isAvailable()) {
+            return true;
+        }
         return socket && isConnected;
     }
 
@@ -7051,8 +7068,15 @@
                 // Clean up before setting up new listeners
                 this.cleanupDiguMatchmakingListeners();
                 this.setupDiguMatchmakingListeners();
-                console.log('[DIGU] Emitting join_digu_queue for:', playerName);
-                socket.emit('join_digu_queue', { playerName });
+
+                // Use global Multiplayer socket if available
+                const activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+                console.log('[DIGU] Emitting join_digu_queue for:', playerName, 'via socket:', activeSocket ? activeSocket.id : 'none');
+                if (activeSocket) {
+                    activeSocket.emit('join_digu_queue', { playerName });
+                } else {
+                    console.error('[DIGU] No socket available for emit');
+                }
 
             } catch (error) {
                 console.error('Error joining Digu matchmaking:', error);
@@ -7062,45 +7086,53 @@
         }
 
         setupDiguMatchmakingListeners() {
-            if (!socket) {
-                console.error('[DIGU QUEUE DEBUG] socket not available');
+            // Use global Multiplayer socket if available, otherwise use local
+            const activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+
+            if (!activeSocket) {
+                console.error('[DIGU QUEUE] No socket available');
                 return;
             }
 
-            console.log('[DIGU QUEUE DEBUG] Setting up Digu matchmaking listeners');
-            console.log('[DIGU QUEUE DEBUG] Socket connected:', socket.connected);
-            console.log('[DIGU QUEUE DEBUG] Socket ID:', socket.id);
+            console.log('[DIGU QUEUE] Setting up listeners');
+            console.log('[DIGU QUEUE] Socket connected:', activeSocket.connected);
+            console.log('[DIGU QUEUE] Socket ID:', activeSocket.id);
 
-            socket.on('digu_queue_joined', (data) => {
-                console.log('[DIGU QUEUE DEBUG] digu_queue_joined received:', data);
+            // Store reference for cleanup
+            this._activeSocket = activeSocket;
+
+            activeSocket.on('digu_queue_joined', (data) => {
+                console.log('[DIGU QUEUE] digu_queue_joined received:', data);
                 this.updateDiguQueueCount(data.playersInQueue);
             });
 
-            socket.on('digu_queue_update', (data) => {
-                console.log('[DIGU QUEUE DEBUG] digu_queue_update received:', data);
-                console.log('[DIGU QUEUE DEBUG] Calling updateDiguQueueCount with:', data.playersInQueue);
+            activeSocket.on('digu_queue_update', (data) => {
+                console.log('[DIGU QUEUE] digu_queue_update received:', data);
                 this.updateDiguQueueCount(data.playersInQueue);
             });
 
-            socket.on('digu_match_found', (data) => {
-                console.log('Digu match found!', data);
+            activeSocket.on('digu_match_found', (data) => {
+                console.log('[DIGU QUEUE] Match found!', data);
                 this.onDiguMatchFound(data);
             });
 
-            socket.on('digu_queue_left', () => {
-                console.log('Left Digu queue');
+            activeSocket.on('digu_queue_left', () => {
+                console.log('[DIGU QUEUE] Left queue');
             });
         }
 
         cleanupDiguMatchmakingListeners() {
-            if (!socket) return;
-            socket.off('digu_queue_joined');
-            socket.off('digu_queue_update');
-            socket.off('digu_match_found');
-            socket.off('digu_queue_left');
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket) return;
+            activeSocket.off('digu_queue_joined');
+            activeSocket.off('digu_queue_update');
+            activeSocket.off('digu_match_found');
+            activeSocket.off('digu_queue_left');
+            this._activeSocket = null;
         }
 
         showDiguMatchmakingScreen() {
+            console.log('[DIGU QUEUE] Showing matchmaking screen');
             if (this.lobbyMenu) this.lobbyMenu.classList.add('hidden');
             if (this.waitingRoom) this.waitingRoom.classList.add('hidden');
             const diguWaiting = document.getElementById('digu-waiting-room');
@@ -7108,7 +7140,22 @@
             const diguMatchmaking = document.getElementById('digu-matchmaking-screen');
             if (diguWaiting) diguWaiting.classList.add('hidden');
             if (matchmaking) matchmaking.classList.add('hidden');
-            if (diguMatchmaking) diguMatchmaking.classList.remove('hidden');
+            if (diguMatchmaking) {
+                diguMatchmaking.classList.remove('hidden');
+                console.log('[DIGU QUEUE] Matchmaking screen visible');
+
+                // Ensure spinner animation works by adding inline styles as fallback
+                const spinner = diguMatchmaking.querySelector('.matchmaking-spinner');
+                if (spinner) {
+                    spinner.style.animation = 'spin 1s linear infinite';
+                    spinner.style.border = '3px solid rgba(64, 224, 208, 0.3)';
+                    spinner.style.borderTopColor = '#2cb5a8';
+                    spinner.style.borderRadius = '50%';
+                    spinner.style.width = '40px';
+                    spinner.style.height = '40px';
+                    console.log('[DIGU QUEUE] Spinner styles applied');
+                }
+            }
             this.updateDiguQueueCount(1);
         }
 
@@ -7126,8 +7173,9 @@
         }
 
         cancelDiguMatchmaking() {
-            if (socket) {
-                socket.emit('leave_digu_queue');
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (activeSocket) {
+                activeSocket.emit('leave_digu_queue');
             }
             this.cleanupDiguMatchmakingListeners();
             this.hideDiguMatchmakingScreen();
