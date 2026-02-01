@@ -7697,7 +7697,14 @@
             }
 
             this.diguGame.currentPlayerIndex = gameState.currentPlayerIndex || 0;
-            this.diguGame.phase = gameState.phase || 'draw';
+            this.diguGame.gamePhase = gameState.phase || 'draw';
+
+            console.log('[DIGU] Game initialized:', {
+                currentPlayerIndex: this.diguGame.currentPlayerIndex,
+                localPlayerPosition: this.diguGame.localPlayerPosition,
+                gamePhase: this.diguGame.gamePhase,
+                isMyTurn: this.diguGame.currentPlayerIndex === this.diguGame.localPlayerPosition
+            });
 
             // Show Digu game board
             this.showDiguGameBoard(numPlayers);
@@ -7706,7 +7713,7 @@
             this.updateDiguDisplay();
 
             // Update phase display (show whose turn it is)
-            this.updateDiguPhase(this.diguGame.phase);
+            this.updateDiguPhase(this.diguGame.gamePhase);
         }
 
         // Show Digu game board for multiplayer
