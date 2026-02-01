@@ -92,6 +92,40 @@ const I18n = (function() {
     }
 
     /**
+     * Check if a translation exists in the current language
+     * @param {string} key - Dot-notation key
+     * @returns {boolean} True if translation exists in current language
+     */
+    function hasTranslation(key) {
+        const langData = translations[currentLang];
+        if (!langData) return false;
+
+        const keys = key.split('.');
+        let value = langData;
+
+        for (const k of keys) {
+            if (value && typeof value === 'object' && k in value) {
+                value = value[k];
+            } else {
+                return false;
+            }
+        }
+
+        return typeof value === 'string';
+    }
+
+    /**
+     * Check if text contains only Latin characters (English)
+     * @param {string} text - Text to check
+     * @returns {boolean} True if text is Latin-only
+     */
+    function isLatinText(text) {
+        // Check if text contains any Thaana/Dhivehi characters
+        const thaanaRange = /[\u0780-\u07BF]/;
+        return !thaanaRange.test(text);
+    }
+
+    /**
      * Get translation for a key
      * @param {string} key - Dot-notation key (e.g., 'common.loading')
      * @param {object} params - Optional parameters for interpolation
@@ -198,16 +232,34 @@ const I18n = (function() {
      * Update all elements with data-i18n attribute
      */
     function updateAllTranslations() {
+        const isDhivehi = currentLang === 'dv';
+
         // Update text content
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
-            el.textContent = t(key);
+            const text = t(key);
+            el.textContent = text;
+
+            // Add latin-font class for untranslated text in Dhivehi mode
+            if (isDhivehi && isLatinText(text)) {
+                el.classList.add('latin-font');
+            } else {
+                el.classList.remove('latin-font');
+            }
         });
 
         // Update placeholders
         document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
             const key = el.getAttribute('data-i18n-placeholder');
-            el.placeholder = t(key);
+            const text = t(key);
+            el.placeholder = text;
+
+            // Add latin-font class for untranslated placeholders in Dhivehi mode
+            if (isDhivehi && isLatinText(text)) {
+                el.classList.add('latin-font');
+            } else {
+                el.classList.remove('latin-font');
+            }
         });
 
         // Update titles

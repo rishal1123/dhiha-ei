@@ -1554,6 +1554,19 @@ body.rtl {
     font-family: 'Faruma', 'MV Faseyha', 'MV Boli', 'Segoe UI', Roboto, sans-serif;
 }
 
+/* Latin font for untranslated English text in Dhivehi mode */
+body.rtl .latin-font {
+    font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    direction: ltr;
+    text-align: left;
+}
+
+/* Keep buttons centered even with latin-font */
+body.rtl button.latin-font,
+body.rtl .btn.latin-font {
+    text-align: center;
+}
+
 /* ==========================================================================
    FIRST-USE LANGUAGE SELECTION MODAL
    ========================================================================== */

@@ -193,19 +193,18 @@
     }
 
     function scaleGame() {
-        const gameContainer = document.getElementById('game-container');
-
+        // Full viewport layout - no container positioning needed
         const vw = window.innerWidth;
         const vh = window.innerHeight;
         const isPortrait = vw < vh;
         const isMobile = isMobileDevice();
         const dpr = window.devicePixelRatio || 1;
 
-        // In portrait mode, swap dimensions for scale calculation (game rotates 90deg)
-        const effectiveWidth = isPortrait ? vh : vw;
-        const effectiveHeight = isPortrait ? vw : vh;
+        // Use viewport dimensions directly for scale calculation
+        const effectiveWidth = vw;
+        const effectiveHeight = vh;
 
-        // Calculate scale factor to fit viewport while maintaining aspect ratio
+        // Calculate scale factor based on viewport
         const scaleX = effectiveWidth / (BASE_WIDTH_UNITS * BASE_SCALE);
         const scaleY = effectiveHeight / (BASE_HEIGHT_UNITS * BASE_SCALE);
         let scaleFactor = Math.min(scaleX, scaleY);
@@ -224,37 +223,6 @@
 
         // Update CSS --scale variable - this makes ALL elements scale proportionally
         document.documentElement.style.setProperty('--scale', `${dynamicScale}px`);
-
-        // Calculate actual container dimensions (now based on dynamic --scale)
-        const containerWidth = BASE_WIDTH_UNITS * dynamicScale;
-        const containerHeight = BASE_HEIGHT_UNITS * dynamicScale;
-
-        // Position the container (centered, with rotation for portrait)
-        if (gameContainer) {
-            // Set container dimensions explicitly
-            gameContainer.style.width = `${containerWidth}px`;
-            gameContainer.style.height = `${containerHeight}px`;
-
-            if (isPortrait) {
-                // In portrait: rotate 90deg clockwise and center
-                // With rotate(90deg) clockwise and transform-origin: top left:
-                // - Container rotates so it extends RIGHT (containerHeight) and UP (containerWidth)
-                // - Visual bounds: left = offsetX, right = offsetX + containerHeight
-                //                  top = offsetY - containerWidth, bottom = offsetY
-                // To center: offsetX = (vw - containerHeight) / 2
-                //            offsetY = (vh + containerWidth) / 2
-                const offsetX = Math.max(0, (vw - containerHeight) / 2);
-                const offsetY = (vh + containerWidth) / 2;
-                gameContainer.style.transform = `translate(${offsetX}px, ${offsetY}px) rotate(90deg)`;
-                gameContainer.style.transformOrigin = 'top left';
-            } else {
-                // In landscape: just center (no scale transform needed)
-                const offsetX = Math.max(0, (vw - containerWidth) / 2);
-                const offsetY = Math.max(0, (vh - containerHeight) / 2);
-                gameContainer.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-                gameContainer.style.transformOrigin = 'top left';
-            }
-        }
 
         console.log(`[Scale] Viewport: ${vw}x${vh}, Portrait: ${isPortrait}, --scale: ${dynamicScale.toFixed(2)}px, Factor: ${scaleFactor.toFixed(3)}`);
     }
@@ -6025,7 +5993,8 @@
         // Start single player game
         startSinglePlayerGame() {
             this.isMultiplayerMode = false;
-            document.getElementById('game-container').classList.remove('multiplayer-mode');
+            const gameBoard = document.getElementById('game-board');
+            if (gameBoard) gameBoard.classList.remove('multiplayer-mode');
             this.game.resetToSinglePlayer();
             this.hideLobby();
             this.hideMultiplayerStatus();
@@ -6752,7 +6721,8 @@
         async onMultiplayerGameStart(data) {
             console.log('onMultiplayerGameStart called with data:', data);
             this.isMultiplayerMode = true;
-            document.getElementById('game-container').classList.add('multiplayer-mode');
+            const gameBoard = document.getElementById('game-board');
+            if (gameBoard) gameBoard.classList.add('multiplayer-mode');
             const roomId = this.lobbyManager.getRoomId();
             const localPosition = this.lobbyManager.getPosition();
             console.log('Room:', roomId, 'Local position:', localPosition);
@@ -7629,17 +7599,16 @@
 
         // Show lobby overlay
         showLobby() {
-            // Hide game container
-            document.getElementById('game-container').classList.add('hidden');
-            document.getElementById('game-container').classList.remove('multiplayer-mode');
+            // Hide game board
+            const gameBoard = document.getElementById('game-board');
+            if (gameBoard) {
+                gameBoard.classList.add('hidden');
+                gameBoard.classList.remove('multiplayer-mode');
+            }
 
             // Hide Digu game board
             const diguBoard = document.getElementById('digu-game-board');
             if (diguBoard) diguBoard.classList.add('hidden');
-
-            // Show Thaasbai board (for when switching games)
-            const gameBoard = document.getElementById('game-board');
-            if (gameBoard) gameBoard.classList.remove('hidden');
 
             // Show superior suit display (for Dhiha Ei)
             const superiorSuit = document.getElementById('superior-suit-display');
@@ -7661,7 +7630,9 @@
         // Hide lobby overlay
         hideLobby() {
             this.lobbyOverlay.classList.add('hidden');
-            document.getElementById('game-container').classList.remove('hidden');
+            // Show the game board
+            const gameBoard = document.getElementById('game-board');
+            if (gameBoard) gameBoard.classList.remove('hidden');
         }
 
         // Show multiplayer status bar

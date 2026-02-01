@@ -59,6 +59,73 @@
     z-index: 5;
 }
 
+/* Placeholder rows (h-5) */
+#game-board > .row.h-5 {
+    height: 5% !important;
+    min-height: 20px;
+    flex: 0 0 auto;
+}
+
+/* Main content row takes remaining height (h-90) */
+#game-board > .row.h-90 {
+    height: 90% !important;
+    flex: 1 1 auto;
+}
+
+/* Main content column must have full height for nested row percentages to work */
+#game-board > .row.h-90 > .col {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Side columns (col-1, col-2, col-6) */
+#game-board > .row.h-90 > .col > .row .col-1,
+#game-board > .row.h-90 > .col > .row .col-2,
+#game-board > .row.h-90 > .col > .row .col-6 {
+    height: 100%;
+}
+
+/* Row 1 (15% height) - partner and scores */
+#game-board > .row.h-90 > .col > .row:first-child {
+    height: 15%;
+}
+
+/* Row 2 (55% height) - center columns for play area */
+#game-board > .row.h-90 > .col > .row:nth-child(2) {
+    height: 55%;
+}
+
+#game-board > .row.h-90 > .col > .row:nth-child(2) > .col,
+#game-board > .row.h-90 > .col > .row:nth-child(2) > .col-1,
+#game-board > .row.h-90 > .col > .row:nth-child(2) > .col-6 {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Row 3 (30% height) - player hand */
+#game-board > .row.h-90 > .col > .row:nth-child(3) {
+    height: 30%;
+}
+
+#game-board > .row.h-90 > .col > .row:nth-child(3) > .col,
+#game-board > .row.h-90 > .col > .row:nth-child(3) > .col-2,
+#game-board > .row.h-90 > .col > .row:nth-child(3) > .col-8 {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Nested rows within main content - ensure proper display */
+#game-board > .row.h-90 > .col > .row {
+    position: relative;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
 /* Mobile/PWA specific adjustments */
 @media screen and (max-width: 768px), (max-height: 500px) {
     #game-board {
