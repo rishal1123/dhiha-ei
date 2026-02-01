@@ -1667,8 +1667,8 @@ def handle_join_queue(data):
     # Remove if already in queue (rejoin)
     remove_from_queue(sid)
 
-    # Check if already in a room
-    if sid in player_sessions:
+    # Check if already in a room (not just connected)
+    if sid in player_sessions and player_sessions[sid].get('roomId'):
         emit('error', {'message': 'Already in a room. Leave first.'})
         return
 
@@ -2221,11 +2221,14 @@ def handle_join_digu_queue(data):
     sid = request.sid
     player_name = data.get('playerName', 'Player')
 
+    print(f'[DIGU QUEUE] join_digu_queue received from {player_name} (sid: {sid})')
+
     # Remove if already in queue (rejoin)
     remove_from_digu_queue(sid)
 
-    # Check if already in a room
-    if sid in player_sessions:
+    # Check if already in a room (not just connected)
+    if sid in player_sessions and player_sessions[sid].get('roomId'):
+        print(f'[DIGU QUEUE] Rejected - already in room: {player_sessions[sid].get("roomId")}')
         emit('error', {'message': 'Already in a room. Leave first.'})
         return
 
@@ -2236,9 +2239,12 @@ def handle_join_digu_queue(data):
         'joinedAt': time.time()
     })
 
+    print(f'[DIGU QUEUE] Added to queue. Queue size: {len(digu_matchmaking_queue)}')
+
     ip = player_sessions.get(sid, {}).get('_ip')
     add_server_log('info', 'matchmaking', f'Player joined queue', {'playerName': player_name, 'queueSize': len(digu_matchmaking_queue), 'game': 'digu'}, ip)
 
+    print(f'[DIGU QUEUE] Emitting digu_queue_joined to {sid}')
     emit('digu_queue_joined', {
         'playersInQueue': len(digu_matchmaking_queue),
         'playersNeeded': max(0, 4 - len(digu_matchmaking_queue))
