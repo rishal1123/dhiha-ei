@@ -5063,7 +5063,7 @@
                 // Show whose turn it is
                 const currentPlayer = this.diguGame.players[this.diguGame.currentPlayerIndex];
                 const playerName = currentPlayer ? currentPlayer.name : `Player ${this.diguGame.currentPlayerIndex + 1}`;
-                text = t('game.playerTurn', { player: playerName }, `${playerName}'s turn`);
+                text = t('game.playerTurn', { name: playerName }, `${playerName}'s turn`);
             } else {
                 switch (phase) {
                     case 'draw':
