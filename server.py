@@ -82,9 +82,20 @@ def add_server_log(level, category, message, details=None, ip=None):
 
     # Cleanup old logs (older than 7 days)
     cutoff_time = time.time() - (LOG_RETENTION_DAYS * 24 * 60 * 60)
+
+    def parse_log_timestamp(ts):
+        """Parse timestamp, handling optional milliseconds"""
+        try:
+            # Remove milliseconds and Z suffix if present
+            if '.' in ts:
+                ts = ts.split('.')[0]
+            return time.mktime(time.strptime(ts, '%Y-%m-%dT%H:%M:%S'))
+        except:
+            return time.time()  # Default to now if parsing fails
+
     server_logs = [
         log for log in server_logs
-        if time.mktime(time.strptime(log['timestamp'], '%Y-%m-%dT%H:%M:%S')) > cutoff_time
+        if parse_log_timestamp(log['timestamp']) > cutoff_time
     ]
 
     # Also trim to max size
