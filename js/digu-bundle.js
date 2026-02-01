@@ -4796,23 +4796,36 @@
         }
 
         renderDiguPlayers(state) {
-            for (let i = 0; i < state.numPlayers; i++) {
-                const player = state.players[i];
-                const playerEl = document.getElementById(`digu-player-${i}`);
+            // In multiplayer, rotate positions so local player is always at bottom (visual position 0)
+            const localPos = this.isDiguMultiplayer ? (this.diguGame.localPlayerPosition || 0) : 0;
+
+            for (let visualPos = 0; visualPos < state.numPlayers; visualPos++) {
+                // Map visual position to actual player index
+                // Visual pos 0 (bottom) = local player, then rotate around
+                const actualPlayerIndex = this.isDiguMultiplayer
+                    ? (visualPos + localPos) % state.numPlayers
+                    : visualPos;
+
+                const player = state.players[actualPlayerIndex];
+                const playerEl = document.getElementById(`digu-player-${visualPos}`);
 
                 if (!playerEl) continue;
 
                 // Show/hide based on player count
-                if (i >= state.numPlayers) {
+                if (visualPos >= state.numPlayers) {
                     playerEl.classList.add('hidden');
                     continue;
                 }
                 playerEl.classList.remove('hidden');
 
-                // Update label
+                // Update label - show "You" for local player in multiplayer
                 const labelEl = playerEl.querySelector('.digu-player-label');
                 if (labelEl) {
-                    labelEl.textContent = player.name;
+                    if (this.isDiguMultiplayer && visualPos === 0) {
+                        labelEl.textContent = player.name + ' (You)';
+                    } else {
+                        labelEl.textContent = player.name;
+                    }
                 }
 
                 // Update avatar icon (for AI players)
@@ -4827,12 +4840,12 @@
                     countEl.textContent = t('game.cardCount', { count: player.hand.length }, `${player.hand.length} cards`);
                 }
 
-                // Update shuffle count
-                const shuffleEl = document.getElementById(`digu-shuffle-count-${i}`);
+                // Update shuffle count - use actual player index for game data
+                const shuffleEl = document.getElementById(`digu-shuffle-count-${visualPos}`);
                 if (shuffleEl) {
-                    shuffleEl.textContent = t('game.shuffleCount', { count: state.shuffleCounts[i] }, `Shuffle: ${state.shuffleCounts[i]}`);
+                    shuffleEl.textContent = t('game.shuffleCount', { count: state.shuffleCounts[actualPlayerIndex] }, `Shuffle: ${state.shuffleCounts[actualPlayerIndex]}`);
                     // Highlight current dealer
-                    shuffleEl.classList.toggle('current-dealer', i === state.dealerPosition);
+                    shuffleEl.classList.toggle('current-dealer', actualPlayerIndex === state.dealerPosition);
                 }
 
                 // Render hand area
@@ -4840,9 +4853,8 @@
                 if (handEl) {
                     handEl.innerHTML = '';
 
-                    // In multiplayer, show local player's cards; in single player, show player 0
-                    const localPos = this.isDiguMultiplayer ? this.diguGame.localPlayerPosition : 0;
-                    if (i === localPos) {
+                    // Show cards face-up only for visual position 0 (local player at bottom)
+                    if (visualPos === 0) {
                         // Local player - show face up cards with drag-and-drop
                         // Find all valid consecutive melds (3 or 4 cards) anywhere in hand
                         const validMelds = this.findAllValidMelds(player.hand);
@@ -4953,24 +4965,24 @@
                     // AI players - no cards shown, just avatar (handled in HTML/CSS)
                 }
 
-                // Update turn indicator
-                playerEl.classList.toggle('current-turn', i === state.currentPlayerIndex);
+                // Update turn indicator - highlight if this actual player's turn
+                playerEl.classList.toggle('current-turn', actualPlayerIndex === state.currentPlayerIndex);
 
-                // Also highlight the "You" label for player 0
-                if (i === 0) {
+                // Also highlight the "You" label for visual position 0 (local player)
+                if (visualPos === 0) {
                     const shuffleCount = document.getElementById('digu-shuffle-count-0');
                     if (shuffleCount) {
                         const youLabel = shuffleCount.parentElement?.querySelector('.digu-player-label');
                         if (youLabel) {
-                            youLabel.classList.toggle('current-turn', i === state.currentPlayerIndex);
+                            youLabel.classList.toggle('current-turn', actualPlayerIndex === state.currentPlayerIndex);
                         }
                     }
                 }
             }
 
             // Hide unused player slots
-            for (let i = state.numPlayers; i < 4; i++) {
-                const playerEl = document.getElementById(`digu-player-${i}`);
+            for (let v = state.numPlayers; v < 4; v++) {
+                const playerEl = document.getElementById(`digu-player-${v}`);
                 if (playerEl) {
                     playerEl.classList.add('hidden');
                 }
