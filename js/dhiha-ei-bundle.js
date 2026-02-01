@@ -502,14 +502,16 @@
         }
 
         setupSocketListeners() {
-            if (!socket) {
+            const activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket) {
                 console.error('setupSocketListeners called but socket is null!');
                 return;
             }
+            this._activeSocket = activeSocket;
             console.log('setupSocketListeners called, setting up listeners');
 
             // Players changed
-            socket.on('players_changed', (data) => {
+            activeSocket.on('players_changed', (data) => {
                 console.log('players_changed received:', data);
                 if (this.onPlayersChanged) {
                     console.log('Calling onPlayersChanged callback');
@@ -520,7 +522,7 @@
             });
 
             // Position changed (after swap)
-            socket.on('position_changed', (data) => {
+            activeSocket.on('position_changed', (data) => {
                 // Update our position if we were moved
                 for (const [sid, pos] of Object.entries(data.players || {})) {
                     if (data.players[this.currentPosition]?.oderId !== currentUserId) {
@@ -542,7 +544,7 @@
             });
 
             // Game started
-            socket.on('game_started', (data) => {
+            activeSocket.on('game_started', (data) => {
                 console.log('game_started event received:', data);
                 this.gameStartData = data;
                 if (this.onGameStart) {
@@ -554,7 +556,7 @@
             });
 
             // Error handling
-            socket.on('error', (data) => {
+            activeSocket.on('error', (data) => {
                 if (this.onError) {
                     this.onError(data.message);
                 }
@@ -562,7 +564,8 @@
         }
 
         async createRoom(hostName) {
-            if (!socket || !isConnected) {
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket || !isConnected) {
                 throw new Error('Not connected to server');
             }
 
@@ -574,7 +577,7 @@
                     reject(new Error('Room creation timeout'));
                 }, 10000);
 
-                socket.once('room_created', (data) => {
+                activeSocket.once('room_created', (data) => {
                     clearTimeout(timeout);
                     this.currentRoomId = data.roomId;
                     this.currentPosition = data.position;
@@ -586,17 +589,18 @@
                     resolve({ roomId: data.roomId, position: data.position });
                 });
 
-                socket.once('error', (data) => {
+                activeSocket.once('error', (data) => {
                     clearTimeout(timeout);
                     reject(new Error(data.message));
                 });
 
-                socket.emit('create_room', { playerName: hostName });
+                activeSocket.emit('create_room', { playerName: hostName });
             });
         }
 
         async joinRoom(roomId, playerName) {
-            if (!socket || !isConnected) {
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket || !isConnected) {
                 throw new Error('Not connected to server');
             }
 
@@ -608,7 +612,7 @@
                     reject(new Error('Room join timeout'));
                 }, 10000);
 
-                socket.once('room_joined', (data) => {
+                activeSocket.once('room_joined', (data) => {
                     clearTimeout(timeout);
                     this.currentRoomId = data.roomId;
                     this.currentPosition = data.position;
@@ -624,12 +628,12 @@
                     });
                 });
 
-                socket.once('error', (data) => {
+                activeSocket.once('error', (data) => {
                     clearTimeout(timeout);
                     reject(new Error(data.message));
                 });
 
-                socket.emit('join_room', {
+                activeSocket.emit('join_room', {
                     roomId: roomId.toUpperCase().trim(),
                     playerName
                 });
@@ -637,27 +641,29 @@
         }
 
         async setReady(ready) {
-            if (!socket || this.currentPosition === null) return;
-            socket.emit('set_ready', { ready });
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket || this.currentPosition === null) return;
+            activeSocket.emit('set_ready', { ready });
         }
 
         async startGame(gameState, hands) {
-            if (!socket || !this.currentRoomId) return;
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket || !this.currentRoomId) return;
 
             return new Promise((resolve, reject) => {
-                socket.emit('start_game', { gameState, hands });
+                activeSocket.emit('start_game', { gameState, hands });
 
                 // Game start is handled by game_started event
                 const timeout = setTimeout(() => {
                     reject(new Error('Start game timeout'));
                 }, 5000);
 
-                socket.once('game_started', () => {
+                activeSocket.once('game_started', () => {
                     clearTimeout(timeout);
                     resolve();
                 });
 
-                socket.once('error', (data) => {
+                activeSocket.once('error', (data) => {
                     clearTimeout(timeout);
                     reject(new Error(data.message));
                 });
@@ -665,14 +671,15 @@
         }
 
         async leaveRoom() {
-            if (!socket) return;
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket) return;
 
-            socket.emit('leave_room');
+            activeSocket.emit('leave_room');
 
             // Clean up listeners
-            socket.off('players_changed');
-            socket.off('position_changed');
-            socket.off('game_started');
+            activeSocket.off('players_changed');
+            activeSocket.off('position_changed');
+            activeSocket.off('game_started');
 
             this.currentRoomId = null;
             this.currentPosition = null;
@@ -700,9 +707,10 @@
                 throw new Error('Only host can assign teams');
             }
 
-            if (!socket) return;
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket) return;
 
-            socket.emit('swap_player', { fromPosition });
+            activeSocket.emit('swap_player', { fromPosition });
         }
     }
 
@@ -719,6 +727,7 @@
             this.onGameStateChanged = null;
             this.onRoundStarted = null;
             this.isListening = false;
+            this._activeSocket = (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
         }
 
         async initialize() {
@@ -726,11 +735,12 @@
         }
 
         startListening() {
-            if (this.isListening || !socket) return;
+            const activeSocket = this._activeSocket;
+            if (this.isListening || !activeSocket) return;
             this.isListening = true;
 
             // Listen for remote card plays
-            socket.on('remote_card_played', (data) => {
+            activeSocket.on('remote_card_played', (data) => {
                 console.log('Remote card played:', data);
                 if (this.onRemoteCardPlayed) {
                     this.onRemoteCardPlayed(data.card, data.position);
@@ -738,14 +748,14 @@
             });
 
             // Listen for game state updates
-            socket.on('game_state_updated', (data) => {
+            activeSocket.on('game_state_updated', (data) => {
                 if (this.onGameStateChanged) {
                     this.onGameStateChanged(data.gameState);
                 }
             });
 
             // Listen for new rounds
-            socket.on('round_started', (data) => {
+            activeSocket.on('round_started', (data) => {
                 if (this.onRoundStarted) {
                     this.onRoundStarted(data.gameState, data.hands);
                 }
@@ -753,27 +763,30 @@
         }
 
         stopListening() {
-            if (socket) {
-                socket.off('remote_card_played');
-                socket.off('game_state_updated');
-                socket.off('round_started');
+            const activeSocket = this._activeSocket;
+            if (activeSocket) {
+                activeSocket.off('remote_card_played');
+                activeSocket.off('game_state_updated');
+                activeSocket.off('round_started');
             }
             this.isListening = false;
         }
 
         async broadcastCardPlay(card, position) {
-            if (!socket) return;
+            const activeSocket = this._activeSocket;
+            if (!activeSocket) return;
 
-            socket.emit('card_played', {
+            activeSocket.emit('card_played', {
                 card: { suit: card.suit, rank: card.rank },
                 position: position
             });
         }
 
         async broadcastGameState(state) {
-            if (!socket) return;
+            const activeSocket = this._activeSocket;
+            if (!activeSocket) return;
 
-            socket.emit('update_game_state', {
+            activeSocket.emit('update_game_state', {
                 gameState: {
                     currentPlayerIndex: state.currentPlayerIndex,
                     trickNumber: state.trickNumber,
@@ -789,7 +802,8 @@
         }
 
         async broadcastNewRound(initialState, hands) {
-            if (!socket) return;
+            const activeSocket = this._activeSocket;
+            if (!activeSocket) return;
 
             const handsData = {};
             hands.forEach((hand, index) => {
@@ -799,7 +813,7 @@
                 }));
             });
 
-            socket.emit('new_round', {
+            activeSocket.emit('new_round', {
                 gameState: initialState,
                 hands: handsData
             });
