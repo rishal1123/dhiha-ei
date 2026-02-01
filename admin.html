@@ -1494,8 +1494,21 @@
         document.getElementById('log-level-filter').addEventListener('change', refreshLogs);
         document.getElementById('log-category-filter').addEventListener('change', refreshLogs);
 
-        // Load logs when logs tab is shown
-        document.querySelector('[data-bs-target="#logs-tab"]').addEventListener('shown.bs.tab', refreshLogs);
+        // Auto-refresh logs when logs tab is visible
+        let logsRefreshInterval = null;
+        document.querySelector('[data-bs-target="#logs-tab"]').addEventListener('shown.bs.tab', () => {
+            refreshLogs();
+            // Start auto-refresh every 3 seconds
+            if (logsRefreshInterval) clearInterval(logsRefreshInterval);
+            logsRefreshInterval = setInterval(refreshLogs, 3000);
+        });
+        document.querySelector('[data-bs-target="#logs-tab"]').addEventListener('hidden.bs.tab', () => {
+            // Stop auto-refresh when leaving logs tab
+            if (logsRefreshInterval) {
+                clearInterval(logsRefreshInterval);
+                logsRefreshInterval = null;
+            }
+        });
     </script>
 </body>
 </html>

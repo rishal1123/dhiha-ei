@@ -887,9 +887,14 @@ def handle_disconnect():
     # Clean up player from room
     if sid in player_sessions:
         session = player_sessions[sid]
-        room_id = session['roomId']
-        position = session['position']
+        room_id = session.get('roomId')
+        position = session.get('position')
         game_type = session.get('gameType', 'dhihaei')
+
+        # Skip room cleanup if player never joined a room
+        if room_id is None or position is None:
+            del player_sessions[sid]
+            return
 
         # Handle Digu rooms
         if game_type == 'digu' and room_id in digu_rooms:
