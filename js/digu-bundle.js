@@ -7560,10 +7560,12 @@
         }
 
         onDiguMultiplayerGameStart(data) {
-            console.log('onDiguMultiplayerGameStart:', data);
+            console.log('[DIGU] onDiguMultiplayerGameStart:', data);
 
             const position = this.diguLobbyManager ? this.diguLobbyManager.getPosition() : 0;
             const numPlayers = Object.keys(data.players || {}).length || 4;
+
+            console.log(`[DIGU] Starting game: position=${position}, numPlayers=${numPlayers}`);
 
             // Hide lobby
             this.lobbyOverlay.classList.add('hidden');
@@ -7586,15 +7588,17 @@
             // Set up sync listeners
             this.setupDiguSyncListeners();
 
-            // Get player names from data
+            // Get player names from data - handle both string and numeric keys
             const playerNames = [];
             for (let i = 0; i < numPlayers; i++) {
-                if (data.players[i]) {
-                    playerNames.push(data.players[i].name);
+                const playerData = data.players[i] || data.players[String(i)];
+                if (playerData) {
+                    playerNames.push(playerData.name);
                 } else {
                     playerNames.push(`Player ${i + 1}`);
                 }
             }
+            console.log('[DIGU] Player names:', playerNames);
 
             // Start Digu game with multiplayer setup
             this.startDiguGameWithMultiplayer(numPlayers, position, data.hands, data.gameState, playerNames);
@@ -7627,6 +7631,14 @@
         }
 
         startDiguGameWithMultiplayer(numPlayers, localPosition, handsData, gameState, playerNames) {
+            console.log('[DIGU] startDiguGameWithMultiplayer called:', {
+                numPlayers,
+                localPosition,
+                handsData,
+                gameState,
+                playerNames
+            });
+
             // Initialize Digu game for multiplayer
             this.diguGame = new DiGuGame();
             this.diguGame.numPlayers = numPlayers;
@@ -7642,13 +7654,22 @@
                 const player = new DiGuPlayer(i, i === localPosition);
                 player.name = playerNames[i] || `Player ${i + 1}`;
                 this.diguGame.players.push(player);
+                console.log(`[DIGU] Created player ${i}:`, player.name);
             }
 
-            // Set hands from server data
+            console.log('[DIGU] Players created:', this.diguGame.players.length);
+
+            // Set hands from server data - handle both string and numeric keys
             for (let i = 0; i < numPlayers; i++) {
-                if (handsData[i] && this.diguGame.players[i]) {
-                    const cards = handsData[i].map(c => new Card(c.suit, c.rank));
-                    this.diguGame.players[i].setHand(cards);
+                const handData = handsData[i] || handsData[String(i)];
+                const player = this.diguGame.players[i];
+                console.log(`[DIGU] Setting hand for player ${i}:`, { handData: !!handData, player: !!player });
+                if (handData && player) {
+                    const cards = handData.map(c => new Card(c.suit, c.rank));
+                    player.setHand(cards);
+                    console.log(`[DIGU] Hand set for player ${i}: ${cards.length} cards`);
+                } else {
+                    console.warn(`[DIGU] Could not set hand for player ${i}: handData=${!!handData}, player=${!!player}`);
                 }
             }
 
