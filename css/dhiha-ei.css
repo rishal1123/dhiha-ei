@@ -1,12 +1,12 @@
 /* Thaasbai - Dhiha Ei Game Styles (Bootstrap Simplified) */
 
-/* Game Board - with 50px padding on sides */
+/* Game Board - full viewport height with 50px padding on sides */
 #game-board {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100vh;
     background: radial-gradient(ellipse at center bottom, rgba(53, 168, 160, 0.2) 0%, rgba(44, 181, 168, 0.1) 30%, var(--ocean-deep) 60%, var(--night-blue) 100%);
     overflow: hidden;
     /* Fix for Bootstrap container in scaled game container */
@@ -18,46 +18,7 @@
 
 #game-board.hidden { display: none !important; }
 
-/* Rectangular Table - centered on play area */
-#game-board::before {
-    content: '';
-    position: absolute;
-    top: 42.5%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 70%;
-    height: 55%;
-    max-width: calc(70 * var(--scale));
-    max-height: calc(50 * var(--scale));
-    background: linear-gradient(180deg, #3d2a24 0%, #32221c 15%, #261a15 30%, #32221c 50%, #3d2a24 70%, #32221c 85%, #261a15 100%);
-    border-radius: 16px;
-    box-shadow: inset 0 0 30px rgba(0,0,0,0.7), 0 4px 20px rgba(0,0,0,0.5);
-    border: 4px solid #1a100c;
-    pointer-events: none;
-    z-index: 0;
-}
-
-#game-board::after {
-    content: '';
-    position: absolute;
-    top: 42.5%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 66%;
-    height: 50%;
-    max-width: calc(66 * var(--scale));
-    max-height: calc(46 * var(--scale));
-    background: radial-gradient(ellipse at 50% 40%, #0f2630 0%, #0a1e28 40%, #071620 70%, #040e14 100%);
-    border-radius: 12px;
-    pointer-events: none;
-    z-index: 1;
-}
-
-/* Ensure Bootstrap rows are above the table background */
-#game-board > .row {
-    position: relative;
-    z-index: 5;
-}
+/* Table pseudo-elements defined later (oval table) */
 
 /* Placeholder rows (h-5) */
 #game-board > .row.h-5 {
@@ -96,13 +57,11 @@
     height: 55%;
 }
 
+/* Row 2 columns - flex handled by Bootstrap classes in HTML */
 #game-board > .row.h-90 > .col > .row:nth-child(2) > .col,
 #game-board > .row.h-90 > .col > .row:nth-child(2) > .col-1,
 #game-board > .row.h-90 > .col > .row:nth-child(2) > .col-6 {
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 /* Row 3 (30% height) - player hand */
@@ -110,13 +69,11 @@
     height: 30%;
 }
 
+/* Row 3 columns - flex handled by Bootstrap classes in HTML */
 #game-board > .row.h-90 > .col > .row:nth-child(3) > .col,
 #game-board > .row.h-90 > .col > .row:nth-child(3) > .col-2,
 #game-board > .row.h-90 > .col > .row:nth-child(3) > .col-8 {
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 /* Nested rows within main content - ensure proper display */
@@ -776,11 +733,7 @@
     margin-bottom: 16px;
 }
 
-#message-buttons {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-}
+/* #message-buttons flex handled by Bootstrap classes in HTML (d-flex gap-2 justify-content-center) */
 
 #message-button, #message-button-secondary {
     padding: 10px 24px;
@@ -951,10 +904,9 @@ html.standalone #game-board {
 .slot-name { font-weight: 600; font-size: clamp(16px, 1.8vw, 24px); }
 .slot-ready { color: var(--palm-green); font-size: clamp(14px, 1.6vw, 22px); }
 
+/* #waiting-room-actions - flex/gap handled by Bootstrap (d-flex flex-column gap-2) */
 #waiting-room-actions {
-    display: flex;
     justify-content: center;
-    gap: 8px;
     margin-top: 12px;
 }
 
