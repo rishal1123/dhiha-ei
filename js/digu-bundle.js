@@ -5101,25 +5101,34 @@
         }
 
         updateDiguTurn(playerIndex) {
-            // Update player area highlights
-            for (let i = 0; i < 4; i++) {
-                const playerEl = document.getElementById(`digu-player-${i}`);
+            // Get local player position for rotation mapping
+            const localPos = this.isDiguMultiplayer ? (this.diguGame?.localPlayerPosition || 0) : 0;
+            const numPlayers = this.diguGame?.numPlayers || 4;
+
+            // Update player area highlights - map actual player index to visual position
+            for (let visualPos = 0; visualPos < 4; visualPos++) {
+                const playerEl = document.getElementById(`digu-player-${visualPos}`);
                 if (playerEl) {
-                    playerEl.classList.toggle('current-turn', i === playerIndex);
+                    // In multiplayer, map visual position to actual player index
+                    const actualPlayerIndex = this.isDiguMultiplayer
+                        ? (visualPos + localPos) % numPlayers
+                        : visualPos;
+                    playerEl.classList.toggle('current-turn', actualPlayerIndex === playerIndex);
                 }
             }
 
-            // Also highlight the "You" label for player 0
+            // Also highlight the "You" label for visual position 0 (local player at bottom)
             const shuffleCount = document.getElementById('digu-shuffle-count-0');
             if (shuffleCount) {
                 const youLabel = shuffleCount.parentElement?.querySelector('.digu-player-label');
                 if (youLabel) {
-                    youLabel.classList.toggle('current-turn', playerIndex === 0);
+                    // Highlight when it's the local player's turn
+                    youLabel.classList.toggle('current-turn', playerIndex === localPos);
                 }
             }
 
-            // Update phase text if it's not human's turn
-            if (playerIndex !== 0 && this.diguGame) {
+            // Update phase text if it's not local player's turn
+            if (playerIndex !== localPos && this.diguGame) {
                 const phaseEl = document.getElementById('digu-phase');
                 if (phaseEl) {
                     const playerName = this.diguGame.players[playerIndex].name;
@@ -5135,9 +5144,12 @@
             const btn = document.getElementById('digu-btn');
             if (!btn || !this.diguGame) return;
 
-            const player = this.diguGame.players[0];
+            const localPos = this.isDiguMultiplayer ? this.diguGame.localPlayerPosition : 0;
+            const player = this.diguGame.players[localPos];
             const hasValidMelds = player.canDeclareDigu();
-            const isMyTurn = this.diguGame.isHumanTurn();
+            const isMyTurn = this.isDiguMultiplayer
+                ? this.diguGame.currentPlayerIndex === localPos
+                : this.diguGame.isHumanTurn();
 
             // Show button only on your turn when all cards form valid melds
             // You can arrange cards at any time, but button only appears on your turn
@@ -5181,8 +5193,9 @@
         handleDiguCardClick(card) {
             if (!this.diguGame) return;
 
-            // Check if card is already in a meld
-            const player = this.diguGame.players[0];
+            // Check if card is already in a meld - use local player position
+            const localPos = this.isDiguMultiplayer ? this.diguGame.localPlayerPosition : 0;
+            const player = this.diguGame.players[localPos];
             const inMeld = player.getCardsInMelds().some(c =>
                 c.suit === card.suit && c.rank === card.rank
             );
@@ -5244,9 +5257,15 @@
 
         // Check if player can discard a card (for drag-drop validation)
         canDiscardCard() {
-            if (!this.diguGame || !this.diguGame.isHumanTurn()) return false;
+            if (!this.diguGame) return false;
+            // Check if it's local player's turn
+            const localPos = this.isDiguMultiplayer ? this.diguGame.localPlayerPosition : 0;
+            const isMyTurn = this.isDiguMultiplayer
+                ? this.diguGame.currentPlayerIndex === localPos
+                : this.diguGame.isHumanTurn();
+            if (!isMyTurn) return false;
             if (this.diguGame.gamePhase !== 'meld') return false;
-            const player = this.diguGame.players[0];
+            const player = this.diguGame.players[localPos];
             return player.hand.length === 11;
         }
 
@@ -5287,7 +5306,8 @@
         sortHandBySuit() {
             if (!this.diguGame) return;
 
-            const player = this.diguGame.players[0];
+            const localPos = this.isDiguMultiplayer ? this.diguGame.localPlayerPosition : 0;
+            const player = this.diguGame.players[localPos];
             const suitOrder = { 'spades': 0, 'hearts': 1, 'diamonds': 2, 'clubs': 3 };
 
             // Cards use numeric ranks: 2-10, 11=J, 12=Q, 13=K, 14=A
@@ -5303,7 +5323,8 @@
         sortHandByRank() {
             if (!this.diguGame) return;
 
-            const player = this.diguGame.players[0];
+            const localPos = this.isDiguMultiplayer ? this.diguGame.localPlayerPosition : 0;
+            const player = this.diguGame.players[localPos];
             const suitOrder = { 'spades': 0, 'hearts': 1, 'diamonds': 2, 'clubs': 3 };
 
             // Cards use numeric ranks: 2-10, 11=J, 12=Q, 13=K, 14=A
@@ -5319,7 +5340,8 @@
         moveCardInHand(fromIndex, toIndex) {
             if (!this.diguGame) return;
 
-            const player = this.diguGame.players[0];
+            const localPos = this.isDiguMultiplayer ? this.diguGame.localPlayerPosition : 0;
+            const player = this.diguGame.players[localPos];
             if (fromIndex < 0 || fromIndex >= player.hand.length) return;
             if (toIndex < 0 || toIndex >= player.hand.length) return;
 
@@ -5368,8 +5390,9 @@
             // This allows AI draw notifications to stay visible
             this.updateDiguDisplay();
 
-            // Count only human player's own rounds (when player 0 completes their turn)
-            if (player && player.position === 0) {
+            // Count only local player's own rounds (when they complete their turn)
+            const localPos = this.isDiguMultiplayer ? this.diguGame.localPlayerPosition : 0;
+            if (player && player.position === localPos) {
                 this.diguRoundsPlayed++;
                 // Show sponsor callout every 5 of your own rounds
                 if (this.diguRoundsPlayed > 0 && this.diguRoundsPlayed % 5 === 0) {
@@ -5465,7 +5488,8 @@
             }
 
             const playerName = this.diguGame.players[this.diguGame.currentPlayerIndex].name;
-            const isHuman = this.diguGame.currentPlayerIndex === 0;
+            const localPos = this.isDiguMultiplayer ? this.diguGame.localPlayerPosition : 0;
+            const isHuman = this.diguGame.currentPlayerIndex === localPos;
             const youText = t('common.you', {}, 'You');
             const drewText = t('digu.drew', {}, 'drew');
             const fromDiscardText = t('digu.fromDiscard', {}, 'from discard');
@@ -5870,6 +5894,7 @@
 
             // Render all players' cards
             playersContainer.innerHTML = '';
+            const localPos = this.isDiguMultiplayer ? this.diguGame.localPlayerPosition : 0;
             for (let i = 0; i < result.players.length; i++) {
                 const player = result.players[i];
                 const isWinner = player === result.winner;
@@ -5888,7 +5913,7 @@
                 headerEl.className = 'result-player-header';
 
                 const nameEl = document.createElement('span');
-                nameEl.className = `result-player-name ${i === 0 ? 'you' : ''}`;
+                nameEl.className = `result-player-name ${i === localPos ? 'you' : ''}`;
                 nameEl.innerHTML = `${player.name} <span class="result-player-team">(${teamName})</span>`;
                 if (isWinner) nameEl.innerHTML += ' - DIGU!';
 
