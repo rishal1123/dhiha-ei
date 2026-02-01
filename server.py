@@ -2079,7 +2079,9 @@ def remove_from_digu_queue(sid):
 def broadcast_digu_queue_status():
     """Broadcast current Digu queue count to all waiting players"""
     count = len(digu_matchmaking_queue)
+    print(f'[DIGU] Broadcasting digu_queue_update to {count} players in queue')
     for player in digu_matchmaking_queue:
+        print(f'[DIGU]   Emitting digu_queue_update to {player["name"]} (sid: {player["sid"]}): count={count}')
         socketio.emit('digu_queue_update', {
             'playersInQueue': count,
             'playersNeeded': 4 - count
