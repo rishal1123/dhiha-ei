@@ -8965,31 +8965,43 @@
 
             // Build score summary with player names
             const reasonText = reason === 'disconnected' ? 'disconnected' : 'left the game';
-
-            // Get team scores and player names
-            const team0Score = this.game.matchPoints[0];
-            const team1Score = this.game.matchPoints[1];
-
-            // Get player names for each team
-            const team0Players = [];
-            const team1Players = [];
-
-            for (let i = 0; i < 4; i++) {
-                const player = this.game.players[i];
-                const name = this.game.remotePlayers[i] || player.name;
-                if (player.team === 0) {
-                    team0Players.push(name);
-                } else {
-                    team1Players.push(name);
-                }
-            }
-
-            // Build final score message
             const reasonTranslated = reason === 'disconnected' ? t('results.disconnected', {}, 'disconnected') : t('results.leftTheGame', {}, 'left the game');
+
             let scoreMessage = t('results.playerLeft', { name: playerName, reason: reasonTranslated }, `${playerName} has ${reasonText}.`) + `\n\n`;
             scoreMessage += `${t('results.finalScore', {}, 'Final Score')}:\n\n`;
-            scoreMessage += `${t('waitingRoom.teamA', {}, 'Team A')} (${team0Players.join(' & ')}): ${team0Score}\n`;
-            scoreMessage += `${t('waitingRoom.teamB', {}, 'Team B')} (${team1Players.join(' & ')}): ${team1Score}`;
+
+            // Check if this is a Digu game or Dhiha Ei game
+            if (this.isDiguMultiplayer && this.diguGame) {
+                // Digu: Individual player scores
+                const numPlayers = this.diguGame.numPlayers || this.diguGame.players.length;
+                for (let i = 0; i < numPlayers; i++) {
+                    const player = this.diguGame.players[i];
+                    const name = player ? player.name : `Player ${i + 1}`;
+                    const score = this.diguGame.scores[i] || 0;
+                    scoreMessage += `${name}: ${score}\n`;
+                }
+            } else {
+                // Dhiha Ei: Team-based scores
+                const team0Score = this.game.matchPoints[0];
+                const team1Score = this.game.matchPoints[1];
+
+                // Get player names for each team
+                const team0Players = [];
+                const team1Players = [];
+
+                for (let i = 0; i < 4; i++) {
+                    const player = this.game.players[i];
+                    const name = this.game.remotePlayers[i] || player.name;
+                    if (player.team === 0) {
+                        team0Players.push(name);
+                    } else {
+                        team1Players.push(name);
+                    }
+                }
+
+                scoreMessage += `${t('waitingRoom.teamA', {}, 'Team A')} (${team0Players.join(' & ')}): ${team0Score}\n`;
+                scoreMessage += `${t('waitingRoom.teamB', {}, 'Team B')} (${team1Players.join(' & ')}): ${team1Score}`;
+            }
 
             await this.renderer.showMessage(t('results.gameEnded', {}, 'Game Ended'), scoreMessage, t('results.leaveGame', {}, 'Leave Game'));
 
