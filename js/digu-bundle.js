@@ -8170,6 +8170,14 @@
             // All discard cards are taken to form new stock pile
             this.diguGame.discardPile = [];
 
+            // Refill stock pile with placeholder cards (server manages actual cards)
+            // We just need the count to be correct for UI display
+            this.diguGame.stockPile = [];
+            for (let i = 0; i < stockCount; i++) {
+                // Create placeholder card - actual card identity managed by server
+                this.diguGame.stockPile.push({ suit: 'unknown', rank: 'unknown', placeholder: true });
+            }
+
             // Update UI to show stock pile has cards again
             this.updateDiguDisplay();
 
