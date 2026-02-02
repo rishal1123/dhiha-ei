@@ -2241,6 +2241,16 @@ def handle_digu_discard_card(data):
 
     print(f'Digu card discarded in room {room_id}: {card} by position {position}, next turn: {room["currentPlayerIndex"]}, discard size: {len(room["discardPile"])}')
 
+    # Check if stock is empty - if so, reshuffle discard into stock for next player's turn
+    reshuffled = False
+    if (not room.get('stockPile') or len(room['stockPile']) == 0) and len(room['discardPile']) > 0:
+        discard = room['discardPile']
+        random.shuffle(discard)
+        room['stockPile'] = discard
+        room['discardPile'] = []
+        reshuffled = True
+        print(f'Digu stock auto-reshuffled in room {room_id}: {len(room["stockPile"])} cards from discard')
+
     # Broadcast to all other players in room
     emit('digu_remote_card_discarded', {
         'card': card,
@@ -2254,6 +2264,12 @@ def handle_digu_discard_card(data):
         'currentPlayerIndex': room['currentPlayerIndex'],
         'gamePhase': room['gamePhase']
     })
+
+    # If reshuffled, notify all players
+    if reshuffled:
+        emit('digu_stock_reshuffled', {
+            'stockCount': len(room['stockPile'])
+        }, room=room_id)
 
 @socketio.on('digu_declare')
 @rate_limit('digu_declare')
