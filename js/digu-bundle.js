@@ -4858,15 +4858,27 @@
         updateDiguPileCounts(stockCount, discardCount) {
             const stockCountEl = document.getElementById('stock-count');
             const discardCountEl = document.getElementById('discard-count');
+            const stockPileEl = document.getElementById('digu-stock');
+            const discardPileEl = document.getElementById('digu-discard');
 
             if (stockCountEl) {
                 stockCountEl.textContent = stockCount;
                 stockCountEl.classList.toggle('empty', stockCount === 0);
             }
 
+            // Toggle empty visual state on stock pile
+            if (stockPileEl) {
+                stockPileEl.classList.toggle('empty', stockCount === 0);
+            }
+
             if (discardCountEl) {
                 discardCountEl.textContent = discardCount;
                 discardCountEl.classList.toggle('empty', discardCount === 0);
+            }
+
+            // Toggle empty visual state on discard pile
+            if (discardPileEl) {
+                discardPileEl.classList.toggle('empty', discardCount === 0);
             }
         }
 

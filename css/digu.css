@@ -594,6 +594,12 @@
     border: 2px solid var(--ocean-turquoise);
 }
 
+#digu-stock.empty {
+    background: transparent;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    opacity: 0.5;
+}
+
 #digu-discard {
     background: linear-gradient(145deg, rgba(50, 50, 50, 0.9), rgba(30, 30, 30, 0.9));
     border: 2px dashed rgba(255, 255, 255, 0.4);
@@ -604,6 +610,11 @@
     border-color: var(--sunset-gold);
     border-style: solid;
     box-shadow: 0 0 12px var(--sunset-gold);
+}
+
+#digu-discard.empty {
+    background: transparent;
+    opacity: 0.5;
 }
 
 /* Pile container for count display */
