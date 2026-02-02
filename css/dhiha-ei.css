@@ -21,60 +21,10 @@
 /* Table pseudo-elements defined later (oval table) */
 
 /* Main content row takes full height (h-100) */
-#game-board > .row.h-100 {
-    height: 100% !important;
-    flex: 1 1 auto;
-}
+
 
 /* Main content column must have full height for nested row percentages to work */
-#game-board > .row.h-100 > .col {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
 
-/* Side columns (col-1, col-2, col-6) */
-#game-board > .row.h-100 > .col > .row .col-1,
-#game-board > .row.h-100 > .col > .row .col-2,
-#game-board > .row.h-100 > .col > .row .col-6 {
-    height: 100%;
-}
-
-/* Row 1 (20% height) - partner and scores */
-#game-board > .row.h-100 > .col > .row:first-child {
-    height: 20%;
-}
-
-/* Row 2 (50% height) - center columns for play area */
-#game-board > .row.h-100 > .col > .row:nth-child(2) {
-    height: 50%;
-}
-
-/* Row 2 columns - flex handled by Bootstrap classes in HTML */
-#game-board > .row.h-100 > .col > .row:nth-child(2) > .col,
-#game-board > .row.h-100 > .col > .row:nth-child(2) > .col-1,
-#game-board > .row.h-100 > .col > .row:nth-child(2) > .col-6 {
-    height: 100%;
-}
-
-/* Row 3 (30% height) - player hand */
-#game-board > .row.h-100 > .col > .row:nth-child(3) {
-    height: 30%;
-}
-
-/* Row 3 columns - flex handled by Bootstrap classes in HTML */
-#game-board > .row.h-100 > .col > .row:nth-child(3) > .col,
-#game-board > .row.h-100 > .col > .row:nth-child(3) > .col-2,
-#game-board > .row.h-100 > .col > .row:nth-child(3) > .col-8 {
-    height: 100%;
-}
-
-/* Nested rows within main content - ensure proper display */
-#game-board > .row.h-100 > .col > .row {
-    position: relative;
-    overflow: visible;
-    flex-shrink: 0;
-}
 
 /* Oval Table - centered on play area (Row 2: starts at 15%, height 55%, center at 42.5%) */
 #game-board::before {

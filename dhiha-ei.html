@@ -32,7 +32,7 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/base.css?v=11">
-    <link rel="stylesheet" href="css/dhiha-ei.css?v=16">
+    <link rel="stylesheet" href="css/dhiha-ei.css?v=17">
 
     <!-- Socket.IO for multiplayer -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
@@ -122,8 +122,12 @@
     <main id="game-board" class="container-fluid p-0 game-background">
         <div class="row h-100">
             <div class="col">
+                <div class="row">
+                    <div class="col">g</div>
+                </div>
                 <!-- Row 1: Score Panel | Top Player | Match Points -->
                 <div class="row" style="height: 20%;">
+                    <div class="col-1"></div>
                     <div class="col text-start">
                         <div id="score-panel" class="d-flex gap-2">
                             <div class="team-score" id="team0-score">
@@ -153,7 +157,18 @@
                                     </span>
                                 </div>
                                 <div class="collected-tens" id="collected-tens-1"></div>
+
                             </div>
+
+                        </div>
+
+
+
+                    </div>
+                    <div class="col">
+                        <div>
+                            <br />
+                            <span id="superior-suit-display">&#128081; &#8212;</span>
                         </div>
                     </div>
                     <div class="col text-center">
@@ -175,6 +190,7 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-1"></div>
                 </div>
 
                 <!-- Row 2: Drink Sponsor | Left Player | Play Area/Sponsor | Right Player | Food Sponsor -->
@@ -196,7 +212,7 @@
                         </div>
                     </div>
                     <div class="col-6 d-flex flex-column align-items-center justify-content-center">
-                        <span id="superior-suit-display">&#128081; &#8212;</span>
+
                         <div id="play-area">
                             <div id="trick-cards">
                                 <div class="played-card" id="played-top"></div>
@@ -232,29 +248,27 @@
 
                 <!-- Row 3: You/Shuffle | Player Hand | Buttons -->
                 <div class="row" style="height: 30%;">
-                    <div class="col-2 d-flex flex-column align-items-center justify-content-center px-2">
-                        <div style="margin: 10px;">
-                            <span class="player-label human-label">You</span>
-                            <br/><br/>
-                            <div>
+                    <div class="col-2 align-items-center text-center justify-content-center ">
+ 
+                            <span class="player-label human-label">You</span> <br/><br/>
+       
                                 <span class="shuffle-count" id="shuffle-count-0">Shuffle: 0</span>
-                            </div>
-                        </div>
+
                     </div>
-                    <div class="col-8 d-flex align-items-center justify-content-center h-100">
+                    <div class="col-8 align-items-center justify-content-center h-100">
                         <div id="player-bottom" class="player-area human">
                             <div class="player-hand" id="hand-bottom"></div>
                         </div>
                     </div>
-                    <div class="col-2 d-flex flex-column align-items-center justify-content-center gap-1">
-                        <div style="margin: 10px;">
+                    <div class="col-2 align-items-center justify-content-center text-center">
                             <button id="new-game-btn" class="btn btn-sm btn-outline-light">New Game</button>
-                            <br/><br/>
+                            <br /><br />
                             <button id="menu-btn" class="btn btn-sm btn-outline-light">Menu</button>
-                        </div>
                     </div>
                 </div>
-
+                <div class="row">
+                    <div class="col">g</div>
+                </div>
                 <!-- Turn Indicator -->
                 <div id="turn-indicator-overlay"></div>
             </div>
@@ -276,144 +290,159 @@
 
     <!-- Lobby Overlay -->
     <div id="lobby-overlay">
-            <!-- Language Switcher -->
-            <div id="lang-switcher-container"></div>
+        <!-- Language Switcher -->
+        <div id="lang-switcher-container"></div>
 
-            <div id="lobby-content">
-                <!-- Game Lobby -->
-                <div id="game-lobby">
-                    <div class="lobby-header">
-                        <h2 class="lobby-title" data-i18n="dhihaEi.title">Dhiha Ei</h2>
+        <div id="lobby-content">
+            <!-- Game Lobby -->
+            <div id="game-lobby">
+                <div class="lobby-header">
+                    <h2 class="lobby-title" data-i18n="dhihaEi.title">Dhiha Ei</h2>
+                </div>
+                <p class="lobby-subtitle" data-i18n="home.dhihaEiDesc">Maldivian Card Game</p>
+
+                <!-- Main Menu -->
+                <div id="lobby-menu" class="d-flex flex-column gap-2">
+                    <button id="play-ai-btn" class="btn btn-warning btn-lg fw-bold w-100" data-i18n="lobby.playAI">Play
+                        vs AI</button>
+                    <div class="lobby-divider"><span data-i18n="lobby.orPlayOnline">or play online</span></div>
+                    <div class="online-buttons d-flex gap-2 flex-wrap">
+                        <button id="quick-match-btn" class="btn btn-warning flex-fill"
+                            data-i18n="lobby.quickMatch">Quick Match</button>
+                        <button id="create-room-btn" class="btn btn-outline-light flex-fill"
+                            data-i18n="lobby.createRoom">Create Room</button>
                     </div>
-                    <p class="lobby-subtitle" data-i18n="home.dhihaEiDesc">Maldivian Card Game</p>
+                    <div class="join-section d-flex gap-2">
+                        <input type="text" id="room-code-input" class="form-control flex-fill"
+                            data-i18n-placeholder="lobby.codePlaceholder" placeholder="Room Code" maxlength="6"
+                            autocomplete="off">
+                        <button id="join-room-btn" class="btn btn-outline-light"
+                            data-i18n="lobby.joinRoom">Join</button>
+                    </div>
+                    <button id="back-to-games" class="btn btn-secondary w-100"
+                        onclick="window.location.href='index.html'"><span data-i18n="common.back">Back</span></button>
 
-                    <!-- Main Menu -->
-                    <div id="lobby-menu" class="d-flex flex-column gap-2">
-                        <button id="play-ai-btn" class="btn btn-warning btn-lg fw-bold w-100" data-i18n="lobby.playAI">Play vs AI</button>
-                        <div class="lobby-divider"><span data-i18n="lobby.orPlayOnline">or play online</span></div>
-                        <div class="online-buttons d-flex gap-2 flex-wrap">
-                            <button id="quick-match-btn" class="btn btn-warning flex-fill" data-i18n="lobby.quickMatch">Quick Match</button>
-                            <button id="create-room-btn" class="btn btn-outline-light flex-fill" data-i18n="lobby.createRoom">Create Room</button>
-                        </div>
-                        <div class="join-section d-flex gap-2">
-                            <input type="text" id="room-code-input" class="form-control flex-fill" data-i18n-placeholder="lobby.codePlaceholder" placeholder="Room Code" maxlength="6"
-                                autocomplete="off">
-                            <button id="join-room-btn" class="btn btn-outline-light" data-i18n="lobby.joinRoom">Join</button>
-                        </div>
-                        <button id="back-to-games" class="btn btn-secondary w-100"
-                            onclick="window.location.href='index.html'"><span data-i18n="common.back">Back</span></button>
-
-                        <!-- Matchmaking Sponsor -->
-                        <div id="lobby-matchmaking-sponsor" class="lobby-sponsor">
-                            <span class="lobby-sponsor-label" data-i18n="sponsors.sponsoredBy">Sponsored by</span>
-                            <div class="lobby-sponsor-logo">
-                                <!-- Sponsor logo will be inserted dynamically -->
-                            </div>
+                    <!-- Matchmaking Sponsor -->
+                    <div id="lobby-matchmaking-sponsor" class="lobby-sponsor">
+                        <span class="lobby-sponsor-label" data-i18n="sponsors.sponsoredBy">Sponsored by</span>
+                        <div class="lobby-sponsor-logo">
+                            <!-- Sponsor logo will be inserted dynamically -->
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Matchmaking Queue -->
-                <div id="matchmaking-screen" class="hidden">
-                    <div class="matchmaking-content">
-                        <h3 data-i18n="matchmaking.searching">Finding Players...</h3>
-                        <div class="matchmaking-spinner"></div>
-                        <div class="matchmaking-status">
-                            <span id="queue-count">0</span> / 4 <span data-i18n="common.players">players</span>
-                        </div>
-                        <p class="matchmaking-hint" data-i18n="matchmaking.autoStart">Game will start automatically when 4 players join</p>
-                        <button id="cancel-queue-btn" class="btn btn-secondary" data-i18n="common.cancel">Cancel</button>
-
-                        <!-- Sponsor Area -->
-                        <div id="matchmaking-sponsor" class="lobby-sponsor"
-                            onclick="console.log('SPONSOR CLICKED'); window.showSponsorPopup ? window.showSponsorPopup('matchmaking') : alert('Function not found')">
-                            <span class="lobby-sponsor-label" data-i18n="sponsors.sponsoredBy">Sponsored by</span>
-                            <div class="lobby-sponsor-logo">
-                                <img src="icons/ooredoo-logo.svg" width="120" height="48" alt="Ooredoo">
-                            </div>
-                        </div>
+            <!-- Matchmaking Queue -->
+            <div id="matchmaking-screen" class="hidden">
+                <div class="matchmaking-content">
+                    <h3 data-i18n="matchmaking.searching">Finding Players...</h3>
+                    <div class="matchmaking-spinner"></div>
+                    <div class="matchmaking-status">
+                        <span id="queue-count">0</span> / 4 <span data-i18n="common.players">players</span>
                     </div>
-                </div>
-
-                <!-- Waiting Room -->
-                <div id="waiting-room" class="hidden">
-                    <div class="room-header">
-                        <h3 data-i18n="waitingRoom.roomCode">Room Code</h3>
-                        <div id="room-code-display"></div>
-                        <button id="copy-code-btn" class="btn btn-sm btn-outline-light" title="Copy code" data-i18n="common.copy">Copy</button>
-                    </div>
-
-                    <div id="player-slots">
-                        <div class="team-column" data-team="0">
-                            <div class="team-label" data-i18n="waitingRoom.teamA">Team A</div>
-                            <div class="player-slot" data-position="0" data-team="0">
-                                <span class="slot-status" data-i18n="common.waiting">Waiting...</span>
-                                <span class="slot-name"></span>
-                                <span class="slot-ready"></span>
-                                <button class="swap-btn hidden" title="Move to Team B">&#8594;</button>
-                            </div>
-                            <div class="player-slot" data-position="2" data-team="0">
-                                <span class="slot-status" data-i18n="common.waiting">Waiting...</span>
-                                <span class="slot-name"></span>
-                                <span class="slot-ready"></span>
-                                <button class="swap-btn hidden" title="Move to Team B">&#8594;</button>
-                            </div>
-                        </div>
-                        <div class="team-column" data-team="1">
-                            <div class="team-label" data-i18n="waitingRoom.teamB">Team B</div>
-                            <div class="player-slot" data-position="1" data-team="1">
-                                <button class="swap-btn hidden" title="Move to Team A">&#8592;</button>
-                                <span class="slot-status" data-i18n="common.waiting">Waiting...</span>
-                                <span class="slot-name"></span>
-                                <span class="slot-ready"></span>
-                            </div>
-                            <div class="player-slot" data-position="3" data-team="1">
-                                <button class="swap-btn hidden" title="Move to Team A">&#8592;</button>
-                                <span class="slot-status" data-i18n="common.waiting">Waiting...</span>
-                                <span class="slot-name"></span>
-                                <span class="slot-ready"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p id="host-team-hint" class="host-hint hidden" data-i18n="waitingRoom.hostHint">As host, click arrows to move players between teams
-                    </p>
-
-                    <div id="waiting-room-actions" class="d-flex flex-column gap-2">
-                        <button id="ready-btn" class="btn btn-outline-light w-100" data-i18n="waitingRoom.readyBtn">Ready</button>
-                        <button id="start-game-btn" class="btn btn-warning w-100 hidden" data-i18n="waitingRoom.startGame">Start Game</button>
-                        <button id="leave-room-btn" class="btn btn-secondary w-100" data-i18n="waitingRoom.leaveRoom">Leave Room</button>
-                    </div>
-
-                    <div id="connection-status">
-                        <span class="status-dot"></span>
-                        <span class="status-text" data-i18n="common.connected">Connected</span>
-                    </div>
+                    <p class="matchmaking-hint" data-i18n="matchmaking.autoStart">Game will start automatically when 4
+                        players join</p>
+                    <button id="cancel-queue-btn" class="btn btn-secondary" data-i18n="common.cancel">Cancel</button>
 
                     <!-- Sponsor Area -->
-                    <div id="waiting-room-sponsor" class="lobby-sponsor"
-                        onclick="console.log('SPONSOR CLICKED'); window.showSponsorPopup ? window.showSponsorPopup('waiting_room') : alert('Function not found')">
+                    <div id="matchmaking-sponsor" class="lobby-sponsor"
+                        onclick="console.log('SPONSOR CLICKED'); window.showSponsorPopup ? window.showSponsorPopup('matchmaking') : alert('Function not found')">
                         <span class="lobby-sponsor-label" data-i18n="sponsors.sponsoredBy">Sponsored by</span>
                         <div class="lobby-sponsor-logo">
                             <img src="icons/ooredoo-logo.svg" width="120" height="48" alt="Ooredoo">
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Name Input Modal -->
-                <div id="name-input-modal" class="hidden">
-                    <h3 data-i18n="lobby.enterName">Enter Your Name</h3>
-                    <input type="text" id="player-name-input" class="form-control" data-i18n-placeholder="lobby.namePlaceholder" placeholder="Your name" maxlength="10" autocomplete="off">
-                    <div class="modal-actions d-flex gap-2 mt-3">
-                        <button id="name-cancel-btn" class="btn btn-secondary flex-fill" data-i18n="common.cancel">Cancel</button>
-                        <button id="name-confirm-btn" class="btn btn-warning flex-fill" data-i18n="common.confirm">Confirm</button>
+            <!-- Waiting Room -->
+            <div id="waiting-room" class="hidden">
+                <div class="room-header">
+                    <h3 data-i18n="waitingRoom.roomCode">Room Code</h3>
+                    <div id="room-code-display"></div>
+                    <button id="copy-code-btn" class="btn btn-sm btn-outline-light" title="Copy code"
+                        data-i18n="common.copy">Copy</button>
+                </div>
+
+                <div id="player-slots">
+                    <div class="team-column" data-team="0">
+                        <div class="team-label" data-i18n="waitingRoom.teamA">Team A</div>
+                        <div class="player-slot" data-position="0" data-team="0">
+                            <span class="slot-status" data-i18n="common.waiting">Waiting...</span>
+                            <span class="slot-name"></span>
+                            <span class="slot-ready"></span>
+                            <button class="swap-btn hidden" title="Move to Team B">&#8594;</button>
+                        </div>
+                        <div class="player-slot" data-position="2" data-team="0">
+                            <span class="slot-status" data-i18n="common.waiting">Waiting...</span>
+                            <span class="slot-name"></span>
+                            <span class="slot-ready"></span>
+                            <button class="swap-btn hidden" title="Move to Team B">&#8594;</button>
+                        </div>
+                    </div>
+                    <div class="team-column" data-team="1">
+                        <div class="team-label" data-i18n="waitingRoom.teamB">Team B</div>
+                        <div class="player-slot" data-position="1" data-team="1">
+                            <button class="swap-btn hidden" title="Move to Team A">&#8592;</button>
+                            <span class="slot-status" data-i18n="common.waiting">Waiting...</span>
+                            <span class="slot-name"></span>
+                            <span class="slot-ready"></span>
+                        </div>
+                        <div class="player-slot" data-position="3" data-team="1">
+                            <button class="swap-btn hidden" title="Move to Team A">&#8592;</button>
+                            <span class="slot-status" data-i18n="common.waiting">Waiting...</span>
+                            <span class="slot-name"></span>
+                            <span class="slot-ready"></span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Error Display -->
-                <div id="lobby-error" class="hidden"></div>
+                <p id="host-team-hint" class="host-hint hidden" data-i18n="waitingRoom.hostHint">As host, click arrows
+                    to move players between teams
+                </p>
+
+                <div id="waiting-room-actions" class="d-flex flex-column gap-2">
+                    <button id="ready-btn" class="btn btn-outline-light w-100"
+                        data-i18n="waitingRoom.readyBtn">Ready</button>
+                    <button id="start-game-btn" class="btn btn-warning w-100 hidden"
+                        data-i18n="waitingRoom.startGame">Start Game</button>
+                    <button id="leave-room-btn" class="btn btn-secondary w-100" data-i18n="waitingRoom.leaveRoom">Leave
+                        Room</button>
+                </div>
+
+                <div id="connection-status">
+                    <span class="status-dot"></span>
+                    <span class="status-text" data-i18n="common.connected">Connected</span>
+                </div>
+
+                <!-- Sponsor Area -->
+                <div id="waiting-room-sponsor" class="lobby-sponsor"
+                    onclick="console.log('SPONSOR CLICKED'); window.showSponsorPopup ? window.showSponsorPopup('waiting_room') : alert('Function not found')">
+                    <span class="lobby-sponsor-label" data-i18n="sponsors.sponsoredBy">Sponsored by</span>
+                    <div class="lobby-sponsor-logo">
+                        <img src="icons/ooredoo-logo.svg" width="120" height="48" alt="Ooredoo">
+                    </div>
+                </div>
             </div>
+
+            <!-- Name Input Modal -->
+            <div id="name-input-modal" class="hidden">
+                <h3 data-i18n="lobby.enterName">Enter Your Name</h3>
+                <input type="text" id="player-name-input" class="form-control"
+                    data-i18n-placeholder="lobby.namePlaceholder" placeholder="Your name" maxlength="10"
+                    autocomplete="off">
+                <div class="modal-actions d-flex gap-2 mt-3">
+                    <button id="name-cancel-btn" class="btn btn-secondary flex-fill"
+                        data-i18n="common.cancel">Cancel</button>
+                    <button id="name-confirm-btn" class="btn btn-warning flex-fill"
+                        data-i18n="common.confirm">Confirm</button>
+                </div>
+            </div>
+
+            <!-- Error Display -->
+            <div id="lobby-error" class="hidden"></div>
         </div>
+    </div>
 
     <!-- Multiplayer Status Bar (shown during game) -->
     <div id="multiplayer-status" class="hidden">
@@ -454,41 +483,41 @@
 
     <!-- PWA Install Handler -->
     <script>
-            let deferredPrompt;
+        let deferredPrompt;
 
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
 
-                // Show install prompt after a delay
-                setTimeout(() => {
-                    const prompt = document.getElementById('install-prompt');
-                    if (prompt && !localStorage.getItem('pwaInstallDismissed')) {
-                        prompt.classList.remove('hidden');
-                    }
-                }, 3000);
-            });
-
-            document.getElementById('install-btn')?.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log('Install prompt outcome:', outcome);
-                    deferredPrompt = null;
-                }
-                document.getElementById('install-prompt')?.classList.add('hidden');
-            });
-
-            document.getElementById('install-dismiss')?.addEventListener('click', () => {
-                document.getElementById('install-prompt')?.classList.add('hidden');
-                localStorage.setItem('pwaInstallDismissed', 'true');
-            });
-
-            // Hide install prompt if already installed
-            if (window.matchMedia('(display-mode: standalone)').matches) {
+            // Show install prompt after a delay
+            setTimeout(() => {
                 const prompt = document.getElementById('install-prompt');
-                if (prompt) prompt.classList.add('hidden');
+                if (prompt && !localStorage.getItem('pwaInstallDismissed')) {
+                    prompt.classList.remove('hidden');
+                }
+            }, 3000);
+        });
+
+        document.getElementById('install-btn')?.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log('Install prompt outcome:', outcome);
+                deferredPrompt = null;
             }
+            document.getElementById('install-prompt')?.classList.add('hidden');
+        });
+
+        document.getElementById('install-dismiss')?.addEventListener('click', () => {
+            document.getElementById('install-prompt')?.classList.add('hidden');
+            localStorage.setItem('pwaInstallDismissed', 'true');
+        });
+
+        // Hide install prompt if already installed
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            const prompt = document.getElementById('install-prompt');
+            if (prompt) prompt.classList.add('hidden');
+        }
     </script>
 
     <!-- Initialize i18n -->
