@@ -7964,14 +7964,10 @@
                 const areaId = mapping.area;
 
                 const avatarIcon = document.querySelector(`#${areaId} .avatar-icon`);
-                const cardCount = document.querySelector(`#${areaId} .card-count`);
                 const label = document.querySelector(`#${areaId} .player-label`);
 
                 if (avatarIcon && player) {
                     avatarIcon.textContent = player.name.charAt(0).toUpperCase();
-                }
-                if (cardCount && player) {
-                    cardCount.textContent = player.hand.length;
                 }
                 if (label && player) {
                     label.textContent = player.name;
@@ -8067,12 +8063,6 @@
                 3: document.querySelector('#player-right .avatar-icon')
             };
 
-            const cardCounts = {
-                1: document.querySelector('#player-left .card-count'),
-                2: document.querySelector('#player-top .card-count'),
-                3: document.querySelector('#player-right .card-count')
-            };
-
             for (let i = 0; i < 4; i++) {
                 const screenPos = positionMap[i];
                 const label = labels[screenPos];
@@ -8089,38 +8079,15 @@
                         if (avatarIcons[screenPos]) {
                             avatarIcons[screenPos].textContent = name.charAt(0).toUpperCase();
                         }
-
-                        // Update card count
-                        if (cardCounts[screenPos]) {
-                            cardCounts[screenPos].textContent = player.hand.length;
-                        }
                     }
                     label.classList.add('mp-name');
                 }
             }
         }
 
-        // Update card counts for all opponent/partner avatars
+        // Card counts removed from UI
         updateCardCounts() {
-            const localPosition = this.game.localPlayerPosition;
-            const positionMap = this.getMultiplayerPositionMap(localPosition);
-
-            const cardCounts = {
-                1: document.querySelector('#player-left .card-count'),
-                2: document.querySelector('#player-top .card-count'),
-                3: document.querySelector('#player-right .card-count')
-            };
-
-            for (let i = 0; i < 4; i++) {
-                if (i === localPosition) continue;
-
-                const screenPos = positionMap[i];
-                const player = this.game.players[i];
-
-                if (cardCounts[screenPos]) {
-                    cardCounts[screenPos].textContent = player.hand.length;
-                }
-            }
+            // No-op: card count elements removed from HTML
         }
 
         async handleCardClick(card) {
