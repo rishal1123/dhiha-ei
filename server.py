@@ -2149,12 +2149,34 @@ def handle_digu_draw_card(data):
         print(f'[WARN] Digu draw but server in {room.get("gamePhase")} phase - syncing to client')
 
     if source == 'stock':
+        # Check if stock pile is empty - reshuffle discard pile
+        if not room.get('stockPile') or len(room['stockPile']) == 0:
+            discard = room.get('discardPile', [])
+            if len(discard) > 1:
+                # Keep top card of discard, shuffle rest into stock
+                top_card = discard.pop()
+                random.shuffle(discard)
+                room['stockPile'] = discard
+                room['discardPile'] = [top_card]
+                print(f'Digu stock reshuffled in room {room_id}: {len(room["stockPile"])} cards from discard')
+
+                # Notify all players that stock was reshuffled
+                emit('digu_stock_reshuffled', {
+                    'stockCount': len(room['stockPile']),
+                    'discardTop': top_card
+                }, room=room_id)
+            else:
+                print(f'Digu cannot reshuffle - discard pile too small in room {room_id}')
+                emit('error', {'message': 'No cards left to draw'})
+                return
+
         # Pop card from server-side stock pile
         if room.get('stockPile') and len(room['stockPile']) > 0:
             card = room['stockPile'].pop(0)  # Take from front (like shift)
             print(f'Digu card drawn from stock in room {room_id}: {card} by position {position}, remaining: {len(room["stockPile"])}')
         else:
             print(f'Digu stock pile empty in room {room_id}')
+            emit('error', {'message': 'No cards left to draw'})
             return
     elif source == 'discard':
         # Pop card from server-side discard pile

@@ -1138,6 +1138,14 @@
                     this.onRemoteGameOver(data.results, data.declaredBy);
                 }
             });
+
+            // Listen for stock pile reshuffle
+            activeSocket.on('digu_stock_reshuffled', (data) => {
+                console.log('[DIGU] Stock reshuffled:', data);
+                if (this.onStockReshuffled) {
+                    this.onStockReshuffled(data.stockCount, data.discardTop);
+                }
+            });
         }
 
         stopListening() {
@@ -1150,6 +1158,7 @@
                 activeSocket.off('digu_state_updated');
                 activeSocket.off('digu_match_started');
                 activeSocket.off('digu_remote_game_over');
+                activeSocket.off('digu_stock_reshuffled');
             }
             this.isListening = false;
         }
@@ -7910,6 +7919,10 @@
                 this.handleDiguNewMatch(gameState, hands);
             };
 
+            this.diguSyncManager.onStockReshuffled = (stockCount, discardTop) => {
+                this.handleDiguStockReshuffled(stockCount, discardTop);
+            };
+
             this.diguSyncManager.startListening();
         }
 
@@ -8109,6 +8122,26 @@
             if (!this.diguGame) return;
             // Handle remote game over
             console.log('Remote game over', results);
+        }
+
+        handleDiguStockReshuffled(stockCount, discardTop) {
+            if (!this.diguGame) return;
+
+            console.log(`[DIGU] Stock reshuffled: ${stockCount} cards, discard top:`, discardTop);
+
+            // Clear local stock pile (server manages it now)
+            // Just update the discard pile to show only the top card
+            if (discardTop) {
+                this.diguGame.discardPile = [new Card(discardTop.suit, discardTop.rank)];
+            } else {
+                this.diguGame.discardPile = [];
+            }
+
+            // Update UI to show stock pile has cards again
+            this.updateDiguDisplay();
+
+            // Show a brief message
+            this.renderer.showFlashMessage(t('digu.stockReshuffled', {}, 'Cards reshuffled!'), 1500);
         }
 
         handleDiguNewMatch(gameState, handsData) {
