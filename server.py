@@ -2152,21 +2152,19 @@ def handle_digu_draw_card(data):
         # Check if stock pile is empty - reshuffle discard pile
         if not room.get('stockPile') or len(room['stockPile']) == 0:
             discard = room.get('discardPile', [])
-            if len(discard) > 1:
-                # Keep top card of discard, shuffle rest into stock
-                top_card = discard.pop()
+            if len(discard) > 0:
+                # Take ALL cards from discard and shuffle into stock
                 random.shuffle(discard)
                 room['stockPile'] = discard
-                room['discardPile'] = [top_card]
+                room['discardPile'] = []
                 print(f'Digu stock reshuffled in room {room_id}: {len(room["stockPile"])} cards from discard')
 
                 # Notify all players that stock was reshuffled
                 emit('digu_stock_reshuffled', {
-                    'stockCount': len(room['stockPile']),
-                    'discardTop': top_card
+                    'stockCount': len(room['stockPile'])
                 }, room=room_id)
             else:
-                print(f'Digu cannot reshuffle - discard pile too small in room {room_id}')
+                print(f'Digu cannot reshuffle - discard pile empty in room {room_id}')
                 emit('error', {'message': 'No cards left to draw'})
                 return
 
@@ -2191,12 +2189,15 @@ def handle_digu_draw_card(data):
     room['gamePhase'] = 'discard'
 
     # Broadcast the SPECIFIC card to ALL players (including the one who drew)
+    # Include pile counts so clients can show empty state visually
     emit('digu_card_drawn', {
         'source': source,
         'card': card,
         'position': position,
         'currentPlayerIndex': room['currentPlayerIndex'],
-        'gamePhase': room['gamePhase']
+        'gamePhase': room['gamePhase'],
+        'stockCount': len(room.get('stockPile', [])),
+        'discardCount': len(room.get('discardPile', []))
     }, room=room_id)
 
 @socketio.on('digu_discard_card')

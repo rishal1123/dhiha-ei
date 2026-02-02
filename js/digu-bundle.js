@@ -1090,7 +1090,7 @@
             activeSocket.on('digu_card_drawn', (data) => {
                 console.log('[DIGU] Server card drawn:', data);
                 if (this.onServerCardDrawn) {
-                    this.onServerCardDrawn(data.source, data.card, data.position);
+                    this.onServerCardDrawn(data.source, data.card, data.position, data.stockCount, data.discardCount);
                 }
             });
 
@@ -7892,8 +7892,8 @@
             if (!this.diguSyncManager) return;
 
             // Server-authoritative card draw (goes to ALL players)
-            this.diguSyncManager.onServerCardDrawn = (source, card, position) => {
-                this.handleServerDiguDraw(source, card, position);
+            this.diguSyncManager.onServerCardDrawn = (source, card, position, stockCount, discardCount) => {
+                this.handleServerDiguDraw(source, card, position, stockCount, discardCount);
             };
 
             // Legacy remote card drawn (backwards compatibility)
@@ -8039,14 +8039,14 @@
         }
 
         // Server-authoritative card draw - handles ALL players including the one who drew
-        handleServerDiguDraw(source, cardData, position) {
+        handleServerDiguDraw(source, cardData, position, stockCount, discardCount) {
             if (!this.diguGame || !cardData) return;
 
             const localPos = this.diguGame.localPlayerPosition;
             const isLocalPlayer = position === localPos;
             const card = new Card(cardData.suit, cardData.rank);
 
-            console.log(`[DIGU] Server draw: ${source}, card: ${card.suit} ${card.rank}, position: ${position}, isLocal: ${isLocalPlayer}`);
+            console.log(`[DIGU] Server draw: ${source}, card: ${card.suit} ${card.rank}, position: ${position}, isLocal: ${isLocalPlayer}, stock: ${stockCount}, discard: ${discardCount}`);
 
             // Remove card from appropriate pile
             if (source === 'stock') {
@@ -8060,6 +8060,14 @@
                 this.diguGame.discardPile = this.diguGame.discardPile.filter(
                     c => !(c.suit === card.suit && c.rank === card.rank)
                 );
+            }
+
+            // Sync pile sizes with server (ensures empty state shows correctly)
+            if (typeof stockCount === 'number') {
+                // Trim local stock pile to match server count (server is authoritative)
+                while (this.diguGame.stockPile.length > stockCount) {
+                    this.diguGame.stockPile.pop();
+                }
             }
 
             // Add card to player's hand
