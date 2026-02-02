@@ -5265,6 +5265,9 @@
         handleDiguDraw(source) {
             if (!this.diguGame) return;
 
+            // Prevent double-click issues
+            if (this._diguDrawProcessing) return;
+
             // In multiplayer, check if it's our turn
             if (this.isDiguMultiplayer) {
                 const localPos = this.diguGame.localPlayerPosition;
@@ -5275,12 +5278,17 @@
 
             if (this.diguGame.gamePhase !== 'draw') return;
 
+            // Set processing flag to prevent double-clicks
+            this._diguDrawProcessing = true;
+
             // In multiplayer, send request to server and wait for authoritative response
             if (this.isDiguMultiplayer && this.diguSyncManager) {
                 const position = this.diguGame.localPlayerPosition;
                 // Request draw from server - server will send digu_card_drawn to all clients
                 this.diguSyncManager.requestCardDraw(source, position);
                 // Don't draw locally - wait for server response
+                // Flag will be cleared when server response is received
+                setTimeout(() => { this._diguDrawProcessing = false; }, 500);
                 return;
             }
 
@@ -5292,6 +5300,7 @@
                 drawnCard = this.diguGame.drawFromDiscard();
             }
 
+            this._diguDrawProcessing = false;
             this.updateDiguDisplay();
         }
 

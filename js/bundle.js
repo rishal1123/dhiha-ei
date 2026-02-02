@@ -6044,12 +6044,22 @@
 
         // Reconstruct hands from server data
         reconstructHandsFromData(handsData) {
-            if (!handsData) return;
+            if (!handsData) {
+                console.error('[MP] reconstructHandsFromData: No hands data received');
+                return;
+            }
+
+            console.log('[MP] reconstructHandsFromData: Received hands for positions:', Object.keys(handsData));
 
             for (let i = 0; i < 4; i++) {
-                if (handsData[i]) {
-                    const cards = handsData[i].map(c => new Card(c.suit, c.rank));
+                // Handle both numeric and string keys from server JSON
+                const handData = handsData[i] || handsData[String(i)];
+                if (handData) {
+                    const cards = handData.map(c => new Card(c.suit, c.rank));
                     this.game.players[i].setHand(cards);
+                    console.log(`[MP] Player ${i} hand set with ${cards.length} cards`);
+                } else {
+                    console.warn(`[MP] No hand data for player ${i}`);
                 }
             }
             this.game.currentTrick = new Trick();
