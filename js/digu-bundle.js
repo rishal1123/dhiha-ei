@@ -7852,6 +7852,15 @@
             // Set up sync listeners
             this.setupDiguSyncListeners();
 
+            // Set up listener for player leaving during Digu game
+            const activeSocket = window.Multiplayer && window.Multiplayer.getSocket ? window.Multiplayer.getSocket() : socket;
+            if (activeSocket) {
+                activeSocket.on('digu_player_left', (data) => {
+                    console.log('[DIGU] Player left game:', data);
+                    this.onPlayerLeftGame(data);
+                });
+            }
+
             // Get player names from data - handle both string and numeric keys
             const playerNames = [];
             for (let i = 0; i < numPlayers; i++) {
@@ -8135,10 +8144,14 @@
 
         // Cleanup multiplayer
         async cleanupMultiplayer() {
-            // Clean up socket listeners
+            // Clean up socket listeners from both global and Multiplayer socket
             if (socket) {
                 socket.off('all_ready_for_round');
                 socket.off('digu_player_left');
+            }
+            const activeSocket = window.Multiplayer && window.Multiplayer.getSocket ? window.Multiplayer.getSocket() : null;
+            if (activeSocket && activeSocket !== socket) {
+                activeSocket.off('digu_player_left');
             }
 
             if (this.syncManager) {
