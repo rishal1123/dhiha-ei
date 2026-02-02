@@ -1356,13 +1356,18 @@ def handle_start_game(data):
     room['gameState'] = data.get('gameState', {})
     room['hands'] = data.get('hands', {})
 
+    # Initialize turn tracking
+    room['currentPlayerIndex'] = data.get('gameState', {}).get('currentPlayerIndex', 0)
+    room['cardsPlayedInTrick'] = 0  # Track cards played in current trick (0-4)
+
     ip = player_sessions[sid].get('_ip') if sid in player_sessions else None
-    add_server_log('info', 'game', f'Game started: {room_id}', {'roomId': room_id, 'playerCount': len(room['players']), 'game': 'dhihaei'}, ip)
+    add_server_log('info', 'game', f'Game started: {room_id}', {'roomId': room_id, 'playerCount': len(room['players']), 'game': 'dhihaei', 'startingPlayer': room['currentPlayerIndex']}, ip)
 
     emit('game_started', {
         'gameState': room['gameState'],
         'hands': room['hands'],
-        'players': room['players']
+        'players': room['players'],
+        'currentPlayerIndex': room['currentPlayerIndex']
     }, room=room_id)
 
 @socketio.on('card_played')
@@ -1380,15 +1385,65 @@ def handle_card_played(data):
     if room_id is None:
         return
 
+    if room_id not in rooms:
+        return
+
+    room = rooms[room_id]
     card = data.get('card')
 
-    print(f'Card played in room {room_id}: {card} by position {position}')
+    # Validate it's this player's turn
+    if room.get('currentPlayerIndex') != position:
+        print(f'Card play rejected: not player {position} turn (current: {room.get("currentPlayerIndex")})')
+        emit('error', {'message': 'Not your turn'})
+        return
+
+    # Advance to next player
+    room['currentPlayerIndex'] = (room['currentPlayerIndex'] + 1) % 4
+    room['cardsPlayedInTrick'] = room.get('cardsPlayedInTrick', 0) + 1
+
+    print(f'Card played in room {room_id}: {card} by position {position}, next turn: {room["currentPlayerIndex"]}, cards in trick: {room["cardsPlayedInTrick"]}')
 
     # Broadcast to all other players in room
     emit('remote_card_played', {
         'card': card,
-        'position': position
+        'position': position,
+        'currentPlayerIndex': room['currentPlayerIndex']
     }, room=room_id, include_self=False)
+
+    # Also notify the player who played about the turn change
+    emit('turn_changed', {
+        'currentPlayerIndex': room['currentPlayerIndex']
+    })
+
+@socketio.on('trick_completed')
+def handle_trick_completed(data):
+    """Handle trick completion - winner leads next trick"""
+    sid = request.sid
+
+    if sid not in player_sessions:
+        return
+
+    session = player_sessions[sid]
+    room_id = session.get('roomId')
+
+    if room_id is None or room_id not in rooms:
+        return
+
+    room = rooms[room_id]
+    winner = data.get('winner')  # Position of trick winner
+
+    if winner is not None:
+        # Winner of trick leads next trick
+        room['currentPlayerIndex'] = winner
+        room['cardsPlayedInTrick'] = 0
+
+        print(f'Trick completed in room {room_id}, winner: {winner}, they lead next trick')
+
+        # Broadcast to all players
+        emit('trick_winner_set', {
+            'winner': winner,
+            'currentPlayerIndex': room['currentPlayerIndex']
+        }, room=room_id)
 
 @socketio.on('update_game_state')
 def handle_update_game_state(data):
@@ -1422,14 +1477,20 @@ def handle_new_round(data):
         return
 
     if room_id in rooms:
-        rooms[room_id]['gameState'] = data.get('gameState', {})
-        rooms[room_id]['hands'] = data.get('hands', {})
+        room = rooms[room_id]
+        room['gameState'] = data.get('gameState', {})
+        room['hands'] = data.get('hands', {})
 
-        print(f'New round started in room {room_id}')
+        # Reset turn tracking for new round
+        room['currentPlayerIndex'] = data.get('gameState', {}).get('currentPlayerIndex', 0)
+        room['cardsPlayedInTrick'] = 0
+
+        print(f'New round started in room {room_id}, starting player: {room["currentPlayerIndex"]}')
 
         emit('round_started', {
-            'gameState': rooms[room_id]['gameState'],
-            'hands': rooms[room_id]['hands']
+            'gameState': room['gameState'],
+            'hands': room['hands'],
+            'currentPlayerIndex': room['currentPlayerIndex']
         }, room=room_id)
 
 @socketio.on('ready_for_round')
