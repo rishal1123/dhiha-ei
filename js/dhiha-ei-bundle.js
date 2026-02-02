@@ -6871,6 +6871,14 @@
 
         // Handle new round from host
         handleNewRound(gameState, hands) {
+            console.log('[MP] handleNewRound called with hands:', hands ? Object.keys(hands).length : 0, 'players');
+
+            // Clear previous round state (like host does)
+            this.renderer.clearPlayedCards();
+            this.renderer.clearCollectedTens();
+            this.renderer.updateSuperiorSuit(null);
+
+            // Reconstruct hands from server data
             this.reconstructHandsFromData(hands);
 
             // Update game state
@@ -6882,6 +6890,12 @@
             this.game.matchPoints = gameState.matchPoints || [0, 0];
             this.game.roundOver = false;
             this.game.currentTrick = new Trick();
+
+            console.log('[MP] New round state:', {
+                currentPlayer: this.game.currentPlayerIndex,
+                localPosition: this.game.localPlayerPosition,
+                handsSet: this.game.players.map(p => p.hand ? p.hand.length : 0)
+            });
 
             this.updateDisplay();
         }
