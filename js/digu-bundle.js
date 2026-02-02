@@ -7335,6 +7335,154 @@
 
             this.diguLobbyManager.setupSocketListeners();
 
+            // Check if confirmation is required (quickplay)
+            if (data.requiresConfirmation) {
+                this.showDiguConfirmationUI(data);
+                this.setupDiguConfirmationListeners();
+            } else {
+                // Original flow for non-confirmation matches
+                await this.proceedWithDiguMatch(data);
+            }
+        }
+
+        showDiguConfirmationUI(data) {
+            // Update matchmaking screen to show confirmation
+            const matchmakingScreen = document.getElementById('digu-matchmaking-screen');
+            const statusText = matchmakingScreen.querySelector('.matchmaking-status');
+
+            if (statusText) {
+                statusText.innerHTML = `
+                    <div class="match-found-text">Match Found!</div>
+                    <div class="confirm-countdown" id="digu-confirm-countdown">30</div>
+                    <button class="confirm-match-btn" id="digu-confirm-match-btn">ACCEPT MATCH</button>
+                    <div class="confirm-hint">Click to confirm your spot</div>
+                `;
+            }
+
+            // Hide spinner and hint
+            const spinner = matchmakingScreen.querySelector('.matchmaking-spinner');
+            const hint = matchmakingScreen.querySelector('.matchmaking-hint');
+            if (spinner) spinner.style.display = 'none';
+            if (hint) hint.style.display = 'none';
+
+            // Start countdown
+            let timeLeft = data.confirmTimeout || 30;
+            this.diguConfirmCountdown = setInterval(() => {
+                timeLeft--;
+                const countdownEl = document.getElementById('digu-confirm-countdown');
+                if (countdownEl) {
+                    countdownEl.textContent = timeLeft;
+                    if (timeLeft <= 5) {
+                        countdownEl.classList.add('urgent');
+                    }
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(this.diguConfirmCountdown);
+                }
+            }, 1000);
+
+            // Set up confirm button
+            const confirmBtn = document.getElementById('digu-confirm-match-btn');
+            if (confirmBtn) {
+                confirmBtn.onclick = () => {
+                    this.confirmDiguMatch();
+                };
+            }
+
+            this.diguMatchData = data;
+        }
+
+        confirmDiguMatch() {
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (activeSocket) {
+                activeSocket.emit('digu_confirm_match');
+            }
+
+            // Update UI to show confirmed
+            const confirmBtn = document.getElementById('digu-confirm-match-btn');
+            if (confirmBtn) {
+                confirmBtn.textContent = 'CONFIRMED';
+                confirmBtn.classList.add('confirmed');
+                confirmBtn.disabled = true;
+            }
+        }
+
+        setupDiguConfirmationListeners() {
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket) return;
+
+            // Player confirmed
+            activeSocket.on('digu_player_confirmed', (data) => {
+                console.log('[DIGU] Player confirmed:', data);
+                // Could update UI to show who confirmed
+            });
+
+            // All players confirmed - proceed to game
+            activeSocket.on('digu_all_confirmed', async (data) => {
+                console.log('[DIGU] All confirmed!', data);
+                this.cleanupDiguConfirmationListeners();
+                if (this.diguConfirmCountdown) {
+                    clearInterval(this.diguConfirmCountdown);
+                }
+                await this.proceedWithDiguMatch(this.diguMatchData);
+            });
+
+            // Match timed out
+            activeSocket.on('digu_match_timeout', (data) => {
+                console.log('[DIGU] Match timeout:', data);
+                this.cleanupDiguConfirmationListeners();
+                if (this.diguConfirmCountdown) {
+                    clearInterval(this.diguConfirmCountdown);
+                }
+                this.showError(data.message || 'Match timed out');
+                this.hideDiguMatchmakingScreen();
+            });
+
+            // Match cancelled (others didn't confirm)
+            activeSocket.on('digu_match_cancelled', (data) => {
+                console.log('[DIGU] Match cancelled:', data);
+                this.cleanupDiguConfirmationListeners();
+                if (this.diguConfirmCountdown) {
+                    clearInterval(this.diguConfirmCountdown);
+                }
+                if (data.requeued) {
+                    // Show re-queued message
+                    this.showNotification(t('errors.requeued', {}, 'Requeued - waiting for new match'));
+                    // Reset matchmaking UI
+                    this.setupDiguMatchmakingListeners();
+                    const matchmakingScreen = document.getElementById('digu-matchmaking-screen');
+                    const statusText = matchmakingScreen.querySelector('.matchmaking-status');
+                    const spinner = matchmakingScreen.querySelector('.matchmaking-spinner');
+                    const hint = matchmakingScreen.querySelector('.matchmaking-hint');
+                    if (statusText) {
+                        statusText.innerHTML = `
+                            <span id="digu-queue-count">1</span> / 4 <span data-i18n="common.players">players</span>
+                        `;
+                    }
+                    if (spinner) spinner.style.display = '';
+                    if (hint) hint.style.display = '';
+                } else {
+                    this.hideDiguMatchmakingScreen();
+                }
+            });
+        }
+
+        cleanupDiguConfirmationListeners() {
+            const activeSocket = this._activeSocket || (window.Multiplayer && window.Multiplayer.getSocket()) || socket;
+            if (!activeSocket) return;
+            activeSocket.off('digu_player_confirmed');
+            activeSocket.off('digu_all_confirmed');
+            activeSocket.off('digu_match_timeout');
+            activeSocket.off('digu_match_cancelled');
+        }
+
+        async proceedWithDiguMatch(data) {
+            // Brief delay to show "4/4 players" then transition
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Hide matchmaking
+            document.getElementById('digu-matchmaking-screen').classList.add('hidden');
+
             // Show waiting room briefly then auto-start
             console.log('[DIGU] Showing waiting room for room:', data.roomId);
             this.showDiguWaitingRoom(data.roomId);
@@ -7344,7 +7492,7 @@
             console.log('[DIGU] Checking if host, isHost():', this.diguLobbyManager.isHost());
             if (this.diguLobbyManager.isHost()) {
                 console.log('[DIGU] I am host, starting game in 1 second...');
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 500));
                 this.startDiguMultiplayerGame();
             } else {
                 console.log('[DIGU] I am not host, waiting for game start...');

@@ -744,6 +744,88 @@ html.standalone #game-board {
     margin-bottom: 12px;
 }
 
+/* Match Found Confirmation UI */
+.match-found-text {
+    font-size: clamp(24px, 3vw, 40px);
+    font-weight: bold;
+    color: var(--sunset-gold);
+    text-shadow: 0 0 20px rgba(230, 194, 0, 0.5);
+    animation: pulse-glow 1.5s ease-in-out infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { opacity: 1; text-shadow: 0 0 20px rgba(230, 194, 0, 0.5); }
+    50% { opacity: 0.8; text-shadow: 0 0 30px rgba(230, 194, 0, 0.8); }
+}
+
+.confirm-countdown {
+    font-size: clamp(48px, 6vw, 80px);
+    font-weight: bold;
+    color: var(--ocean-turquoise);
+    margin: 16px 0;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.confirm-countdown.urgent {
+    color: var(--coral-red);
+    animation: countdown-pulse 0.5s ease-in-out infinite;
+}
+
+@keyframes countdown-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.confirm-match-btn {
+    display: inline-block;
+    padding: 16px 48px;
+    font-size: clamp(18px, 2.2vw, 28px);
+    font-weight: bold;
+    color: var(--night-blue);
+    background: linear-gradient(135deg, var(--sunset-gold) 0%, #ffcc00 50%, var(--sunset-gold) 100%);
+    background-size: 200% 200%;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: shimmer 2s linear infinite;
+    box-shadow: 0 4px 20px rgba(230, 194, 0, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.confirm-match-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 30px rgba(230, 194, 0, 0.6);
+}
+
+.confirm-match-btn:active {
+    transform: scale(0.98);
+}
+
+.confirm-match-btn.confirmed {
+    background: var(--ocean-turquoise);
+    animation: none;
+    cursor: default;
+    box-shadow: 0 4px 20px rgba(44, 181, 168, 0.4);
+}
+
+.confirm-match-btn:disabled {
+    cursor: default;
+}
+
+.confirm-hint {
+    font-size: clamp(12px, 1.4vw, 18px);
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 12px;
+}
+
 /* Lobby Sponsor */
 .lobby-sponsor {
     margin-top: 16px;
