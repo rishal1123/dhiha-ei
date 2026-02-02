@@ -180,7 +180,10 @@
                                     </div>
 
                                     <div class="col-2 d-flex align-items-center justify-content-center px-2">
-                                        <div id="digu-stock" class="digu-pile clickable" title="Draw from deck"></div>
+                                        <div class="digu-pile-container">
+                                            <div id="digu-stock" class="digu-pile clickable" title="Draw from deck"></div>
+                                            <div class="pile-count" id="stock-count">0</div>
+                                        </div>
                                     </div>
                                     <div class="col-2 d-flex flex-column align-items-center justify-content-center">
                                         <div id="digu-draw-notification" class="digu-draw-notification"></div>
@@ -195,8 +198,11 @@
                                             disabled>DIGU!</button>
                                     </div>
                                     <div class="col-2 d-flex align-items-center justify-content-center px-2">
-                                        <div id="digu-discard" class="digu-pile clickable" title="Draw from discard">
-                                            <div class="discard-card" id="digu-discard-top"></div>
+                                        <div class="digu-pile-container">
+                                            <div id="digu-discard" class="digu-pile clickable" title="Draw from discard">
+                                                <div class="discard-card" id="digu-discard-top"></div>
+                                            </div>
+                                            <div class="pile-count" id="discard-count">0</div>
                                         </div>
                                     </div>
 

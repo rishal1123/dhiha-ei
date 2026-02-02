@@ -606,6 +606,29 @@
     box-shadow: 0 0 12px var(--sunset-gold);
 }
 
+/* Pile container for count display */
+.digu-pile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.pile-count {
+    font-size: clamp(12px, 1.5vw, 16px);
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(0, 0, 0, 0.4);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: bold;
+    min-width: 28px;
+    text-align: center;
+}
+
+.pile-count.empty {
+    color: var(--coral-red);
+}
+
 /* Subtle glow animation for action indicators */
 @keyframes pileGlow {
     0%, 100% {

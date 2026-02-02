@@ -4839,6 +4839,9 @@
             // Update discard pile top card
             this.renderDiguDiscardTop(state.discardTop);
 
+            // Update pile counts
+            this.updateDiguPileCounts(state.stockCount, state.discardCount);
+
             // Update player hands
             this.renderDiguPlayers(state);
 
@@ -4850,6 +4853,21 @@
 
             // Update turn indicator
             this.updateDiguTurn(state.currentPlayerIndex);
+        }
+
+        updateDiguPileCounts(stockCount, discardCount) {
+            const stockCountEl = document.getElementById('stock-count');
+            const discardCountEl = document.getElementById('discard-count');
+
+            if (stockCountEl) {
+                stockCountEl.textContent = stockCount;
+                stockCountEl.classList.toggle('empty', stockCount === 0);
+            }
+
+            if (discardCountEl) {
+                discardCountEl.textContent = discardCount;
+                discardCountEl.classList.toggle('empty', discardCount === 0);
+            }
         }
 
         renderDiguDiscardTop(card) {
