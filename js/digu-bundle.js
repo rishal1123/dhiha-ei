@@ -7082,9 +7082,9 @@
                     this.onAllReadyForRound(data);
                 });
 
-                // Set up listener for player leaving game
-                socket.on('player_left_game', (data) => {
-                    console.log('Player left game:', data);
+                // Set up listener for player leaving game (Digu uses digu_player_left)
+                socket.on('digu_player_left', (data) => {
+                    console.log('Digu player left game:', data);
                     this.onPlayerLeftGame(data);
                 });
             }
@@ -8138,7 +8138,7 @@
             // Clean up socket listeners
             if (socket) {
                 socket.off('all_ready_for_round');
-                socket.off('player_left_game');
+                socket.off('digu_player_left');
             }
 
             if (this.syncManager) {

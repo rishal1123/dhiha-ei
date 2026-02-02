@@ -266,6 +266,7 @@ digu_rooms = {}  # Digu rooms
 player_sessions = {}  # Maps session ID to room and position
 matchmaking_queue = []  # List of {sid, name, joinedAt} for Dhiha Ei
 digu_matchmaking_queue = []  # List of {sid, name, joinedAt} for Digu
+digu_match_timeouts = {}  # Timeout timers for Digu confirmation
 
 def generate_room_code():
     """Generate a 6-character room code"""
@@ -2315,7 +2316,7 @@ def check_and_start_digu_match():
             'metadata': {
                 'host': match_players[0]['sid'],
                 'created': time.time(),
-                'status': 'waiting',
+                'status': 'confirming',  # Waiting for confirmation
                 'playerCount': 4,
                 'maxPlayers': 4,
                 'gameType': 'digu',
@@ -2331,8 +2332,9 @@ def check_and_start_digu_match():
             digu_rooms[room_id]['players'][i] = {
                 'oderId': player['sid'],
                 'name': player['name'],
-                'ready': True,  # Auto-ready for quick match
-                'connected': True
+                'ready': False,  # Not ready until confirmed
+                'connected': True,
+                'confirmed': False
             }
 
             player_sessions[player['sid']] = {
@@ -2346,13 +2348,74 @@ def check_and_start_digu_match():
 
         add_server_log('info', 'matchmaking', f'Match found: {room_id}', {'roomId': room_id, 'players': [p['name'] for p in match_players], 'game': 'digu'})
 
-        # Notify all matched players
+        # Notify all matched players - they have 30 seconds to confirm
         for i, player in enumerate(match_players):
             socketio.emit('digu_match_found', {
                 'roomId': room_id,
                 'position': i,
-                'players': digu_rooms[room_id]['players']
+                'players': digu_rooms[room_id]['players'],
+                'confirmTimeout': 30,
+                'requiresConfirmation': True
             }, to=player['sid'])
+
+        # Set up 30-second timeout for confirmation
+        def handle_digu_confirmation_timeout():
+            if room_id in digu_rooms:
+                room = digu_rooms[room_id]
+                if room['metadata']['status'] == 'confirming':
+                    # Check who didn't confirm
+                    unconfirmed = []
+                    confirmed = []
+                    for pos, player in room['players'].items():
+                        if not player.get('confirmed', False):
+                            unconfirmed.append((pos, player))
+                        else:
+                            confirmed.append((pos, player))
+
+                    print(f'[DIGU] Match {room_id} timeout: {len(unconfirmed)} players did not confirm')
+
+                    # Notify unconfirmed players they were removed
+                    for pos, player in unconfirmed:
+                        socketio.emit('digu_match_timeout', {
+                            'message': 'You did not confirm in time'
+                        }, to=player['oderId'])
+                        # Clean up session
+                        if player['oderId'] in player_sessions:
+                            del player_sessions[player['oderId']]
+                        leave_room(room_id, sid=player['oderId'])
+
+                    # Put confirmed players back in queue
+                    for pos, player in confirmed:
+                        socketio.emit('digu_match_cancelled', {
+                            'message': 'Match cancelled - some players did not confirm',
+                            'requeued': True
+                        }, to=player['oderId'])
+                        # Clean up session and requeue
+                        if player['oderId'] in player_sessions:
+                            del player_sessions[player['oderId']]
+                        leave_room(room_id, sid=player['oderId'])
+                        digu_matchmaking_queue.append({
+                            'sid': player['oderId'],
+                            'name': player['name'],
+                            'joinedAt': time.time()
+                        })
+
+                    # Delete the room
+                    del digu_rooms[room_id]
+                    print(f'[DIGU] Match {room_id} cancelled due to timeout')
+
+                    # Check if we can start a new match with requeued players
+                    broadcast_digu_queue_status()
+                    check_and_start_digu_match()
+
+            # Clean up timeout reference
+            if room_id in digu_match_timeouts:
+                del digu_match_timeouts[room_id]
+
+        # Start timeout timer
+        timer = threading.Timer(30, handle_digu_confirmation_timeout)
+        timer.start()
+        digu_match_timeouts[room_id] = timer
 
         return True
     return False
@@ -2369,6 +2432,66 @@ def handle_leave_digu_queue():
         print(f'Player left Digu matchmaking queue. Queue size: {len(digu_matchmaking_queue)}')
         emit('digu_queue_left', {})
         broadcast_digu_queue_status()
+
+@socketio.on('digu_confirm_match')
+def handle_digu_confirm_match():
+    """Handle player confirming their Digu quickplay match"""
+    sid = request.sid
+
+    if sid not in player_sessions:
+        emit('error', {'message': 'Not in a match'})
+        return
+
+    session = player_sessions[sid]
+    if session.get('gameType') != 'digu':
+        emit('error', {'message': 'Not in a Digu match'})
+        return
+
+    room_id = session['roomId']
+    position = session['position']
+
+    if room_id not in digu_rooms:
+        emit('error', {'message': 'Match not found'})
+        return
+
+    room = digu_rooms[room_id]
+
+    # Only for quickmatch in confirming status
+    if not room['metadata'].get('isQuickMatch') or room['metadata']['status'] != 'confirming':
+        emit('error', {'message': 'Not in confirmation phase'})
+        return
+
+    # Mark player as confirmed
+    if position in room['players']:
+        room['players'][position]['confirmed'] = True
+        room['players'][position]['ready'] = True
+
+        print(f'[DIGU] Player {room["players"][position]["name"]} confirmed match {room_id}')
+
+        # Notify all players of the confirmation
+        socketio.emit('digu_player_confirmed', {
+            'position': position,
+            'players': room['players']
+        }, room=room_id)
+
+        # Check if all players confirmed
+        all_confirmed = all(p.get('confirmed', False) for p in room['players'].values())
+
+        if all_confirmed:
+            # Cancel the timeout timer
+            if room_id in digu_match_timeouts:
+                digu_match_timeouts[room_id].cancel()
+                del digu_match_timeouts[room_id]
+
+            # Update status
+            room['metadata']['status'] = 'waiting'
+            print(f'[DIGU] All players confirmed for match {room_id}')
+
+            # Notify all players that everyone confirmed
+            socketio.emit('digu_all_confirmed', {
+                'roomId': room_id,
+                'players': room['players']
+            }, room=room_id)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
