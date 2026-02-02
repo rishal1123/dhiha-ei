@@ -1143,7 +1143,7 @@
             activeSocket.on('digu_stock_reshuffled', (data) => {
                 console.log('[DIGU] Stock reshuffled:', data);
                 if (this.onStockReshuffled) {
-                    this.onStockReshuffled(data.stockCount, data.discardTop);
+                    this.onStockReshuffled(data.stockCount);
                 }
             });
         }
@@ -7919,8 +7919,8 @@
                 this.handleDiguNewMatch(gameState, hands);
             };
 
-            this.diguSyncManager.onStockReshuffled = (stockCount, discardTop) => {
-                this.handleDiguStockReshuffled(stockCount, discardTop);
+            this.diguSyncManager.onStockReshuffled = (stockCount) => {
+                this.handleDiguStockReshuffled(stockCount);
             };
 
             this.diguSyncManager.startListening();
@@ -8124,18 +8124,13 @@
             console.log('Remote game over', results);
         }
 
-        handleDiguStockReshuffled(stockCount, discardTop) {
+        handleDiguStockReshuffled(stockCount) {
             if (!this.diguGame) return;
 
-            console.log(`[DIGU] Stock reshuffled: ${stockCount} cards, discard top:`, discardTop);
+            console.log(`[DIGU] Stock reshuffled: ${stockCount} cards from discard pile`);
 
-            // Clear local stock pile (server manages it now)
-            // Just update the discard pile to show only the top card
-            if (discardTop) {
-                this.diguGame.discardPile = [new Card(discardTop.suit, discardTop.rank)];
-            } else {
-                this.diguGame.discardPile = [];
-            }
+            // All discard cards are taken to form new stock pile
+            this.diguGame.discardPile = [];
 
             // Update UI to show stock pile has cards again
             this.updateDiguDisplay();
