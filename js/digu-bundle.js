@@ -7694,7 +7694,8 @@
 
             slots.forEach(slot => {
                 const position = parseInt(slot.dataset.position);
-                const player = players[position];
+                // Handle both numeric and string keys from server JSON
+                const player = players[position] || players[String(position)];
 
                 slot.classList.remove('filled', 'ready', 'you');
 
@@ -7753,12 +7754,13 @@
                 }
             }
 
-            // Update start button state for host - requires all 4 players
+            // Update start button state for host - requires all players (based on maxPlayers setting)
             const startBtn = document.getElementById('digu-start-game-btn');
             if (startBtn) {
                 if (isHost) {
                     startBtn.classList.remove('hidden');
-                    startBtn.disabled = filledCount < 4 || !allReady;
+                    const requiredPlayers = this.diguLobbyManager ? this.diguLobbyManager.maxPlayers : 4;
+                    startBtn.disabled = filledCount < requiredPlayers || !allReady;
                 } else {
                     startBtn.classList.add('hidden');
                 }
