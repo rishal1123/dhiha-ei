@@ -1359,6 +1359,7 @@ def handle_start_game(data):
     # Initialize turn tracking
     room['currentPlayerIndex'] = data.get('gameState', {}).get('currentPlayerIndex', 0)
     room['cardsPlayedInTrick'] = 0  # Track cards played in current trick (0-4)
+    room['currentTrickCards'] = {}  # Track actual cards played in current trick {position: card}
 
     ip = player_sessions[sid].get('_ip') if sid in player_sessions else None
     add_server_log('info', 'game', f'Game started: {room_id}', {'roomId': room_id, 'playerCount': len(room['players']), 'game': 'dhihaei', 'startingPlayer': room['currentPlayerIndex']}, ip)
@@ -1399,13 +1400,19 @@ def handle_card_played(data):
     room['currentPlayerIndex'] = (position + 1) % 4
     room['cardsPlayedInTrick'] = room.get('cardsPlayedInTrick', 0) + 1
 
+    # Store the played card in current trick
+    if 'currentTrickCards' not in room:
+        room['currentTrickCards'] = {}
+    room['currentTrickCards'][position] = card
+
     print(f'Card played in room {room_id}: {card} by position {position}, next turn: {room["currentPlayerIndex"]}, cards in trick: {room["cardsPlayedInTrick"]}')
 
     # Broadcast to all other players in room
     emit('remote_card_played', {
         'card': card,
         'position': position,
-        'currentPlayerIndex': room['currentPlayerIndex']
+        'currentPlayerIndex': room['currentPlayerIndex'],
+        'currentTrickCards': room['currentTrickCards']
     }, room=room_id, include_self=False)
 
     # Also notify the player who played about the turn change
@@ -1434,6 +1441,7 @@ def handle_trick_completed(data):
         # Winner of trick leads next trick
         room['currentPlayerIndex'] = winner
         room['cardsPlayedInTrick'] = 0
+        room['currentTrickCards'] = {}  # Clear trick cards for new trick
 
         print(f'Trick completed in room {room_id}, winner: {winner}, they lead next trick')
 
@@ -1482,6 +1490,7 @@ def handle_new_round(data):
         # Reset turn tracking for new round
         room['currentPlayerIndex'] = data.get('gameState', {}).get('currentPlayerIndex', 0)
         room['cardsPlayedInTrick'] = 0
+        room['currentTrickCards'] = {}  # Clear trick cards for new round
 
         print(f'New round started in room {room_id}, starting player: {room["currentPlayerIndex"]}')
 
