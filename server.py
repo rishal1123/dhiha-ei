@@ -2045,7 +2045,12 @@ def handle_start_digu_game(data):
     room['stockPile'] = data.get('stockPile', [])
     room['discardPile'] = data.get('discardPile', [])
 
-    print(f'Digu game started in room {room_id} with {len(room["players"])} players, stock: {len(room["stockPile"])} cards')
+    # Initialize turn tracking
+    room['currentPlayerIndex'] = data.get('gameState', {}).get('currentPlayerIndex', 0)
+    room['gamePhase'] = 'draw'  # Phases: 'draw', 'discard'
+    room['numPlayers'] = len(room['players'])
+
+    print(f'Digu game started in room {room_id} with {len(room["players"])} players, stock: {len(room["stockPile"])} cards, starting player: {room["currentPlayerIndex"]}')
 
     emit('digu_game_started', {
         'gameState': room['gameState'],
@@ -2076,6 +2081,18 @@ def handle_digu_draw_card(data):
     source = data.get('source')  # 'stock' or 'discard'
     card = None
 
+    # Validate it's this player's turn
+    if room.get('currentPlayerIndex') != position:
+        print(f'Digu draw rejected: not player {position} turn (current: {room.get("currentPlayerIndex")})')
+        emit('error', {'message': 'Not your turn'})
+        return
+
+    # Validate we're in the draw phase
+    if room.get('gamePhase') != 'draw':
+        print(f'Digu draw rejected: not in draw phase (current: {room.get("gamePhase")})')
+        emit('error', {'message': 'Already drew a card'})
+        return
+
     if source == 'stock':
         # Pop card from server-side stock pile
         if room.get('stockPile') and len(room['stockPile']) > 0:
@@ -2093,11 +2110,16 @@ def handle_digu_draw_card(data):
             print(f'Digu discard pile empty in room {room_id}')
             return
 
+    # Update phase to discard
+    room['gamePhase'] = 'discard'
+
     # Broadcast the SPECIFIC card to ALL players (including the one who drew)
     emit('digu_card_drawn', {
         'source': source,
         'card': card,
-        'position': position
+        'position': position,
+        'currentPlayerIndex': room['currentPlayerIndex'],
+        'gamePhase': room['gamePhase']
     }, room=room_id)
 
 @socketio.on('digu_discard_card')
@@ -2122,18 +2144,43 @@ def handle_digu_discard_card(data):
     room = digu_rooms[room_id]
     card = data.get('card')
 
+    # Validate it's this player's turn
+    if room.get('currentPlayerIndex') != position:
+        print(f'Digu discard rejected: not player {position} turn (current: {room.get("currentPlayerIndex")})')
+        emit('error', {'message': 'Not your turn'})
+        return
+
+    # Validate we're in the discard phase
+    if room.get('gamePhase') != 'discard':
+        print(f'Digu discard rejected: not in discard phase (current: {room.get("gamePhase")})')
+        emit('error', {'message': 'Must draw first'})
+        return
+
     # Add to server-side discard pile
     if 'discardPile' not in room:
         room['discardPile'] = []
     room['discardPile'].append(card)
 
-    print(f'Digu card discarded in room {room_id}: {card} by position {position}, discard size: {len(room["discardPile"])}')
+    # Advance to next player
+    numPlayers = room.get('numPlayers', 4)
+    room['currentPlayerIndex'] = (room['currentPlayerIndex'] + 1) % numPlayers
+    room['gamePhase'] = 'draw'
+
+    print(f'Digu card discarded in room {room_id}: {card} by position {position}, next turn: {room["currentPlayerIndex"]}, discard size: {len(room["discardPile"])}')
 
     # Broadcast to all other players in room
     emit('digu_remote_card_discarded', {
         'card': card,
-        'position': position
+        'position': position,
+        'currentPlayerIndex': room['currentPlayerIndex'],
+        'gamePhase': room['gamePhase']
     }, room=room_id, include_self=False)
+
+    # Also notify the player who discarded about the turn change
+    emit('digu_turn_changed', {
+        'currentPlayerIndex': room['currentPlayerIndex'],
+        'gamePhase': room['gamePhase']
+    })
 
 @socketio.on('digu_declare')
 @rate_limit('digu_declare')
@@ -2228,14 +2275,23 @@ def handle_digu_new_match(data):
         return
 
     if room_id in digu_rooms:
-        digu_rooms[room_id]['gameState'] = data.get('gameState', {})
-        digu_rooms[room_id]['hands'] = data.get('hands', {})
+        room = digu_rooms[room_id]
+        room['gameState'] = data.get('gameState', {})
+        room['hands'] = data.get('hands', {})
 
-        print(f'New Digu match started in room {room_id}')
+        # Reset turn tracking for new match
+        room['currentPlayerIndex'] = data.get('gameState', {}).get('currentPlayerIndex', 0)
+        room['gamePhase'] = 'draw'
+        room['stockPile'] = data.get('stockPile', [])
+        room['discardPile'] = data.get('discardPile', [])
+
+        print(f'New Digu match started in room {room_id}, starting player: {room["currentPlayerIndex"]}')
 
         emit('digu_match_started', {
-            'gameState': digu_rooms[room_id]['gameState'],
-            'hands': digu_rooms[room_id]['hands']
+            'gameState': room['gameState'],
+            'hands': room['hands'],
+            'currentPlayerIndex': room['currentPlayerIndex'],
+            'gamePhase': room['gamePhase']
         }, room=room_id)
 
 # ===========================================
