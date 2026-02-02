@@ -21,9 +21,37 @@
 /* Table pseudo-elements defined later (oval table) */
 
 /* Main content row takes full height (h-100) */
-
+#game-board > .row.h-100 {
+    height: 100% !important;
+}
 
 /* Main content column must have full height for nested row percentages to work */
+#game-board > .row.h-100 > .col {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Row heights - ensure they don't exceed container */
+#game-board > .row.h-100 > .col > .row {
+    flex-shrink: 0;
+}
+
+#game-board > .row.h-100 > .col > .row[style*="height: 20%"] {
+    flex: 0 0 20%;
+    max-height: 20%;
+}
+
+#game-board > .row.h-100 > .col > .row[style*="height: 50%"] {
+    flex: 0 0 50%;
+    max-height: 50%;
+}
+
+#game-board > .row.h-100 > .col > .row[style*="height: 30%"] {
+    flex: 0 0 30%;
+    max-height: 30%;
+}
 
 
 /* Oval Table - centered on play area (Row 2: starts at 15%, height 55%, center at 42.5%) */
