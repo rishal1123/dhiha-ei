@@ -1391,14 +1391,12 @@ def handle_card_played(data):
     room = rooms[room_id]
     card = data.get('card')
 
-    # Validate it's this player's turn
+    # Log if turn seems out of sync (but allow the move - client manages turns)
     if room.get('currentPlayerIndex') != position:
-        print(f'Card play rejected: not player {position} turn (current: {room.get("currentPlayerIndex")})')
-        emit('error', {'message': 'Not your turn'})
-        return
+        print(f'[WARN] Card play by {position} but server expected {room.get("currentPlayerIndex")} - syncing to client')
 
-    # Advance to next player
-    room['currentPlayerIndex'] = (room['currentPlayerIndex'] + 1) % 4
+    # Sync turn to who actually played, then advance
+    room['currentPlayerIndex'] = (position + 1) % 4
     room['cardsPlayedInTrick'] = room.get('cardsPlayedInTrick', 0) + 1
 
     print(f'Card played in room {room_id}: {card} by position {position}, next turn: {room["currentPlayerIndex"]}, cards in trick: {room["cardsPlayedInTrick"]}')
@@ -2142,17 +2140,13 @@ def handle_digu_draw_card(data):
     source = data.get('source')  # 'stock' or 'discard'
     card = None
 
-    # Validate it's this player's turn
+    # Log if turn/phase seems out of sync (but allow - client manages state)
     if room.get('currentPlayerIndex') != position:
-        print(f'Digu draw rejected: not player {position} turn (current: {room.get("currentPlayerIndex")})')
-        emit('error', {'message': 'Not your turn'})
-        return
+        print(f'[WARN] Digu draw by {position} but server expected {room.get("currentPlayerIndex")} - syncing to client')
+        room['currentPlayerIndex'] = position
 
-    # Validate we're in the draw phase
     if room.get('gamePhase') != 'draw':
-        print(f'Digu draw rejected: not in draw phase (current: {room.get("gamePhase")})')
-        emit('error', {'message': 'Already drew a card'})
-        return
+        print(f'[WARN] Digu draw but server in {room.get("gamePhase")} phase - syncing to client')
 
     if source == 'stock':
         # Pop card from server-side stock pile
@@ -2205,26 +2199,21 @@ def handle_digu_discard_card(data):
     room = digu_rooms[room_id]
     card = data.get('card')
 
-    # Validate it's this player's turn
+    # Log if turn/phase seems out of sync (but allow - client manages state)
     if room.get('currentPlayerIndex') != position:
-        print(f'Digu discard rejected: not player {position} turn (current: {room.get("currentPlayerIndex")})')
-        emit('error', {'message': 'Not your turn'})
-        return
+        print(f'[WARN] Digu discard by {position} but server expected {room.get("currentPlayerIndex")} - syncing to client')
 
-    # Validate we're in the discard phase
     if room.get('gamePhase') != 'discard':
-        print(f'Digu discard rejected: not in discard phase (current: {room.get("gamePhase")})')
-        emit('error', {'message': 'Must draw first'})
-        return
+        print(f'[WARN] Digu discard but server in {room.get("gamePhase")} phase - syncing to client')
 
     # Add to server-side discard pile
     if 'discardPile' not in room:
         room['discardPile'] = []
     room['discardPile'].append(card)
 
-    # Advance to next player
+    # Advance to next player (from actual position, not expected)
     numPlayers = room.get('numPlayers', 4)
-    room['currentPlayerIndex'] = (room['currentPlayerIndex'] + 1) % numPlayers
+    room['currentPlayerIndex'] = (position + 1) % numPlayers
     room['gamePhase'] = 'draw'
 
     print(f'Digu card discarded in room {room_id}: {card} by position {position}, next turn: {room["currentPlayerIndex"]}, discard size: {len(room["discardPile"])}')
