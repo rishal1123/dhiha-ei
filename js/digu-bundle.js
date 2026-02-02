@@ -3088,16 +3088,13 @@
         }
 
         // Calculate final scores (team-based)
-        // Winning team: 100 bonus + card total - unmelded cards (= 100 + melded card values)
-        // Losing team: negative penalty for unmelded cards
+        // Each player: meld - unmeld (melded value - unmelded value)
+        // Each team: sum of their players' (meld - unmeld)
         calculateScores() {
             this.teamScores = [0, 0]; // Reset team scores
             this.playerPenalties = []; // Track individual penalties for display
             this.playerCardTotals = []; // Track total card values
             this.playerMeldedValues = []; // Track melded card values
-
-            const winningTeamIndex = this.winningTeam === 'A' ? 0 : 1;
-            const losingTeamIndex = winningTeamIndex === 0 ? 1 : 0;
 
             // Calculate values for each player
             for (let i = 0; i < this.players.length; i++) {
@@ -3110,37 +3107,16 @@
                 this.playerPenalties[i] = unmeldedValue;
                 this.playerMeldedValues[i] = meldedValue;
 
-                if (player === this.winner) {
-                    this.scores[i] = meldedValue; // Winner contributes melded value
-                } else {
-                    this.scores[i] = unmeldedValue; // Others have penalty
-                }
+                // Each player's score: meld - unmeld
+                this.scores[i] = meldedValue - unmeldedValue;
             }
 
-            // Calculate winning team score: 100 bonus + total card values - unmelded penalties
-            let winningTeamCardTotal = 0;
-            let winningTeamUnmelded = 0;
+            // Calculate team scores: sum of each player's (meld - unmeld)
             for (let i = 0; i < this.players.length; i++) {
                 const team = this.getPlayerTeam(i);
                 const teamIndex = team === 'A' ? 0 : 1;
-                if (teamIndex === winningTeamIndex) {
-                    winningTeamCardTotal += this.playerCardTotals[i];
-                    winningTeamUnmelded += this.playerPenalties[i];
-                }
+                this.teamScores[teamIndex] += this.scores[i];
             }
-            // Winning team: 100 + card total - unmelded = 100 + melded value
-            this.teamScores[winningTeamIndex] = 100 + winningTeamCardTotal - winningTeamUnmelded;
-
-            // Losing team gets penalties deducted (negative points)
-            let losingTeamPenalty = 0;
-            for (let i = 0; i < this.players.length; i++) {
-                const team = this.getPlayerTeam(i);
-                const teamIndex = team === 'A' ? 0 : 1;
-                if (teamIndex === losingTeamIndex) {
-                    losingTeamPenalty += this.playerPenalties[i];
-                }
-            }
-            this.teamScores[losingTeamIndex] = -losingTeamPenalty;
 
             // Update match statistics
             this.matchStats.matchesPlayed++;
@@ -5942,14 +5918,19 @@
             document.getElementById('digu-total-points-a').textContent = stats.totalPoints[0];
             document.getElementById('digu-total-points-b').textContent = stats.totalPoints[1];
 
-            // Calculate winning team breakdown
-            const winningTeamIndex = isYourTeamWinner ? 0 : 1;
-            const losingTeamIndex = isYourTeamWinner ? 1 : 0;
-            const winningTeamPlayers = isYourTeamWinner ? [0, 2] : [1, 3];
+            // Calculate team breakdowns (meld - unmeld for each team)
+            const teamAPlayers = [0, 2];
+            const teamBPlayers = [1, 3];
 
-            let winningMeldedTotal = 0;
-            for (const pi of winningTeamPlayers) {
-                winningMeldedTotal += result.playerMeldedValues[pi] || 0;
+            let teamAMelded = 0, teamAUnmelded = 0;
+            let teamBMelded = 0, teamBUnmelded = 0;
+            for (const pi of teamAPlayers) {
+                teamAMelded += result.playerMeldedValues[pi] || 0;
+                teamAUnmelded += result.playerPenalties[pi] || 0;
+            }
+            for (const pi of teamBPlayers) {
+                teamBMelded += result.playerMeldedValues[pi] || 0;
+                teamBUnmelded += result.playerPenalties[pi] || 0;
             }
 
             // Update this game score section
@@ -5957,28 +5938,24 @@
             const opponentsText = t('results.opponents', {}, 'Opponents');
             const thisGameText = t('results.thisGame', {}, 'This Game');
             const declaredText = t('results.declaredDiGu', { name: result.winner.name }, `${result.winner.name} declared DIGU!`);
-            const bonusText = t('results.bonus', {}, 'Bonus');
-            const totalMeldedText = t('results.totalMelded', {}, 'Total Melded Card Value');
+            const meldedText = t('results.melded', {}, 'Melded');
+            const unmeldedText = t('results.unmelded', {}, 'Unmelded');
             const totalText = t('results.total', {}, 'Total');
-            const penaltyText = t('results.penalty', {}, 'Penalty');
+
+            const teamAScore = result.teamScores[0];
+            const teamBScore = result.teamScores[1];
+            const teamAScoreSign = teamAScore >= 0 ? '+' : '';
+            const teamBScoreSign = teamBScore >= 0 ? '+' : '';
 
             gameScoreEl.innerHTML = `
                 <h3>${thisGameText} - ${declaredText}</h3>
-                <div class="game-score-row">
-                    <span>${isYourTeamWinner ? yourTeamText : opponentsText} ${bonusText}:</span>
-                    <span>+100</span>
+                <div class="game-score-row ${teamAScore >= teamBScore ? 'winner' : 'penalty'}">
+                    <span>${yourTeamText}:</span>
+                    <span>+${teamAMelded} - ${teamAUnmelded} = ${teamAScoreSign}${teamAScore}</span>
                 </div>
-                <div class="game-score-row">
-                    <span>${totalMeldedText}:</span>
-                    <span>+${winningMeldedTotal}</span>
-                </div>
-                <div class="game-score-row winner">
-                    <span>${isYourTeamWinner ? yourTeamText : opponentsText} ${totalText}:</span>
-                    <span>+${result.teamScores[winningTeamIndex]}</span>
-                </div>
-                <div class="game-score-row penalty">
-                    <span>${isYourTeamWinner ? opponentsText : yourTeamText} (${penaltyText}):</span>
-                    <span>${result.teamScores[losingTeamIndex]}</span>
+                <div class="game-score-row ${teamBScore >= teamAScore ? 'winner' : 'penalty'}">
+                    <span>${opponentsText}:</span>
+                    <span>+${teamBMelded} - ${teamBUnmelded} = ${teamBScoreSign}${teamBScore}</span>
                 </div>
             `;
 
@@ -6008,15 +5985,12 @@
                 if (isWinner) nameEl.innerHTML += ' - DIGU!';
 
                 const scoreEl = document.createElement('span');
-                if (isWinningTeam) {
-                    // Winning team: show melded value
-                    scoreEl.className = 'result-player-score positive';
-                    scoreEl.textContent = `Melded: +${meldedValue}`;
-                } else {
-                    // Losing team: show penalty
-                    scoreEl.className = `result-player-score ${penalty > 0 ? 'negative' : 'positive'}`;
-                    scoreEl.textContent = penalty > 0 ? `Unmelded: -${penalty}` : 'All melded!';
-                }
+                // Show net score (meld - unmeld) for all players
+                const netScore = meldedValue - penalty;
+                const scoreClass = netScore >= 0 ? 'positive' : 'negative';
+                const scoreSign = netScore >= 0 ? '+' : '';
+                scoreEl.className = `result-player-score ${scoreClass}`;
+                scoreEl.textContent = `${scoreSign}${netScore}`;
 
                 headerEl.appendChild(nameEl);
                 headerEl.appendChild(scoreEl);

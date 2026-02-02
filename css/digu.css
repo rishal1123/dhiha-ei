@@ -840,9 +840,30 @@
 .match-stats-row { display: flex; justify-content: space-between; padding: 4px 8px; color: rgba(255, 255, 255, 0.95); }
 .match-stats-row.total { border-top: 1px solid rgba(255, 255, 255, 0.3); font-weight: 600; color: #ffffff; }
 
-.digu-game-score h3 { color: #40E0D0; text-align: center; } /* Brighter turquoise for better contrast */
-.game-score-row { display: flex; justify-content: space-between; padding: 4px 8px; color: var(--text-light); }
-.game-score-row.winner { color: #4CAF50; font-weight: 600; } /* Brighter green for better contrast */
+.digu-game-score {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 12px;
+}
+.digu-game-score h3 { color: #40E0D0; text-align: center; margin-bottom: 8px; } /* Brighter turquoise for better contrast */
+.game-score-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 12px;
+    color: #ffffff;
+    font-size: 15px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+.game-score-row.winner {
+    color: #7fff7f;
+    font-weight: 700;
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid rgba(76, 175, 80, 0.5);
+    text-shadow: 0 0 4px rgba(76, 175, 80, 0.4);
+}
 
 #digu-result-players {
     display: grid;
@@ -879,6 +900,72 @@
 .result-player-cards .meld-group.valid-set { background: rgba(76, 175, 80, 0.25); border: 1px solid rgba(76, 175, 80, 0.8); box-shadow: 0 0 8px rgba(76, 175, 80, 0.4); }
 .result-player-cards .meld-group.valid-run { background: rgba(76, 175, 80, 0.25); border: 1px solid rgba(76, 175, 80, 0.8); box-shadow: 0 0 8px rgba(76, 175, 80, 0.4); }
 .result-player-cards .meld-group.invalid { background: rgba(255, 138, 138, 0.2); border: 1px solid rgba(255, 138, 138, 0.7); }
+
+/* Meld value labels on cards */
+.meld-value-label {
+    position: absolute;
+    bottom: -8px;
+    right: -4px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 4px;
+    border-radius: 4px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+.meld-value-label.valid {
+    background: rgba(76, 175, 80, 0.9);
+    color: #ffffff;
+    border: 1px solid #4CAF50;
+}
+.meld-value-label.invalid {
+    background: rgba(255, 80, 80, 0.9);
+    color: #ffffff;
+    border: 1px solid #ff5050;
+}
+
+/* Player score summary row */
+.player-score-summary {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.valid-score {
+    color: #7fff7f;
+    text-shadow: 0 0 4px rgba(76, 175, 80, 0.6);
+}
+
+.invalid-score {
+    color: #ff9999;
+    text-shadow: 0 0 4px rgba(255, 80, 80, 0.6);
+}
+
+/* Game score row penalty styling */
+.game-score-row.penalty {
+    color: #ff9999;
+    font-weight: 600;
+}
+
+/* Higher contrast for result header scores */
+.result-player-score {
+    font-size: 16px;
+    font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+.result-player-score.positive {
+    color: #7fff7f;
+    text-shadow: 0 0 6px rgba(76, 175, 80, 0.5);
+}
+.result-player-score.negative {
+    color: #ff9999;
+    text-shadow: 0 0 6px rgba(255, 80, 80, 0.5);
+}
 
 .digu-result-buttons { display: flex; gap: 8px; justify-content: center; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
 
