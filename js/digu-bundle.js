@@ -6044,13 +6044,13 @@
                 // Add score summary row (Points = Melded - Unmelded)
                 const scoreSummary = document.createElement('div');
                 scoreSummary.className = 'player-score-summary';
-                const netScore = validMeldScore - invalidMeldScore;
-                const netScoreClass = netScore >= 0 ? 'valid-score' : 'invalid-score';
-                const netScoreSign = netScore >= 0 ? '+' : '';
+                const summaryNet = validMeldScore - invalidMeldScore;
+                const summaryClass = summaryNet >= 0 ? 'valid-score' : 'invalid-score';
+                const summarySign = summaryNet >= 0 ? '+' : '';
                 scoreSummary.innerHTML = `
                     <span class="valid-score">+${validMeldScore}</span>
                     <span class="invalid-score">-${invalidMeldScore}</span>
-                    <span class="${netScoreClass}">= ${netScoreSign}${netScore}</span>
+                    <span class="${summaryClass}">= ${summarySign}${summaryNet}</span>
                 `;
                 playerRow.appendChild(scoreSummary);
 
