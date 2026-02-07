@@ -1188,6 +1188,8 @@
     }
 
     function delay(ms) {
+        // Skip delays when tab is hidden so AI continues playing in background
+        if (document.hidden) return Promise.resolve();
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
@@ -5283,7 +5285,7 @@
             if (this.isDiguMultiplayer && this.diguSyncManager) {
                 const player = this.diguGame.players[playerIndex];
                 const melds = player.arrangedMelds;
-                this.diguSyncManager.broadcastDeclare(melds, result.valid, playerIndex);
+                this.diguSyncManager.broadcastDeclare(melds, true, playerIndex);
             }
         }
 
@@ -5652,8 +5654,12 @@
         }
 
         async onDiguGameOver(result) {
-            this.updateDiguDisplay();
-            this.showDiguResultModal(result);
+            try {
+                this.updateDiguDisplay();
+                this.showDiguResultModal(result);
+            } catch (e) {
+                console.error('[DIGU] Error showing game over modal:', e);
+            }
         }
 
         showDiguResultModal(result) {
@@ -6241,10 +6247,10 @@
                 `;
             }
 
-            // Start countdown
-            let timeLeft = data.confirmTimeout || 30;
+            // Start countdown (timestamp-based so it works in background tabs)
+            const confirmEndTime = Date.now() + (data.confirmTimeout || 30) * 1000;
             this.confirmCountdown = setInterval(() => {
-                timeLeft--;
+                const timeLeft = Math.max(0, Math.ceil((confirmEndTime - Date.now()) / 1000));
                 const countdownEl = document.getElementById('confirm-countdown');
                 if (countdownEl) {
                     countdownEl.textContent = timeLeft;
@@ -7096,10 +7102,10 @@
             if (spinner) spinner.style.display = 'none';
             if (hint) hint.style.display = 'none';
 
-            // Start countdown
-            let timeLeft = data.confirmTimeout || 30;
+            // Start countdown (timestamp-based so it works in background tabs)
+            const diguConfirmEndTime = Date.now() + (data.confirmTimeout || 30) * 1000;
             this.diguConfirmCountdown = setInterval(() => {
-                timeLeft--;
+                const timeLeft = Math.max(0, Math.ceil((diguConfirmEndTime - Date.now()) / 1000));
                 const countdownEl = document.getElementById('digu-confirm-countdown');
                 if (countdownEl) {
                     countdownEl.textContent = timeLeft;
@@ -7675,13 +7681,43 @@
             // Remote player declared Digu
             console.log(`Player ${position} declared Digu, valid: ${isValid}`);
 
-            // Reconstruct melds
-            const melds = meldsData.map(meld =>
-                meld.map(c => new Card(c.suit, c.rank))
-            );
+            // Reconstruct melds and set on the declaring player's hand
+            if (meldsData && meldsData.length > 0) {
+                const allCards = [];
+                for (const meld of meldsData) {
+                    for (const c of meld) {
+                        allCards.push(new Card(c.suit, c.rank));
+                    }
+                }
+                if (allCards.length > 0 && this.diguGame.players[position]) {
+                    this.diguGame.players[position].hand = allCards;
+                }
+            }
 
-            // Show end game modal
-            this.showDiguResultModal(position, isValid, melds);
+            // Set game state to game over and calculate scores locally
+            const player = this.diguGame.players[position];
+            this.diguGame.currentPlayerIndex = position;
+            this.diguGame.gameOver = true;
+            this.diguGame.winner = player;
+            this.diguGame.winningTeam = this.diguGame.getPlayerTeam(position);
+            this.diguGame.gamePhase = 'gameover';
+            this.diguGame.calculateScores();
+
+            // Build result object matching what showDiguResultModal expects
+            const result = {
+                winner: player,
+                winningTeam: this.diguGame.winningTeam,
+                scores: this.diguGame.scores,
+                teamScores: this.diguGame.teamScores,
+                playerPenalties: this.diguGame.playerPenalties,
+                playerCardTotals: this.diguGame.playerCardTotals,
+                playerMeldedValues: this.diguGame.playerMeldedValues,
+                players: this.diguGame.players,
+                matchStats: { ...this.diguGame.matchStats }
+            };
+
+            this.updateDiguDisplay();
+            this.showDiguResultModal(result);
         }
 
         handleRemoteDiguGameOver(results, declaredBy) {
@@ -7896,9 +7932,9 @@
             this.stopGameTimer();
         }
 
-        // Start game timer for multiplayer
+        // Start game timer for multiplayer (timestamp-based so it works in background tabs)
         startGameTimer() {
-            this.gameTimeRemaining = 15 * 60; // 15 minutes
+            this.gameTimerEndTime = Date.now() + 15 * 60 * 1000; // 15 minutes from now
             this.timerWarningShown = false;
             this.timerCriticalShown = false;
 
@@ -7906,33 +7942,49 @@
             const timerValue = document.getElementById('mp-timer-value');
             timerEl.classList.remove('hidden', 'warning', 'critical');
 
-            this.updateTimerDisplay();
+            this.tickGameTimer();
 
             this.gameTimer = setInterval(() => {
-                this.gameTimeRemaining--;
-                this.updateTimerDisplay();
-
-                // Warning at 2 minutes
-                if (this.gameTimeRemaining === 120 && !this.timerWarningShown) {
-                    this.timerWarningShown = true;
-                    timerEl.classList.add('warning');
-                    this.renderer.flashMessage(t('dhihaEi.twoMinutesRemaining', {}, '⚠️ 2 minutes remaining!'), 3000);
-                }
-
-                // Critical at 30 seconds
-                if (this.gameTimeRemaining === 30 && !this.timerCriticalShown) {
-                    this.timerCriticalShown = true;
-                    timerEl.classList.remove('warning');
-                    timerEl.classList.add('critical');
-                    this.renderer.flashMessage(t('dhihaEi.thirtySecondsRemaining', {}, '⚠️ 30 seconds remaining!'), 2000);
-                }
-
-                // Time's up
-                if (this.gameTimeRemaining <= 0) {
-                    this.stopGameTimer();
-                    this.handleTimeUp();
-                }
+                this.tickGameTimer();
             }, 1000);
+
+            // Recalculate immediately when tab becomes visible again
+            this._timerVisibilityHandler = () => {
+                if (!document.hidden && this.gameTimer) {
+                    this.tickGameTimer();
+                }
+            };
+            document.addEventListener('visibilitychange', this._timerVisibilityHandler);
+        }
+
+        // Tick the game timer (calculate remaining from absolute end time)
+        tickGameTimer() {
+            const now = Date.now();
+            this.gameTimeRemaining = Math.max(0, Math.ceil((this.gameTimerEndTime - now) / 1000));
+            this.updateTimerDisplay();
+
+            const timerEl = document.getElementById('mp-timer');
+
+            // Warning at 2 minutes
+            if (this.gameTimeRemaining <= 120 && !this.timerWarningShown) {
+                this.timerWarningShown = true;
+                timerEl.classList.add('warning');
+                this.renderer.flashMessage(t('dhihaEi.twoMinutesRemaining', {}, '⚠️ 2 minutes remaining!'), 3000);
+            }
+
+            // Critical at 30 seconds
+            if (this.gameTimeRemaining <= 30 && !this.timerCriticalShown) {
+                this.timerCriticalShown = true;
+                timerEl.classList.remove('warning');
+                timerEl.classList.add('critical');
+                this.renderer.flashMessage(t('dhihaEi.thirtySecondsRemaining', {}, '⚠️ 30 seconds remaining!'), 2000);
+            }
+
+            // Time's up
+            if (this.gameTimeRemaining <= 0) {
+                this.stopGameTimer();
+                this.handleTimeUp();
+            }
         }
 
         // Update timer display
@@ -7948,6 +8000,10 @@
             if (this.gameTimer) {
                 clearInterval(this.gameTimer);
                 this.gameTimer = null;
+            }
+            if (this._timerVisibilityHandler) {
+                document.removeEventListener('visibilitychange', this._timerVisibilityHandler);
+                this._timerVisibilityHandler = null;
             }
             const timerEl = document.getElementById('mp-timer');
             if (timerEl) {

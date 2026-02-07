@@ -75,8 +75,6 @@
 
     // Visibility/keepalive state
     let keepaliveInterval = null;
-    let hiddenTimestamp = null;
-    const KEEPALIVE_DURATION = 30000; // 30 seconds
     const KEEPALIVE_INTERVAL = 5000;  // Ping every 5 seconds
 
     // ============================================
@@ -159,24 +157,20 @@
 
     // ============================================
     // VISIBILITY CHANGE HANDLING
-    // Keep connection alive for 30 seconds when tab is inactive
+    // Keep connection alive while tab is inactive (game runs in background)
     // ============================================
 
     function startKeepalive() {
         if (keepaliveInterval) return;
 
-        console.log('[Multiplayer] Tab hidden - starting keepalive for 30s');
-        hiddenTimestamp = Date.now();
+        console.log('[Multiplayer] Tab hidden - starting keepalive');
+
+        // Send immediate ping when going to background
+        if (socket && isConnected) {
+            socket.emit('ping_keepalive');
+        }
 
         keepaliveInterval = setInterval(() => {
-            const elapsed = Date.now() - hiddenTimestamp;
-
-            if (elapsed >= KEEPALIVE_DURATION) {
-                console.log('[Multiplayer] Keepalive duration exceeded, stopping');
-                stopKeepalive();
-                return;
-            }
-
             if (socket && isConnected) {
                 socket.emit('ping_keepalive');
             }
@@ -187,7 +181,6 @@
         if (keepaliveInterval) {
             clearInterval(keepaliveInterval);
             keepaliveInterval = null;
-            hiddenTimestamp = null;
             console.log('[Multiplayer] Keepalive stopped');
         }
     }
